@@ -157,7 +157,7 @@ exports.makeLoginSession = () => {
 
             await user.save()
             res.cookie(deviceIdSignedCookie, deviceId, {
-                httpOnly: true, secure: true, sameSite: 'none', maxAge: ms('2y') //signed
+                // httpOnly: true, secure: true, sameSite: 'none', maxAge: ms('2y') //signed
             })
         }
 
