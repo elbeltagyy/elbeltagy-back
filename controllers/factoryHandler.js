@@ -148,6 +148,7 @@ exports.makeLoginSession = () => {
 
         // if never login => create device ID
         if (!deviceId || user.devicesRegistered?.length === 0) {
+
             if (user.devicesRegistered.length === user.devicesAllowed) {
                 return next(createError("لقد تجاوزت عدد الاجهزه المسموح بالتسجيل بها", 401, statusTexts.FAILED))
             }
@@ -156,7 +157,7 @@ exports.makeLoginSession = () => {
 
             await user.save()
             res.cookie(deviceIdSignedCookie, deviceId, {
-                httpOnly: true, secure: true, sameSite: 'strict', maxAge: ms('2y'), signed: true
+                httpOnly: true, secure: true, sameSite: 'none', maxAge: ms('2y'), signed: true
             })
         }
 
@@ -191,7 +192,7 @@ exports.makeLoginSession = () => {
         await SessionModel.create(session)
 
         res.cookie('refreshToken', refreshToken, {
-            httpOnly: true, secure: true, sameSite: 'strict', maxAge: ms(process.env.REFRESH_TOKEN_LIFE), signed: true
+            httpOnly: true, secure: true, sameSite: 'none', maxAge: ms(process.env.REFRESH_TOKEN_LIFE), signed: true
         })
 
         return res.status(200).json({ status: statusTexts.SUCCESS, values: { ...userDoc, token: accessToken }, message: "تم تسجيل الدخول بنجاح." })
