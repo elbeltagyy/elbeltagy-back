@@ -43,7 +43,7 @@ app.use(device.capture());
 
 app.use(cors(
     {
-        origin: ['https://online-platform-eight.vercel.app', 'http://localhost:3000'],
+        origin: ['https://elbeltagy-front.vercel.app', 'http://localhost:3000'],
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
         credentials: true
     }
