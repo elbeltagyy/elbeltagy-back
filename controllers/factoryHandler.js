@@ -144,7 +144,7 @@ exports.makeLoginSession = () => {
         const deviceIdSignedCookie = '_me' + '_' + user.userName
 
         // recorded devices
-        let deviceId = req.signedCookies[deviceIdSignedCookie]  //true or false
+        let deviceId = req.cookies[deviceIdSignedCookie]  //true or false //signedCookies
 
         // if never login => create device ID
         if (!deviceId || user.devicesRegistered?.length === 0) {
@@ -157,7 +157,7 @@ exports.makeLoginSession = () => {
 
             await user.save()
             res.cookie(deviceIdSignedCookie, deviceId, {
-                httpOnly: true, secure: true, sameSite: 'none', maxAge: ms('2y'), signed: true
+                httpOnly: true, secure: true, sameSite: 'none', maxAge: ms('2y') //signed
             })
         }
 

@@ -99,8 +99,8 @@ const signup = asyncHandler(async (req, res, next) => {
 
 const logout = asyncHandler(async (req, res, next) => {
 
-    if (req.signedCookies.refreshToken) {
-        const refreshToken = req.signedCookies.refreshToken
+    if (req.cookies.refreshToken) { //signedCookies
+        const refreshToken = req.cookies.refreshToken ////signedCookies
         const session = await SessionModel.findOne({ refreshToken })
 
         await clearTokens(req, res)

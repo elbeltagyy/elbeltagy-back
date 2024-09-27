@@ -23,7 +23,7 @@ router.post('/signup', upload.single('fileConfirm'), signupSchema(), expressVali
 router.get('/logout', logout)
 
 router.get("/refresh", expressAsyncHandler(async (req, res, next) => {
-    const refreshToken = req.signedCookies?.refreshToken
+    const refreshToken = req.cookies?.refreshToken //signedCookies
 
     const storedToken = await SessionModel.findOne({ refreshToken })
 
