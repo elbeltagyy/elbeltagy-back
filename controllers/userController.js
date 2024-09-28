@@ -156,7 +156,7 @@ const updateUserProfile = asyncHandler(async (req, res, next) => {
 
         if (result) {
             const { original_filename, resource_type, secure_url, url, format, bytes } = result
-            avatar = { original_filename, resource_type, secure_url, url, format, size: bytes }
+            avatar = { original_filename, resource_type, url: secure_url, format, size: bytes }
         }
     }
     //avater

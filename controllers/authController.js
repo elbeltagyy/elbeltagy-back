@@ -77,7 +77,7 @@ const signup = asyncHandler(async (req, res, next) => {
 
         if (result) {
             const { original_filename, resource_type, secure_url, url, format, bytes } = result
-            fileConfirm = { original_filename, resource_type, secure_url, url, format, size: bytes }
+            fileConfirm = { original_filename, resource_type, url: secure_url, format, size: bytes }
             user.fileConfirm = fileConfirm
         }
     }
@@ -99,25 +99,25 @@ const signup = asyncHandler(async (req, res, next) => {
 
 const logout = asyncHandler(async (req, res, next) => {
 
-    if (req.cookies.refreshToken) { //signedCookies
-        const refreshToken = req.cookies.refreshToken ////signedCookies
-        const session = await SessionModel.findOne({ refreshToken })
+    // if (req.cookies.refreshToken) { //signedCookies
+    const refreshToken = req.cookies?.refreshToken ////signedCookies
+    const session = await SessionModel.findOne({ refreshToken })
 
-        await clearTokens(req, res)
+    await clearTokens(req, res)
 
-        if (session) {
-            const nowDate = new Date()
+    if (session) {
+        const nowDate = new Date()
 
-            session.logout = nowDate
-            await session.save()
+        session.logout = nowDate
+        await session.save()
 
-            return res.status(204).json()
-        } else {
-            return next(createError('Something went wrong', 500, statusTexts.FAILED, true))
-        }
-
+        return res.status(204).json()
     } else {
         return next(createError('Something went wrong', 500, statusTexts.FAILED, true))
     }
+
+    // } else {
+    //     return next(createError('Something went wrong', 500, statusTexts.FAILED, true))
+    // }
 })
 module.exports = { login, signup, logout }
