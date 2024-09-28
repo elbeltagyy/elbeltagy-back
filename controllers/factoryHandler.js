@@ -192,7 +192,7 @@ exports.makeLoginSession = () => {
         await SessionModel.create(session)
 
         res.cookie('refreshToken', refreshToken, {
-            httpOnly: true, secure: true, sameSite: 'none', maxAge: ms(process.env.REFRESH_TOKEN_LIFE), signed: true
+            httpOnly: true, secure: true, sameSite: 'none', maxAge: ms(process.env.REFRESH_TOKEN_LIFE), // signed = true
         })
 
         return res.status(200).json({ status: statusTexts.SUCCESS, values: { ...userDoc, token: accessToken }, message: "تم تسجيل الدخول بنجاح." })
