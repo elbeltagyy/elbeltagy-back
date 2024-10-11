@@ -1,4 +1,4 @@
-const { getUsersCount, getUnitsCount, getCoursesCount, getLecturesCount } = require("../controllers/statisticsController")
+const { getUsersCount, getUnitsCount, getCoursesCount, getLecturesCount, getSubscriptionsCount } = require("../controllers/statisticsController")
 
 const router = require("express").Router()
 
@@ -11,8 +11,10 @@ router.route("/units")
 router.route("/courses")
     .get(getCoursesCount)
 
-    router.route("/lectures")
+router.route("/lectures")
     .get(getLecturesCount)
 
-    
+router.route("/subscriptions")
+    .get(getSubscriptionsCount)
+
 module.exports = router

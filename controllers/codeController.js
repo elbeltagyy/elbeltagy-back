@@ -20,7 +20,10 @@ const codeParams = (query) => {
 
 const getCodes = getAll(CodeModel, 'codes', codeParams, 'usedBy')
 const getOneCode = getOne(CodeModel)
+const createCode = insertOne(CodeModel)
 
+const updateCode = updateOne(CodeModel)
+const deleteCode = deleteOne(CodeModel)
 
 // @desc recharge code
 // @route POST /codes/verify
@@ -70,12 +73,13 @@ const verifyCode = expressAsyncHandler(async (req, res, next) => {
     }
 })
 
-const createCode = insertOne(CodeModel)
+const getUserUsedCodes = expressAsyncHandler(async (req, res, next) => {
+    const user = req.user
+    const codes = await CodeModel.find({ usedBy: { $in: [user._id] } }).lean().select('-usedBy')
+    res.status(200).json({ values: codes })
+})
 
-const updateCode = updateOne(CodeModel)
-const deleteCode = deleteOne(CodeModel)
 
 
 
-
-module.exports = { getCodes, verifyCode, getOneCode, createCode, updateCode, deleteCode }
+module.exports = { getCodes, verifyCode, getUserUsedCodes, getOneCode, createCode, updateCode, deleteCode }

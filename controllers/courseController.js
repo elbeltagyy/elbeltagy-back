@@ -1,5 +1,18 @@
+const expressAsyncHandler = require("express-async-handler");
 const CourseModel = require("../models/CourseModel");
 const { getAll, getOne, insertOne, updateOne, deleteOne } = require("./factoryHandler");
+const { addToCloud } = require("../middleware/cloudinary");
+const mongoose = require('mongoose');
+const LectureModel = require("../models/LectureModel");
+const UserCourseModel = require("../models/UserCourseModel");
+const { user_roles } = require("../tools/constants/rolesConstants");
+const { SUCCESS, FAILED } = require("../tools/statusTexts");
+const createError = require("../tools/createError");
+const sectionConstants = require("../tools/constants/sectionConstants");
+const UserModel = require("../models/UserModel");
+const ExamModel = require("../models/ExamModel");
+const AttemptModel = require("../models/AttemptModel");
+const getAttemptMark = require("../tools/getAttemptMark");
 
 
 
@@ -15,14 +28,278 @@ const coursesParams = (query) => {
         { key: "index", value: query.index, operator: "equal" },
     ]
 }
-
-const getCourses = getAll(CourseModel, 'courses', coursesParams)
-const getOneCourse = getOne(CourseModel)
-
 const createCourse = insertOne(CourseModel, true)
+const getCourses = getAll(CourseModel, 'courses', coursesParams) //user admin
+const getOneCourse = getOne(CourseModel, 'linkedTo', [
+    { path: 'linkedTo', select: 'name _id' }
+])
 const updateCourse = updateOne(CourseModel)
 const deleteCourse = deleteOne(CourseModel)
 
+// @desc push course
+// @route POST /content/courses/:id/link
+// @access Private   ==> admin/subAdmin
+const linkCourse = expressAsyncHandler(async (req, res, next) => {
+    const courseId = req.params.id
+    const linkers = req.body.linkers
 
-module.exports = { getCourses, getOneCourse, createCourse, updateCourse, deleteCourse, coursesParams }
+    const updateCourse = await CourseModel.findByIdAndUpdate(
+        courseId,
+        { linkedTo: linkers, isLinked: linkers.length !== 0 ? true : false },
+        { new: true }
+    )
+
+    res.status(200).json({ values: updateCourse, status: SUCCESS, message: 'تم التعديل بنجاح' })
+})
+
+const uploadCourseImg = expressAsyncHandler(async (req, res, next) => {
+
+    const thumbnail = req.file
+
+    if (thumbnail) {
+        const uploadedThumbnail = await addToCloud(thumbnail, {
+            folder: 'courses',
+            resource_type: "auto"
+        })
+        req.body.thumbnail = uploadedThumbnail
+    } else {
+        return next(createError("يجب ارفاق صوره للكورس", 404, FAILED))
+    }
+
+    // if (req.body?.linkedTo?.length !== 0) {
+    //     req.body.linkedTo = JSON.parse(req.body.linkedTo).map(id => new mongoose.Types.ObjectId(id));
+    // }
+    next()
+})
+
+// @desc get one user 
+// @route get /content/courses/:index/lectures
+// @access Public   ==> admin/user/subAdmin/not
+const getCourseLecturesAndCheckForUser = expressAsyncHandler(async (req, res, next) => {
+    const index = req.params.id
+    const user = req.user
+
+    const course = await CourseModel.findOne({ index }).lean()
+    const courseId = course._id
+
+    const userCourse = await UserCourseModel.findOne({ course: courseId, user: user?._id }).lean()
+
+    const populate = [
+        {
+            path: 'video',
+            select: 'duration', // Only select the `duration` field from the `video`
+        },
+        {
+            path: 'exam',
+            select: 'questions attemptsNums time', // Select `questions` field from `exam`
+        }
+    ];
+
+    if (userCourse) {
+        //he is subscribed and has payed
+        course.isSubscribed = true
+        course.subscribedAt = userCourse.createdAt
+    } else {
+        course.isSubscribed = false
+    }
+
+
+    let lectures = await LectureModel.find({ course: { $in: [...course.linkedTo, courseId] }, isActive: true }).populate(populate).lean()
+
+    lectures.map((lecture, i) => {
+        lecture.index = i + 1
+        if (lecture.sectionType === sectionConstants.EXAM) {
+            lecture.exam.questionsLength = lecture.exam.questions.length
+            delete lecture.exam.questions
+        }
+    })
+    if (userCourse) {
+        //lock lectures
+        lectures.map(lecture => {
+            if (lecture.sectionType === sectionConstants.EXAM) {
+                //info
+            }
+            if (userCourse.currentIndex < lecture.index) {
+                console.log('from calc')
+                lecture.locked = true
+            }
+            return lecture
+        })
+    }
+
+    //video => duration
+    //exam => duration, questions nums, attempt nums, 
+    return res.status(200).json({ status: SUCCESS, values: { lectures, course, currentIndex: userCourse?.currentIndex || 0 } })
+})
+
+//@desc user Subscribe to course
+//@routes GET /content/courses/:id/subscribe
+//@access Private   ==> user
+const subscribe = expressAsyncHandler(async (req, res, next) => {
+    const user = req.user
+    const courseId = req.params.id
+
+    const isUserSubscribed = await UserCourseModel.findOne({ user: user._id, course: courseId })
+    if (isUserSubscribed) {
+        return next(createError('انت بالفعل مشترك بالكورس', 400, FAILED))
+    }
+
+
+    const course = await CourseModel.findById(courseId).lean()
+    if (course?.price > user.wallet) {  //course.discount
+        return next(createError('المحفظه لا تكفى, بالرجاء شحن مبلغ ' + (course.price - user.wallet) + ' جنيه', 400, FAILED))
+    }
+
+    user.wallet = user.wallet - course.price
+
+    const userCourse = await UserCourseModel.create({
+        user: user._id,
+        course: courseId
+    })
+
+    await UserModel.updateOne({ _id: user._id }, {
+        $push: { courses: courseId },
+        $set: { wallet: user.wallet }
+    })
+
+    //send Lectures #################
+    const populate = [
+        {
+            path: 'video',
+            select: 'duration', // Only select the `duration` field from the `video`
+        },
+        {
+            path: 'exam',
+            select: 'questions attemptsNums time', // Select `questions` field from `exam`
+        }
+    ];
+
+    course.isSubscribed = true
+    course.subscribedAt = userCourse.createdAt
+
+    let lectures = await LectureModel.find({ course: { $in: [...course.linkedTo, courseId] }, isActive: true }).populate(populate)
+    //index and exam
+    lectures.map((lecture, i) => {
+        lecture.index = i + 1
+        if (lecture.sectionType === sectionConstants.EXAM) {
+            lecture.exam.questionsLength = lecture.exam.questions.length
+            delete lecture.exam.questions
+        }
+    })
+    //lock lectures
+    let lockNext = false
+    lectures.map(lecture => {
+
+        if (lecture.isMust || lockNext) {
+            if (userCourse.currentIndex < lecture.index) {
+                lecture.locked = true
+                lockNext = true
+            }
+            return lecture
+        }
+        return lecture
+    })
+
+    res.status(200).json({ status: SUCCESS, values: { course, lectures, currentIndex: userCourse.currentIndex, wallet: user.wallet }, message: 'تم الاشتراك بنجاح فى كورس ' + course.name })
+})
+
+//@desc Lecture for subscribed user and populate it
+//@routes GET /content/courses/:id/lectures/:lectureId
+//@access Private   ==> user
+const getLectureAndCheck = expressAsyncHandler(async (req, res, next) => {
+    const user = req.user
+    const lectureId = req.params.lectureId
+    const courseIndex = req.params.id
+
+    const course = await CourseModel.findOne({ index: courseIndex }).select('_id').lean()
+    const userCourse = await UserCourseModel.findOne({
+        user: user._id, course: course._id
+    }).lean()
+
+    if (!userCourse) {
+        return next(createError("انت غير مشترك", 401, FAILED))
+    }
+
+    const lecture = await LectureModel.findById(lectureId).lean().populate('exam video file link')
+    if (lecture.exam) {
+        const userAttempts = await AttemptModel.find({ exam: lecture.exam._id, user: user._id }).lean()
+        lecture.exam.attempts = userAttempts
+    }
+
+    res.status(200).json({ ...lecture })
+})
+
+//@desc pass lecture and make user current index of course = nextIndex
+//@routes POST /content/courses/:id/lectures/:id/passed
+//@access Private   ==> user
+const lecturePassed = expressAsyncHandler(async (req, res, next) => {
+    const courseId = req.params.id
+    const nextLectureIndex = req.body.nextLectureIndex
+    const user = req.user._id
+
+    const userCourse = await UserCourseModel.findOne({ user, course: courseId })
+    if (!userCourse) return next(createError('انت غير مشترك', 400, FAILED))
+
+    userCourse.currentIndex = nextLectureIndex
+    await userCourse.save()
+    return res.json({ message: 'لقد تم الاجتياز بنجاح' })
+})
+
+// ########## EXAM ##############
+
+//@desc get exam for doing it
+//@routes Get /content/courses/:id/exams/:examId
+//@access Private   ==> user
+const getExam = expressAsyncHandler(async (req, res, next) => {
+
+    const course = req.params.id
+    const exam = req.params.examId
+    const user = req.user._id
+
+    const userCourse = await UserCourseModel.findOne({ user, course }).lean()
+    if (!userCourse) return next(createError("انت غير مشترك", 400, FAILED))
+
+    const foundExam = await ExamModel.findById(exam).lean().select('-questions.rtOptionId')
+    const attempts = foundExam.attemptsNums
+
+    const userAttempts = await AttemptModel.countDocuments({ user, course })
+    if (userAttempts === attempts) return createError("لقد استنفزت كل محاولاتك", 400, FAILED)
+
+
+    //attempts check
+    res.json({ values: foundExam })
+})
+
+//@desc add user attempt
+//@routes POST /content/courses/:id/exams/:id/attempts
+//@access Private   ==> user
+const createAttempt = expressAsyncHandler(async (req, res, next) => {
+    const attempt = req.body
+    const user = req.user
+
+    const exam = await ExamModel.findById(attempt.exam).lean()
+    if (!exam) return next(createError('لا يوجد هذا الاختبار', 404, FAILED))
+
+    const score = getAttemptMark(exam, attempt.chosenOptions)
+
+    attempt.mark = score
+    user.totalPoints += score
+
+    //update user and exam
+    const [updatedUser] = await Promise.all([
+        await UserModel.findByIdAndUpdate(
+            user._id,
+            { $addToSet: { exams: exam._id }, totalPoints: user.totalPoints }, // $addToSet prevents duplicates
+            { new: true } // returns the updated user
+        ), await AttemptModel.create(attempt)])
+
+    //elevate user current index in course
+    res.status(201).json({ status: SUCCESS, values: updatedUser.totalPoints, message: "تم الانتهاء من الاختبار بنجاح" })
+})
+
+module.exports = {
+    getCourses, getOneCourse, uploadCourseImg, createCourse, updateCourse, deleteCourse, coursesParams,
+    getCourseLecturesAndCheckForUser, getLectureAndCheck, lecturePassed, subscribe,
+    getExam, createAttempt, linkCourse
+}
 

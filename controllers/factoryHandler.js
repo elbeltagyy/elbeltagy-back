@@ -11,19 +11,9 @@ const { generateRefreshToken } = require("../middleware/generateRefreshToken.js"
 const { generateAccessToken } = require("../middleware/generateAccessToken.js");
 const codeConstants = require("../tools/constants/codeConstants.js");
 const { user_roles } = require("../tools/constants/rolesConstants.js");
+const expressAsyncHandler = require("express-async-handler");
 
-// const params = [
-//     { key: "role", value: query.role },
-//     { key: "name", value: query.name },
-//     { key: "userName", value: query.userName },
-//     { key: "email", value: query.email },
-//     { key: "phone", value: query.phone },
-//     { key: "familyPhone", value: query.familyPhone },
-//     { key: "isActive", value: query.isActive, type: "boolean" },
-//     { key: "grade", value: query.grade, operator: "equal" },
-//     { key: "group", value: query.group, operator: "equal" },
-// ]
-exports.getAll = (Model, docName, params = [], populate = '') =>
+exports.getAll = (Model, docName, params = [], populate = '', isModernSort = false) =>
     asyncHandler(async (req, res) => {
 
         const query = req.query
@@ -39,7 +29,7 @@ exports.getAll = (Model, docName, params = [], populate = '') =>
         if (params.length > 0) {
             makeMatch(match, params(query))
         }
-        console.log(match)
+
         //find({course: {$in: [90, 80, 40]}})
         //sort 
         const sort = {}
@@ -49,9 +39,9 @@ exports.getAll = (Model, docName, params = [], populate = '') =>
         const select = query.select ? query.select : ""
 
         // //populate
-        // const populate = req.populate || ""
+        populate = req.populate || populate
 
-        const docs = await Model.find(match).select(select).populate(populate).limit(limit).skip(skip).sort(sort)
+        const docs = await Model.find(match).select(select).populate(populate).limit(limit).skip(skip).sort({ createdAt: isModernSort && -1, ...sort })
         const count = await Model.countDocuments(match)
 
         let values = {}
@@ -63,18 +53,20 @@ exports.getAll = (Model, docName, params = [], populate = '') =>
     });
 
 
-exports.getOne = (Model) =>
+exports.getOne = (Model, populate = '') =>
     asyncHandler(async (req, res, next) => {
         const { id } = req.params;
         const query = req.query
 
         //populate
-        const populate = req.query?.populate || ""
+        populate = req.query?.populate || populate
+
 
         //select
         const select = query.select ? query.select : ""
 
-        const doc = await Model.findById(id).populate(populate).select(select);
+        const doc = await Model.findById(id).populate(populate).select(select).lean();
+
         if (!doc) {
             return next('error');
         }
@@ -91,10 +83,10 @@ exports.insertOne = (Model, withIndex = false) =>
             const index = lastDoc?.index + 1 || 1
             req.body.index = index
             const doc = await Model.create(req.body);
-            return res.status(201).json({ status: statusTexts.SUCCESS, values: doc, message: 'doc has been created successfully' })
+            return res.status(201).json({ status: statusTexts.SUCCESS, values: doc, message: 'تم الانشاء بنجاح' })
         }
         const doc = await Model.create(req.body);
-        return res.status(201).json({ status: statusTexts.SUCCESS, values: doc, message: 'doc has been created successfully' })
+        return res.status(201).json({ status: statusTexts.SUCCESS, values: doc, message: 'تم الانشاء بنجاح' })
     });
 
 exports.updateOne = (Model) =>
@@ -114,15 +106,16 @@ exports.updateOne = (Model) =>
 exports.deleteOne = (Model) =>
     asyncHandler(async (req, res, next) => {
         const { id } = req.params;
+        console.log('id ==>', id)
         const document = await Model.findByIdAndDelete(id);
 
         if (!document) {
-            return next('no docs');
+            return next('لم يوجد');
         }
 
         // Trigger "remove" event when update document
-        await document.remove();
-        return res.status(200).json({ status: statusTexts.SUCCESS, message: 'doc has been deleted successfully' })
+        // await document.remove();
+        return res.status(200).json({ status: statusTexts.SUCCESS, message: 'تمت الازاله بنجاح' })
     });
 
 exports.getDocCount = (Model, params = []) =>
@@ -137,6 +130,25 @@ exports.getDocCount = (Model, params = []) =>
         const count = await Model.countDocuments(match)
         return res.status(200).json({ status: statusTexts.SUCCESS, values: { count } })
     });
+
+
+exports.filterById = (Model, params = [], idName) =>
+    asyncHandler(async (req, res, next) => {
+        const query = req.query
+
+        // search && filter
+        const match = {}
+        if (params.length > 0) {
+            makeMatch(match, params(query))
+        }
+        if (Object.entries(match).length > 0) {
+            console.log('match ==>', match)
+            const filteredId = await Model.findOne(match).select('_id').lean()
+            req.query[idName] = filteredId?._id
+            console.log("found ==>", filteredId)
+        }
+        next()
+    })
 
 exports.makeLoginSession = () => {
     return asyncHandler(async (req, res, next) => {
@@ -225,6 +237,8 @@ exports.useCode = async (code, user, next) => {
 }
 
 
+// in route('/', getAll) return as object so no middleware Fc
+// in route('/', getAll()) return from parent Fc
 
 // const activeSessions = await SessionModel.countDocuments({ user: userDoc._id, expiresAt: { $lt: new Date() }, logout: null })
 // if (activeSessions > user.devicesAllowed) return next(createError("حسابك تحت المراجعه, سيتم تفعيله فى اقل من 24 ساعه", 401, statusTexts.FAILED))

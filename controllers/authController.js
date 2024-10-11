@@ -68,18 +68,13 @@ const signup = asyncHandler(async (req, res, next) => {
 
     //file confirm
     const file = req.file
-    let fileConfirm = {}
     if (file) {
-        const result = await addToCloud(file, {
+        const fileConfirm = await addToCloud(file, {
             folder: 'filesConfirm',
             resource_type: "auto"
         })
 
-        if (result) {
-            const { original_filename, resource_type, secure_url, url, format, bytes } = result
-            fileConfirm = { original_filename, resource_type, url: secure_url, format, size: bytes }
-            user.fileConfirm = fileConfirm
-        }
+        user.fileConfirm = fileConfirm
     }
 
     if (foundCode) {

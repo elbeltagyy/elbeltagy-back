@@ -12,7 +12,7 @@ const courseSchema = new mongoose.Schema({
     description: { type: String, required: true },
     price: { type: Number, required: true },
     preDiscount: { type: Number },
-    isActive: { type: Boolean, required: true },
+    isActive: { type: Boolean, required: true, default: true },
 
     thumbnail: {
         original_filename: { type: String },
@@ -21,9 +21,9 @@ const courseSchema = new mongoose.Schema({
         resource_type: { type: String },
         format: { type: String }
     },
+
     isLinkedTo: { type: Boolean, default: false },
-    linkedTo: [{ type: mongoose.Schema.Types.ObjectId }]
-    // subscribers: [{type: mongoose.Schema.Types.ObjectId, ref: UserModel}]
+    linkedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: 'course', default: [] }]
 }, {
     timestamps: true,
     versionKey: false

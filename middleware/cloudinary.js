@@ -18,8 +18,17 @@ const addToCloud = (file, settings) => {
         try {
             const path = file.path
             const result = await cloudinary.uploader.upload(path, settings)
-            if (result) {
-                resolve(result)
+            const { original_filename, resource_type, secure_url, url, format, bytes } = result
+
+            const createdFile = {}
+            createdFile.original_filename = original_filename
+            createdFile.resource_type = resource_type + '/' + format
+            createdFile.url = secure_url
+            createdFile.size = bytes
+
+
+            if (createdFile) {
+                resolve(createdFile)
             }
         } catch (error) {
             reject(error)
@@ -53,50 +62,7 @@ const deleteFromCloud = (uri) => {
     })
 }
 
-// const addToVimeo = (file) => {
-//     return new Promise(async (resolve, reject) => {
-//         try {
-//             const VIMEO_ACCESS_TOKEN = process.env.VIMEO_ACCESS_TOKEN
-//             console.log('from here ')
-//             const response = await axios.post(
-//                 "https://api.vimeo.com/me/videos",
-//                 {
-//                     upload: {
-//                         approach: "tus",
-//                         size: `${file.size}`,
-//                     },
-//                 },
-//                 {
-//                     headers: {
-//                         Authorization: `Bearer ${VIMEO_ACCESS_TOKEN}`,
-//                         "Content-Type": "application/json",
-//                         Accept: "application/vnd.vimeo.*+json;version=3.4",
-//                     },
-//                 },
-//             );
-//             console.log('from here ', response)
-
-//             const uploadLink = response.data.upload.upload_link;
-
-//             console.log('upload link ==>', uploadLink)
-
-//             await axios.patch(uploadLink, file.buffer, {
-//                 headers: {
-//                     "Content-Type": "application/offset+octet-stream",
-//                     "Upload-Offset": "0",
-//                     "Tus-Resumable": "1.0.0",
-//                 },
-//             });
-
-//             resolve({ res: response.data, file })
-
-//         } catch (error) {
-//             console.log('eerror', error)
-//             reject(error)
-//         }
-//     })
-// }
-
+//    
 const addToVimeo = (file) => {
 
     return new Promise(async (resolve, reject) => {

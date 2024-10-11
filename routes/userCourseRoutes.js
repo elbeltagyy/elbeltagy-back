@@ -1,19 +1,19 @@
-const { getAllUsersCourses, subscribe, getUserCourses, getOneUserCourse } = require("../controllers/userCourseController")
+const { filterById } = require("../controllers/factoryHandler")
+const { userParams, getUsers } = require("../controllers/userController")
+const { getCourseSubscriptions, addSubscription, removeSubscription } = require("../controllers/userCourseController")
 const verifyToken = require("../middleware/verifyToken")
+const UserModel = require("../models/UserModel")
 
 const router = require("express").Router()
 
 router.route("/courses")
-    .get(verifyToken, getUserCourses)
+    .get(filterById(UserModel, userParams, 'user'), getCourseSubscriptions) //verifyToken(),
+    .post(addSubscription)
 
-router.route("/courses/:courseId")
-    .get(verifyToken, getOneUserCourse)
+router.route("/courses/:id")
+    .delete(removeSubscription)
 
-router.route("/users")
-    .get(getAllUsersCourses)
-
-router.route("/subscribe")
-    .post(verifyToken, subscribe)
-
+// router.route("/users/:userId")
+//     .get(verifyToken(), getUsers)
 
 module.exports = router

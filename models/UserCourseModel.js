@@ -7,7 +7,9 @@ const CourseModel = require("./CourseModel")
 
 const userCourseSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: UserModel },
-    course: { type: mongoose.Schema.Types.ObjectId, ref: CourseModel }
+    course: { type: mongoose.Schema.Types.ObjectId, ref: CourseModel },
+    currentIndex: { type: Number, default: 1 },
+    // views: { type: Number }, timesWatching: { type: Number }
 }, {
     timestamps: true,
     versionKey: false

@@ -4,6 +4,8 @@ const gradeConstants = require("../tools/constants/gradeConstants")
 const GroupModel = require("./GroupModel")
 
 const governments = require("../tools/constants/governments")
+const CourseModel = require("./CourseModel")
+const ExamModel = require("./ExamModel")
 
 const governDefault = 4
 
@@ -12,11 +14,9 @@ const userSchema = new mongoose.Schema({
     // group: { type: mongoose.Schema.Types.ObjectId, ref: GroupModel }, // none => online
     name: { type: String },
     avatar: {
-        original_filename: { type: String },
         url: { type: String },
         size: { type: Number },
         resource_type: { type: String },
-        format: { type: String }
     },
     userName: { type: String, unique: true }, // as code | phone | userName
     email: { type: String, required: false },
@@ -40,9 +40,9 @@ const userSchema = new mongoose.Schema({
         resource_type: { type: String },
         format: { type: String }
     },
-    courses: [], //50
-    exams: [] // 150
-    // attempts: [], //150
+    totalPoints: { type: Number, default: 0 },
+    courses: [{ type: mongoose.Schema.Types.ObjectId, ref: CourseModel, select: false }], //50
+    exams: [{ type: mongoose.Schema.Types.ObjectId, ref: ExamModel, select: false }] // 150
     // totalPoints: { type: Number, default: 0 },  // only have group or ...
 }, {
     timestamps: true,

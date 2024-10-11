@@ -23,8 +23,10 @@ const userParams = (query) => {
         { key: "isActive", value: query.isActive, type: "boolean" },
         { key: "grade", value: query.grade, operator: "equal" },
         { key: "group", value: query.group, operator: "equal" },
+        { key: "courses", value: query.courses, type: "array" },
+        { key: "exams", value: query.exams, type: "array" },
     ]
-}
+} //modify it to be more frontend
 
 // @desc get all user
 // @route GET /users
@@ -149,15 +151,10 @@ const updateUserProfile = asyncHandler(async (req, res, next) => {
     let avatar = {}
 
     if (file) {
-        const result = await addToCloud(file, {
+        avatar = await addToCloud(file, {
             folder: userName,
             resource_type: "auto"
         })
-
-        if (result) {
-            const { original_filename, resource_type, secure_url, url, format, bytes } = result
-            avatar = { original_filename, resource_type, url: secure_url, format, size: bytes }
-        }
     }
     //avater
 

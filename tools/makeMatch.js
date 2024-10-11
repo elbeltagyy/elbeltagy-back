@@ -5,31 +5,24 @@ const makeMatch = (match, params) => {
     if (params.length === 0) return match
 
     params?.map(param => {
-        if (param.type === 'populated' && param.value) {
-            // const aggregate = [
-            //     {
-            //         $lookup: {
-            //             from: 'users', // Name of the users collection
-            //             localField: 'user', // The field in the sessions collection
-            //             foreignField: '_id', // The field in the users collection
-            //             as: 'userInfo' // The resulting user data will be in this array
-            //         }
-            //     },
-            //     {
-            //         $unwind: '$userInfo' // Flatten the array so each session has a user object
-            //     },
-            //     {
-            //         $match: { 'userInfo.username': username } // Filter sessions by username
-            //     },
-            //     {
-            //         $project: {
-            //             userInfo: 0 // Optionally, remove the user info if you only want session data
-            //         }
-            //     }
-            // ]
+        if (String(param.value).includes("_split_")) {
+            const valueSplitted = param.value.split("_split_")
+            param.operator = valueSplitted[0]
+            param.value = valueSplitted[1] || ''
+            console.log(param.operator)
         }
 
-        if (param?.value?.startsWith('!')) {
+
+        if (param.type === 'array') {
+            if (param.operator === '=!' || param.operator === '!=') {
+                param.value ? match[param.key] = { $nin: [param.value] } : null
+            } else {
+                param.value ? match[param.key] = { $in: [param.value] } : null
+            }
+            return
+        }
+
+        if (typeof param?.value === 'string' && param?.value?.startsWith('!')) {
             param.value ? match[param.key] = { $ne: param.value.split("!")[1] } : null
             return
         }
@@ -39,11 +32,22 @@ const makeMatch = (match, params) => {
         }
 
         if (param.type === "number") {
-            param.value ? match[param.key] = Number(param.value) : null
+
+            if (param.operator === '>=') {
+                param.value ? match[param.key] = { $gte: Number(param.value) } : null
+            } else if (param.operator === '<=') {
+                param.value ? match[param.key] = { $lte: Number(param.value) } : null
+            } else if (param.operator === '>') {
+                param.value ? match[param.key] = { $gt: Number(param.value) } : null
+            } else if (param.operator === '<') {
+                param.value ? match[param.key] = { $lt: Number(param.value) } : null
+            } else if (param.operator === '=!' || param.operator === '!=') {
+                param.value ? match[param.key] = { $ne: Number(param.value) } : null
+            } else {
+                param.value ? match[param.key] = Number(param.value) : null
+            }
             return
         }
-
-
         if (param.operator === "equal") {
             param.value && param.value !== "All" && param.value !== "all"
                 ? match[param.key] = param.value : null
@@ -57,7 +61,11 @@ const makeMatch = (match, params) => {
 
     return match
 }
-
+// else if (param.operator === 'inArray') {
+//     console.log(param.value)
+//     param.value ? match[param.key] = { $in: param.value || [] } : null
+//     return
+// } 
 const addQuery = (match, param) => {
     return match[param.key] = param.value
 }

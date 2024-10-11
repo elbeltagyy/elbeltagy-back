@@ -12,7 +12,7 @@ const errorrHandler = ((err, req, res, next) => {
     const statusCode = err?.statusCode || err?.error?.statusCode || 500
     // console.log(err)
     const message = err.message || err.error?.message || "connection confused"
-
+    //(err.message.startsWith('Cast to')) && 'Bad Data' ||
     if (err.generated) {
         delete err.generated
         res.status(statusCode).json({ ...err })

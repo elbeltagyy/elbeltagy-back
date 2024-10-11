@@ -3,6 +3,9 @@ const { addToVimeo } = require("../middleware/cloudinary")
 const upload = require("../middleware/storage")
 const UserModel = require("../models/UserModel")
 const UAParser = require('ua-parser-js');
+const verifyToken = require("../middleware/verifyToken");
+const allowedTo = require("../middleware/allowedTo");
+const { user_roles } = require("../tools/constants/rolesConstants");
 
 const router = require("express").Router()
 
@@ -15,7 +18,7 @@ router.post("/", upload.single('file'), expressAsyncHandler(async (req, res, nex
     res.json(video)
 }))
 
-router.get("/", async (req, res, next) => {
+router.get("/", verifyToken(true), async (req, res, next) => {
     try {
         // Get the user-agent string from the request headers
         const userAgent = req.headers['user-agent'];

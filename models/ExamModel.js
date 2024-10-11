@@ -2,10 +2,10 @@ const mongoose = require("mongoose")
 
 const examSchema = new mongoose.Schema({
     total: { type: Number },
-    time: { type: Number, default: (15 * 60) }, //seconds
-    isActive: { type: Boolean, default: true },
+    time: { type: String, default: '15m' }, //seconds
+    // isActive: { type: Boolean, default: true },
     dateStart: { type: Date },
-    dateEnd: { type: Date },
+    showAnswersDate: { type: Date },
     dateAnswers: { type: Date },
     isShowAnswers: { type: Boolean, default: true },
     attemptsNums: { type: Number, default: 1 },
@@ -14,6 +14,11 @@ const examSchema = new mongoose.Schema({
         hints: { type: String },
         rtOptionId: { type: String },
         points: { type: Number, default: 1 },
+        image: {
+            url: { type: String },
+            size: { type: Number },
+            resource_type: { type: String },
+        },
         options: [{
             id: { type: String },
             title: { type: String },

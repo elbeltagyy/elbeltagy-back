@@ -1,4 +1,6 @@
 module.exports = {
-    SERVER: 'server',
-    YOUTUBE: 'youtube'
+    SERVER: 'رفع على السيرفر',
+    YOUTUBE: 'لينك اليوتيوب',
+    BUNNY: 'bunny',
+    BUNNY_UPLOAD: 'bunny رفع على',
 }

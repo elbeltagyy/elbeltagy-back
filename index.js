@@ -9,13 +9,13 @@ const { default: mongoose } = require("mongoose")
 var cookieParser = require('cookie-parser')
 const crypto = require('crypto')
 var device = require('express-device');
+const path = require('path')
+
 
 // get fc routes
 const verifyToken = require("./middleware/verifyToken")
 const createError = require("./tools/createError")
-
 const { notFound, errorrHandler } = require("./middleware/errorsHandler")
-
 const testRoutes = require("./routes/testRoutes")
 
 const authRoutes = require("./routes/authRoutes")
@@ -40,10 +40,9 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(device.capture());
 
-
 app.use(cors(
     {
-        origin: ['https://elbeltagy-front.vercel.app', 'http://localhost:3000'],
+        origin: ['https://elbeltagy-front.vercel.app', 'http://localhost:3000', 'http://192.168.1.16:3000'],
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
         credentials: true
     }
@@ -65,19 +64,20 @@ app.use("/api/codes", codeRoutes)
 app.use("/api/content/units", unitRoutes)
 app.use("/api/content/courses", courseRoutes)
 app.use("/api/content/lectures", lecturesRoutes)
+app.use("/api/attempts", require('./routes/attemptRoutes'))
 
-app.use("/api/user_courses", userCourseRoutes)
+app.use("/api/subscriptions", userCourseRoutes)
 app.use("/api/statistics", statisticsRoutes)
 
-
+app.use('/api/files', require('./routes/fileRoutes'))
 app.get("/test", testRoutes)
 
 
 // for secure folders
-app.use("/secure", verifyToken, (req, res, next) => {
+app.use("/storage/secure", verifyToken(false), (req, res, next) => {
     next()
 })
-app.use("/secure", express.static("secure"))
+app.use("/storage", express.static(path.join(__dirname, 'storage')))
 
 // for errors 
 app.use(notFound)

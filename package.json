@@ -31,6 +31,7 @@
     "express-async-handler": "^1.2.0",
     "express-device": "^0.4.2",
     "express-validator": "^7.2.0",
+    "file-type": "^19.5.0",
     "firebase-admin": "^11.11.1",
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.0",

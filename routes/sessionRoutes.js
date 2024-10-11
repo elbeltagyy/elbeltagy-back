@@ -7,6 +7,6 @@ router.route("/")
     .get(getSessions)
 
 router.route("/:sessionId/logout")
-    .post(verifyToken, sessionLogout)
+    .post(verifyToken(), sessionLogout)
 
 module.exports = router

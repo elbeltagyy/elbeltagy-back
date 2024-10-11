@@ -8,16 +8,16 @@ const router = require("express").Router()
 // router.get("/check", isUser)
 router.route("/")
     // .get(verifyToken, allowedTo(user_roles.ADMIN), getUsers)
-    .get(verifyToken, getUsers)
-    .post(verifyToken, allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), createUser)
+    .get(verifyToken(), getUsers)
+    .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), createUser)
 
 router.route("/:id")
     .put(updateUser)
-    .patch(verifyToken, upload.single("avatar"), updateUserProfile)
-    .delete(verifyToken, allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), deleteUser)
+    .patch(verifyToken(), upload.single("avatar"), updateUserProfile)
+    .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), deleteUser)
 
 router.route("/:userName")
-    .get(verifyToken, getByUserName)
+    .get(verifyToken(), getByUserName)
 // manage user
 
 

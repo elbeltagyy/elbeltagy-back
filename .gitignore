@@ -2,3 +2,5 @@
 .env
 .firebase
 /firebase
+.storage
+/storage
