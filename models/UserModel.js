@@ -25,13 +25,13 @@ const userSchema = new mongoose.Schema({
     familyPhone: { type: String },
     isActive: { type: Boolean, default: true },
     role: {
-        type: String, default: user_roles.ONLINE,
+        type: String, default: user_roles.ONLINE, required: true,
         enum: [user_roles.ADMIN, user_roles.SUBADMIN, user_roles.STUDENT, user_roles.ONLINE, user_roles.INREVIEW]
     },
     government: { type: Number, enum: governments.map(g => Number(g.id)), default: governDefault },
 
     devicesAllowed: { type: Number, default: 3 }, // max 2
-    devicesRegistered: [{ type: String }],
+    devicesRegistered: [{ type: String, default: [] }],
     wallet: { type: Number, default: 0 },
     fileConfirm: {
         original_filename: { type: String },

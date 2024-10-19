@@ -1,7 +1,7 @@
 const expressAsyncHandler = require("express-async-handler");
 const CourseModel = require("../models/CourseModel");
 const { getAll, getOne, insertOne, updateOne, deleteOne } = require("./factoryHandler");
-const { addToCloud } = require("../middleware/cloudinary");
+const { addToCloud } = require("../middleware/upload/cloudinary");
 const mongoose = require('mongoose');
 const LectureModel = require("../models/LectureModel");
 const UserCourseModel = require("../models/UserCourseModel");
@@ -13,7 +13,9 @@ const UserModel = require("../models/UserModel");
 const ExamModel = require("../models/ExamModel");
 const AttemptModel = require("../models/AttemptModel");
 const getAttemptMark = require("../tools/getAttemptMark");
-
+const { ObjectId } = require('mongodb');
+const { uploadFile } = require("../middleware/upload/uploadFiles");
+const lockLectures = require("../tools/lockLectures");
 
 
 const coursesParams = (query) => {
@@ -29,7 +31,7 @@ const coursesParams = (query) => {
     ]
 }
 const createCourse = insertOne(CourseModel, true)
-const getCourses = getAll(CourseModel, 'courses', coursesParams) //user admin
+const getCourses = getAll(CourseModel, 'courses', coursesParams, false) //user admin
 const getOneCourse = getOne(CourseModel, 'linkedTo', [
     { path: 'linkedTo', select: 'name _id' }
 ])
@@ -57,18 +59,16 @@ const uploadCourseImg = expressAsyncHandler(async (req, res, next) => {
     const thumbnail = req.file
 
     if (thumbnail) {
-        const uploadedThumbnail = await addToCloud(thumbnail, {
+        const uploadedThumbnail = await uploadFile(thumbnail, {
             folder: 'courses',
-            resource_type: "auto"
+            resource_type: "auto",
+            secure: true,
+            name: req.body?.name
         })
         req.body.thumbnail = uploadedThumbnail
     } else {
-        return next(createError("يجب ارفاق صوره للكورس", 404, FAILED))
+        delete req.body.thumbnail
     }
-
-    // if (req.body?.linkedTo?.length !== 0) {
-    //     req.body.linkedTo = JSON.parse(req.body.linkedTo).map(id => new mongoose.Types.ObjectId(id));
-    // }
     next()
 })
 
@@ -79,57 +79,13 @@ const getCourseLecturesAndCheckForUser = expressAsyncHandler(async (req, res, ne
     const index = req.params.id
     const user = req.user
 
-    const course = await CourseModel.findOne({ index }).lean()
-    const courseId = course._id
+    const currentCourse = await CourseModel.findOne({ index }).lean()
+    const courseId = currentCourse._id
 
     const userCourse = await UserCourseModel.findOne({ course: courseId, user: user?._id }).lean()
 
-    const populate = [
-        {
-            path: 'video',
-            select: 'duration', // Only select the `duration` field from the `video`
-        },
-        {
-            path: 'exam',
-            select: 'questions attemptsNums time', // Select `questions` field from `exam`
-        }
-    ];
-
-    if (userCourse) {
-        //he is subscribed and has payed
-        course.isSubscribed = true
-        course.subscribedAt = userCourse.createdAt
-    } else {
-        course.isSubscribed = false
-    }
-
-
-    let lectures = await LectureModel.find({ course: { $in: [...course.linkedTo, courseId] }, isActive: true }).populate(populate).lean()
-
-    lectures.map((lecture, i) => {
-        lecture.index = i + 1
-        if (lecture.sectionType === sectionConstants.EXAM) {
-            lecture.exam.questionsLength = lecture.exam.questions.length
-            delete lecture.exam.questions
-        }
-    })
-    if (userCourse) {
-        //lock lectures
-        lectures.map(lecture => {
-            if (lecture.sectionType === sectionConstants.EXAM) {
-                //info
-            }
-            if (userCourse.currentIndex < lecture.index) {
-                console.log('from calc')
-                lecture.locked = true
-            }
-            return lecture
-        })
-    }
-
-    //video => duration
-    //exam => duration, questions nums, attempt nums, 
-    return res.status(200).json({ status: SUCCESS, values: { lectures, course, currentIndex: userCourse?.currentIndex || 0 } })
+    const [course, lectures] = await lockLectures(currentCourse, userCourse)
+    return res.status(200).json({ status: SUCCESS, values: { course, lectures, currentIndex: userCourse?.currentIndex || 0 } })
 })
 
 //@desc user Subscribe to course
@@ -145,61 +101,24 @@ const subscribe = expressAsyncHandler(async (req, res, next) => {
     }
 
 
-    const course = await CourseModel.findById(courseId).lean()
-    if (course?.price > user.wallet) {  //course.discount
-        return next(createError('المحفظه لا تكفى, بالرجاء شحن مبلغ ' + (course.price - user.wallet) + ' جنيه', 400, FAILED))
+    const currentCourse = await CourseModel.findById(courseId).lean()
+    if (currentCourse?.price > user.wallet) {  //course.discount
+        return next(createError('المحفظه لا تكفى, بالرجاء شحن مبلغ ' + (currentCourse.price - user.wallet) + ' جنيه', 400, FAILED))
     }
 
-    user.wallet = user.wallet - course.price
+    user.wallet = user.wallet - currentCourse.price
 
     const userCourse = await UserCourseModel.create({
         user: user._id,
-        course: courseId
+        course: currentCourse._id
     })
 
     await UserModel.updateOne({ _id: user._id }, {
-        $push: { courses: courseId },
+        $push: { courses: currentCourse._id },
         $set: { wallet: user.wallet }
     })
 
-    //send Lectures #################
-    const populate = [
-        {
-            path: 'video',
-            select: 'duration', // Only select the `duration` field from the `video`
-        },
-        {
-            path: 'exam',
-            select: 'questions attemptsNums time', // Select `questions` field from `exam`
-        }
-    ];
-
-    course.isSubscribed = true
-    course.subscribedAt = userCourse.createdAt
-
-    let lectures = await LectureModel.find({ course: { $in: [...course.linkedTo, courseId] }, isActive: true }).populate(populate)
-    //index and exam
-    lectures.map((lecture, i) => {
-        lecture.index = i + 1
-        if (lecture.sectionType === sectionConstants.EXAM) {
-            lecture.exam.questionsLength = lecture.exam.questions.length
-            delete lecture.exam.questions
-        }
-    })
-    //lock lectures
-    let lockNext = false
-    lectures.map(lecture => {
-
-        if (lecture.isMust || lockNext) {
-            if (userCourse.currentIndex < lecture.index) {
-                lecture.locked = true
-                lockNext = true
-            }
-            return lecture
-        }
-        return lecture
-    })
-
+    const [course, lectures] = await lockLectures(currentCourse, userCourse)
     res.status(200).json({ status: SUCCESS, values: { course, lectures, currentIndex: userCourse.currentIndex, wallet: user.wallet }, message: 'تم الاشتراك بنجاح فى كورس ' + course.name })
 })
 
@@ -220,7 +139,7 @@ const getLectureAndCheck = expressAsyncHandler(async (req, res, next) => {
         return next(createError("انت غير مشترك", 401, FAILED))
     }
 
-    const lecture = await LectureModel.findById(lectureId).lean().populate('exam video file link')
+    const lecture = await LectureModel.findOne({ _id: lectureId, isActive: true }).lean().populate('exam video file link')
     if (lecture.exam) {
         const userAttempts = await AttemptModel.find({ exam: lecture.exam._id, user: user._id }).lean()
         lecture.exam.attempts = userAttempts
@@ -233,16 +152,16 @@ const getLectureAndCheck = expressAsyncHandler(async (req, res, next) => {
 //@routes POST /content/courses/:id/lectures/:id/passed
 //@access Private   ==> user
 const lecturePassed = expressAsyncHandler(async (req, res, next) => {
-    const courseId = req.params.id
+    let courseId = req.params.id
     const nextLectureIndex = req.body.nextLectureIndex
-    const user = req.user._id
+    let user = req.user._id
 
     const userCourse = await UserCourseModel.findOne({ user, course: courseId })
     if (!userCourse) return next(createError('انت غير مشترك', 400, FAILED))
 
     userCourse.currentIndex = nextLectureIndex
     await userCourse.save()
-    return res.json({ message: 'لقد تم الاجتياز بنجاح' })
+    return res.json({ message: 'لقد تم الاجتياز بنجاح', status: SUCCESS })
 })
 
 // ########## EXAM ##############
@@ -303,3 +222,36 @@ module.exports = {
     getExam, createAttempt, linkCourse
 }
 
+
+
+// if (userCourse) {
+//     //he is subscribed and has payed
+//     course.isSubscribed = true
+//     course.subscribedAt = userCourse.createdAt
+// } else {
+//     course.isSubscribed = false
+// }
+
+
+// let lectures = await LectureModel.find({ course: { $in: [...course.linkedTo, courseId] }, isActive: true }).populate(populate).lean()
+
+// lectures.map((lecture, i) => {
+//     lecture.index = i + 1
+//     if (lecture.sectionType === sectionConstants.EXAM) {
+//         lecture.exam.questionsLength = lecture.exam.questions.length
+//         delete lecture.exam.questions
+//     }
+// })
+// if (userCourse) {
+//     //lock lectures
+//     lectures.map(lecture => {
+//         if (lecture.sectionType === sectionConstants.EXAM) {
+//             //info
+//         }
+//         if (userCourse.currentIndex < lecture.index) {
+//             console.log('from calc')
+//             lecture.locked = true
+//         }
+//         return lecture
+//     })
+// }

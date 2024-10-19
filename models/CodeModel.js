@@ -5,8 +5,9 @@ const UserModel = require("./UserModel")
 
 
 const codeSchema = new mongoose.Schema({
-    grade: { type: String, enum: gradeConstants.map(g => g.index) },
+    // grade: { type: String, enum: gradeConstants.map(g => g.index) },
     usedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: UserModel }],
+    isChecked: { type: Boolean, default: false },
     code: { type: String, required: true, unique: true },
     type: { type: String, required: true, enum: [codeConstants.ACTIVATE, codeConstants.CENTER, codeConstants.WALLET] },
     price: { type: Number, default: 0 },

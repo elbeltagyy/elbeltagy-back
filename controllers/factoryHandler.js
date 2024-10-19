@@ -13,7 +13,11 @@ const codeConstants = require("../tools/constants/codeConstants.js");
 const { user_roles } = require("../tools/constants/rolesConstants.js");
 const expressAsyncHandler = require("express-async-handler");
 
-exports.getAll = (Model, docName, params = [], populate = '', isModernSort = false) =>
+const dotenv = require("dotenv")
+// config
+dotenv.config()
+
+exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '') =>
     asyncHandler(async (req, res) => {
 
         const query = req.query
@@ -39,9 +43,14 @@ exports.getAll = (Model, docName, params = [], populate = '', isModernSort = fal
         const select = query.select ? query.select : ""
 
         // //populate
-        populate = req.populate || populate
+        populate = req.query.populate || populate
 
-        const docs = await Model.find(match).select(select).populate(populate).limit(limit).skip(skip).sort({ createdAt: isModernSort && -1, ...sort })
+        const docs = await Model.find(match)
+            .select(select)
+            .populate(populate)
+            .limit(limit).skip(skip)
+            .sort({ createdAt: isModernSort && -1, ...sort }).lean()
+
         const count = await Model.countDocuments(match)
 
         let values = {}
@@ -100,7 +109,7 @@ exports.updateOne = (Model) =>
             return next('error');
         }
         await doc.save();
-        return res.status(200).json({ status: statusTexts.SUCCESS, values: doc, message: 'doc has been updated successfully' })
+        return res.status(200).json({ status: statusTexts.SUCCESS, values: doc, message: 'تم التعديل بنجاح' })
     });
 
 exports.deleteOne = (Model) =>
@@ -142,10 +151,8 @@ exports.filterById = (Model, params = [], idName) =>
             makeMatch(match, params(query))
         }
         if (Object.entries(match).length > 0) {
-            console.log('match ==>', match)
             const filteredId = await Model.findOne(match).select('_id').lean()
             req.query[idName] = filteredId?._id
-            console.log("found ==>", filteredId)
         }
         next()
     })
@@ -169,7 +176,10 @@ exports.makeLoginSession = () => {
 
             await user.save()
             res.cookie(deviceIdSignedCookie, deviceId, {
-                httpOnly: true, secure: true, sameSite: 'none', maxAge: ms('2y') //signed
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',  // Secure only in production
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // lax for local dev
+                maxAge: ms('2y') //signed
             })
         }
 
@@ -204,36 +214,46 @@ exports.makeLoginSession = () => {
         await SessionModel.create(session)
 
         res.cookie('refreshToken', refreshToken, {
-            httpOnly: true, secure: true, sameSite: 'none', maxAge: ms(process.env.REFRESH_TOKEN_LIFE), // signed = true
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',  // Secure only in production
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // lax for local dev
+            maxAge: ms(process.env.REFRESH_TOKEN_LIFE), // signed = true
         })
 
         return res.status(200).json({ status: statusTexts.SUCCESS, values: { ...userDoc, token: accessToken }, message: "تم تسجيل الدخول بنجاح." })
     });
 }
 
-exports.useCode = async (code, user, next) => {
-    try {
-        if (code.numbers === 0 || !code.isActive || !code) return next(createError("هذا الكود غير صالح", 400, statusTexts.FAILED))
+exports.useCode = async (code, user) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (code?.numbers === 0 || !code.isActive || !code) return reject(createError("هذا الكود غير صالح", 400, statusTexts.FAILED))
+            if (code.usedBy.includes(user._id)) return reject(createError("الكود يستخدم مره واحده لكل مستخدم", 400, statusTexts.FAILED))
 
-        switch (code.type) {
-            case codeConstants.WALLET:
-                user.wallet = user.wallet + code.price
-                break;
-            case codeConstants.CENTER:
-                user.role = user_roles.CENTER
-                // user.grade = code.grade || user.grade
-                break;
-            default: // activate
-                user.role = user_roles.ONLINE
+            let message = ''
+            switch (code.type) {
+                case codeConstants.WALLET:
+                    const before = user.wallet
+                    user.wallet = user.wallet + code.price
+                    message = `Your wallet was ${before} and became ${user.wallet}, + ${code.price}`
+                    break;
+                case codeConstants.CENTER:
+                    user.role = user_roles.STUDENT
+                    message = `انت الان اصبحت طالب سنتر`
+                    break;
+                default: // activate
+                    user.role = user_roles.ONLINE
+                    message = true
+            }
+            code.usedBy.push(user._id)
+            code.numbers = code.numbers - 1
+
+            await Promise.all([await user.save(), await code.save()])
+            return resolve(message)
+        } catch (error) {
+            return reject(createError(error.message, 400, statusTexts.FAILED))
         }
-        code.usedBy.push(user._id)
-        code.numbers = code.numbers - 1
-
-        await Promise.all([await user.save(), await code.save()])
-        return true
-    } catch (error) {
-        return next(createError(error.message, 400, statusTexts.FAILED))
-    }
+    })
 }
 
 

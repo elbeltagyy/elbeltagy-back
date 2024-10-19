@@ -17,12 +17,12 @@ const userCoursesParams = (query) => {
 }
 
 // const getUsersCourses = getAll(UserCourseModel, 'subscriptions', userCoursesParams)
-const getCourseSubscriptions = getAll(UserCourseModel, 'subscriptions', userCoursesParams, 'user')
+const getCourseSubscriptions = getAll(UserCourseModel, 'subscriptions', userCoursesParams)
 const removeSubscription = expressAsyncHandler(async (req, res, next) => {
     const subscriptionId = req.params.id
 
     const userCourse = await UserCourseModel.findById(subscriptionId)
-   
+
     await Promise.all([
         await UserModel.findByIdAndUpdate(
             userCourse.user,

@@ -8,7 +8,7 @@ const router = require("express").Router()
 // router.get("/check", isUser)
 router.route("/")
     // .get(verifyToken, allowedTo(user_roles.ADMIN), getUsers)
-    .get(verifyToken(), getUsers)
+    .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), getUsers)
     .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), createUser)
 
 router.route("/:id")

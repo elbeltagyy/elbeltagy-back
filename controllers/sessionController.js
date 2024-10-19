@@ -12,7 +12,7 @@ const sessionParams = (query) => {
 }
 
 
-const getSessions = getAll(SessionModel, 'sessions', sessionParams, 'user')
+const getSessions = getAll(SessionModel, 'sessions', sessionParams, true, 'user')
 
 
 const sessionLogout = expressAsyncHandler(async (req, res, next) => {

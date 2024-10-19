@@ -60,6 +60,7 @@ app.use("/api/sessions", require("./routes/sessionRoutes"))
 app.use("/api/auth", authRoutes)
 app.use("/api/users", userRoutes)
 app.use("/api/codes", codeRoutes)
+app.use("/api/notifications", require('./routes/notificationRoutes'))
 
 app.use("/api/content/units", unitRoutes)
 app.use("/api/content/courses", courseRoutes)
@@ -72,12 +73,11 @@ app.use("/api/statistics", statisticsRoutes)
 app.use('/api/files', require('./routes/fileRoutes'))
 app.get("/test", testRoutes)
 
-
 // for secure folders
-app.use("/storage/secure", verifyToken(false), (req, res, next) => {
+app.use("/storage/secure", (req, res, next) => {
     next()
 })
-app.use("/storage", express.static(path.join(__dirname, 'storage')))
+app.use('/storage', express.static(path.join(__dirname, 'storage')))
 
 // for errors 
 app.use(notFound)

@@ -12,10 +12,14 @@ const courseSchema = new mongoose.Schema({
     description: { type: String, required: true },
     price: { type: Number, required: true },
     preDiscount: { type: Number },
-    isActive: { type: Boolean, required: true, default: true },
 
+    isMust: {type: Boolean, default: true},
+    isActive: { type: Boolean, required: true, default: true },
+    dateStart: { type: Date },
+    dateEnd: { type: Date },
+    
     thumbnail: {
-        original_filename: { type: String },
+        name: { type: String },
         url: { type: String },
         size: { type: Number },
         resource_type: { type: String },

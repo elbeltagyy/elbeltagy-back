@@ -1,22 +1,24 @@
 const { getAll, getOne, insertOne, updateOne, deleteOne } = require("./factoryHandler");
 const LectureModel = require("../models/LectureModel");
 const expressAsyncHandler = require("express-async-handler");
-const { addToCloud, deleteFromCloud } = require("../middleware/cloudinary");
+const { addToCloud, deleteFromCloud } = require("../middleware/upload/cloudinary");
 const createError = require("../tools/createError");
 const { FAILED, SUCCESS } = require("../tools/statusTexts");
 const VideoModel = require("../models/VideoModel");
 const CourseModel = require("../models/CourseModel");
 const ExamModel = require("../models/ExamModel");
-const filePlayer = require("../tools/constants/filePlayer");
+const AttemptModel = require("../models/AttemptModel");
 const FileModel = require("../models/FileModel");
 const LinkModel = require("../models/LinkModel");
 const sectionConstants = require("../tools/constants/sectionConstants");
-const videoPlayers = require("../tools/constants/videoPlayers");
+const filePlayers = require("../tools/constants/filePlayers");
 
 const { addToBunny } = require("../middleware/bunny");
-const ms = require("ms");
-const { addToServer } = require("../middleware/uploadServer");
+const { addToServer } = require("../middleware/upload/uploadServer");
+const { uploadFile, deleteFile } = require("../middleware/upload/uploadFiles");
+const dotenv = require("dotenv")
 
+dotenv.config()
 const lectureParams = (query) => {
     return [
         { key: "grade", value: query.grade, operator: "equal" },
@@ -25,61 +27,61 @@ const lectureParams = (query) => {
         { key: "name", value: query.name },
         { key: "description", value: query.description },
         { key: "isActive", value: query.isActive, type: "boolean" },
-        { key: "_id", value: query._id },
+        { key: "_id", value: query._id, operator: 'equal' },
         { key: "sectionType", value: query.sectionType },
+        { key: "isCenter", value: query.isCenter, type: 'boolean' },
     ]
 }
 
 
-const getLectures = getAll(LectureModel, 'lectures', lectureParams, 'video') //used bu users
+const getLectures = getAll(LectureModel, 'lectures', lectureParams, false, 'video') //used bu users
 
 const getOneLecture = getOne(LectureModel)
+const updateLecture = updateOne(LectureModel)
 
+const getLectureForCenter = expressAsyncHandler(async (req, res, next) => {
+    const lectureId = req.params.id
+    const user = req.user
+    const lecture = await LectureModel.findOne({ _id: lectureId, isActive: true }).lean().populate('exam video file link')
+    if (lecture.exam) {
+        const userAttempts = await AttemptModel.find({ exam: lecture.exam._id, user: user._id }).lean()
+        lecture.exam.attempts = userAttempts
+    }
+    res.status(200).json({ ...lecture })
+})
 
 const createLecture = expressAsyncHandler(async (req, res, next) => {
     const lecture = req.body
-    console.log('from here')
+    // console.log('from here')
     //validation => courseId, name, grade
     if (lecture.sectionType === sectionConstants.VIDEO) {
-        console.log('from videos')
         let video = {
             name: lecture.name,
             player: lecture.player,
+            resource_type: 'video/mp4',
+            url: '',
+
             isButton: lecture.isButton || false,
             duration: lecture.duration,
-            url: '',
-            // only uploaded
-            size: '',
-            resource_type: 'video/mp4',
-            // format: '',
         }
         switch (lecture.player) {
-            case videoPlayers.YOUTUBE: //done
+            case filePlayers.YOUTUBE: //done
+                video.url = lecture.url // ### modify video
+                break;
+            case filePlayers.BUNNY:
                 video.url = lecture.url // ### modify video
                 break;
 
-            case videoPlayers.BUNNY:
-                const srcRegex = /<iframe[^>]+src="([^"]+)"/;
-                const match = lecture?.url?.match(srcRegex);
-                let iframeSrc = match ? match[1] : null;
-                if (iframeSrc) {
-                    // Cut the URL at the "?" if it exists
-                    iframeSrc = iframeSrc.split('?')[0];
-                    video.url = iframeSrc // ### modify video
-                } else {
-                    return next(createError('Bad Bunny Url', 500, FAILED))
-                }
-                break;
-
-            case videoPlayers.BUNNY_UPLOAD: //done
+            case filePlayers.BUNNY_UPLOAD: //done
                 // upload to bunny
                 const bunnyVid = await addToBunny(req.file, { name: lecture.name })
                 video = { ...video, ...bunnyVid }
                 break;
 
-            case videoPlayers.SERVER:
+            case filePlayers.SERVER:
                 const serverVid = req.file
-                const uploadedVideo = await addToServer(serverVid, { name: lecture.name })
+                const uploadedVideo = await uploadFile(serverVid,
+                    { name: lecture.name, secure: true })
                 video = { ...video, ...uploadedVideo }
                 break;
             default:
@@ -98,14 +100,13 @@ const createLecture = expressAsyncHandler(async (req, res, next) => {
         file.url = lecture.url
         file.resource_type = 'application/pdf'
 
-        if (lecture.player === filePlayer.SERVER) {
-            let file = req.file
-            const uploadedFile = await addToServer(file, { name: lecture.name })
+        if (lecture.player === filePlayers.SERVER) {
+            const uploadedFile = await uploadFile(req.file, { name: lecture.name, secure: true })
             file = { ...file, ...uploadedFile }
         }
 
-        if (lecture.player === filePlayer.BUNNY) {
-            const uploadedFile = await addToBunny(req.file, { name: lecture.name })
+        if (lecture.player === filePlayers.BUNNY) {
+            const uploadedFile = await addToBunny(req.file, { name: lecture.name, secure: true })
             file = { ...file, ...uploadedFile }
         }
         // return res.status(200).json({ values: { ...lecture, file } })
@@ -118,14 +119,72 @@ const createLecture = expressAsyncHandler(async (req, res, next) => {
         const link = {}
         link.isVideo = lecture.isVideo || false
         link.url = lecture.url
+
         // return res.status(200).json({ values: { ...lecture, link } })
         const savedLink = await LinkModel.create(link)
         lecture.link = savedLink._id
     }
-
     return next()
 })
 
+//route content/lectures/:id
+const handelUpdateLecture = expressAsyncHandler(async (req, res, next) => {
+    const lecture = req.body
+    const id = req.params.id
+
+    const file = req.file
+    delete lecture.video
+
+    const savedLecture = await LectureModel.findByIdAndUpdate(id, lecture, { new: true }).populate("link video file") //edit it
+    if (savedLecture.file) {
+        let uploadedFile = {}
+        if (file) {
+            uploadedFile = await uploadFile(file, { name: lecture.name, secure: true })
+        }
+        const updatedFile = await FileModel.findByIdAndUpdate(savedLecture.file._id, { ...lecture, ...uploadedFile }, { new: true })
+        savedLecture.file = updatedFile
+    }
+    if (savedLecture.video) {
+        const updatedVideo = await VideoModel.findByIdAndUpdate(savedLecture.video, lecture, { new: true })
+        savedLecture.video = updatedVideo
+    }
+    if (savedLecture.link) {
+        const updatedLink = await LinkModel.findByIdAndUpdate(savedLecture.link, lecture, { new: true })
+        savedLecture.link = updatedLink
+    }
+
+    res.json({ values: { lecture: savedLecture }, message: 'تم تعديل المحاضره بنجاح', status: SUCCESS })
+})
+//route content/lectures/:id
+//method DELETE
+const deleteLecture = expressAsyncHandler(async (req, res, next) => {
+    const lectureId = req.params.id
+
+    const lecture = await LectureModel.findById(lectureId).populate("exam video link file").lean()
+
+    if (lecture.file) {
+        await deleteFile(lecture.file)
+        await FileModel.findByIdAndDelete(lecture.file._id)
+    }
+    if (lecture.exam) {
+        exam.questions.forEach(async question => {
+            if (question.image) {
+                await deleteFile(question.image)
+            }
+        })
+        await ExamModel.findByIdAndDelete(lecture.exam._id)
+    }
+    if (lecture.link) {
+        await LinkModel.findByIdAndDelete(lecture.link._id)
+    }
+    if (lecture.video) {
+        await VideoModel.findByIdAndDelete(lecture.video._id)
+    }
+
+    await LectureModel.findByIdAndDelete(lectureId)
+    res.status(200).json({ message: 'تم الحذف بنجاح', status: SUCCESS })
+
+})
 // @route /content/courses/exams
 // @method POST
 const createExam = expressAsyncHandler(async (req, res, next) => {
@@ -135,70 +194,18 @@ const createExam = expressAsyncHandler(async (req, res, next) => {
     next()
 })
 
-const updateLecture = updateOne(LectureModel)
+// @route /content/courses/exams/:id
+// @method PUT
+const updateOneExam = expressAsyncHandler(async (req, res, next) => {
+    const lectureId = req.params.id
+    const exam = req.body
 
-// const updateLecture = expressAsyncHandler(async (req, res, next) => {
-//     const lecture = req.body
-//     const id = req.params.id
-
-//     const { files } = req
-//     let results = {}
-//     if (files) {
-
-//         for (let file in files) {
-
-//             const uploadedFile = await addToCloud(files[file][0], {
-//                 folder: "admin",
-//                 resource_type: "auto"
-//             })
-//             results[file] = uploadedFile
-//         }
-
-//     }
-
-//     let savedLecture = await LectureModel.findById(id)
-//     savedLecture.name = lecture.name || savedLecture.name
-//     savedLecture.description = lecture.description || savedLecture.description
-//     savedLecture.isActive = lecture.isActive || savedLecture.isActive
-
-//     console.log('files =', files)
-//     if (files && results.video) {
-//         //remove vid pre
-//         await VideoModel.findByIdAndUpdate(savedLecture.video, results.video)
-//     }
-
-//     if (files && results.thumbnail) {
-//         //remove thumbnail pre
-//         savedLecture.thumbnail = results.thumbnail
-//     }
-
-//     await savedLecture.save()
-
-//     res.json({ values: { lecture: savedLecture }, message: 'lecture created ...', status: SUCCESS })
-// })
-
-const deleteLecture = expressAsyncHandler(async (req, res, next) => {
-    const id = req.params.id
-
-    const lecture = await LectureModel.findById(id).populate('video')
-
-    if (lecture) {
-        if (lecture.video?.url) {
-            await deleteFromCloud(lecture.video.url)
-            await VideoModel.findByIdAndDelete(lecture.video._id)
-        }
-
-        if (lecture.thumbnail?.url) {
-            await deleteFromCloud(lecture.thumbnail.url)
-        }
-
-        const deleteLecture = await LectureModel.findByIdAndDelete(id)
-        res.json({ message: 'lecture remove successfully', status: SUCCESS, values: deleteLecture })
-    } else {
-        next(createError("no lectures found", 404, FAILED))
-    }
+    const lecture = await LectureModel.findByIdAndUpdate(lectureId, exam)
+    const updatedExam = await ExamModel.findByIdAndUpdate(lecture.exam, exam, { new: true })
+    res.json({ message: 'تم تعديل الاختبار بنجاح', status: SUCCESS, values: { lecture, updatedExam } })
 })
-module.exports = { getLectures, getOneLecture, createLecture, updateLecture, deleteLecture, createExam, lectureParams }
+
+module.exports = { getLectures, getOneLecture, getLectureForCenter, createLecture, updateLecture, handelUpdateLecture, deleteLecture, createExam, updateOneExam, lectureParams }
 
 
 

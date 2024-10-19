@@ -1,5 +1,5 @@
 const expressAsyncHandler = require("express-async-handler")
-const { addToVimeo } = require("../middleware/cloudinary")
+const { addToVimeo } = require("../middleware/upload/cloudinary")
 const upload = require("../middleware/storage")
 const UserModel = require("../models/UserModel")
 const UAParser = require('ua-parser-js');

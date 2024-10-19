@@ -17,7 +17,7 @@ router.route("/")
                 start = 'act'
                 break;
             case codeConstants.CENTER:
-                start = 'cent'
+                start = 'cen'
                 break;
             case codeConstants.WALLET:
                 start = 'wal'

@@ -1,6 +1,7 @@
 const expressAsyncHandler = require("express-async-handler")
 const upload = require("../middleware/storage")
-const { addToCloud } = require("../middleware/cloudinary")
+const { addToCloud } = require("../middleware/upload/cloudinary")
+const { deleteFile } = require("../middleware/upload/uploadFiles")
 
 const router = require("express").Router()
 
@@ -21,7 +22,18 @@ const uploadFiles = expressAsyncHandler(async (req, res, next) => {
     res.status(201).json({ values: files })
 })
 
+const deleteFileFc = expressAsyncHandler(async (req, res, next) => {
+    const file = req.body
+
+    const isFoundAndDeleted = await deleteFile(file)
+    res.json({ message: isFoundAndDeleted ? 'تم حذف الملف بنجاح' : 'الملف غير موجود, ارفع ملف اخر' })
+})
+
 router.route("/")
     .post(upload.array('files', 50), uploadFiles)
+    .delete(deleteFileFc)
+
+// router.route("/:fileName")
+//     .delete(deleteFile)
 
 module.exports = router

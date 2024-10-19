@@ -1,12 +1,12 @@
 const mongoose = require("mongoose")
 const LectureModel = require("./LectureModel")
-const videoPlayers = require("../tools/constants/videoPlayers")
+const filePlayers = require("../tools/constants/filePlayers")
 
 const videoSchema = new mongoose.Schema({
     // original_filename: { type: String },
     name: { type: String },
     url: { type: String },
-    player: { type: String, enum: [videoPlayers.SERVER, videoPlayers.YOUTUBE, videoPlayers.BUNNY, videoPlayers.BUNNY_UPLOAD] },
+    player: { type: String, enum: [filePlayers.SERVER, filePlayers.YOUTUBE, filePlayers.BUNNY, filePlayers.BUNNY_UPLOAD] },
     isButton: { type: Boolean, default: false },
     duration: { type: String }, //ms params
     size: { type: Number }, //bytes

@@ -19,12 +19,12 @@ const lectureSchema = new mongoose.Schema({
 
     index: { type: Number, required: true },
     isCenter: { type: Boolean, required: true, default: false },
-    sectionType: { type: String, enum: [sectionConstants.VIDEO, sectionConstants.EXAM, sectionConstants.LINK, sectionConstants.FILE] },
+    sectionType: { type: String, required: true, enum: [sectionConstants.VIDEO, sectionConstants.EXAM, sectionConstants.LINK, sectionConstants.FILE] },
     video: {
         type: mongoose.Schema.Types.ObjectId, ref: VideoModel
     },
     exam: { type: mongoose.Schema.Types.ObjectId, ref: ExamModel },
-    altExam: { type: mongoose.Schema.Types.ObjectId, ref: ExamModel },
+    // altExam: { type: mongoose.Schema.Types.ObjectId, ref: ExamModel },
     link: { type: mongoose.Schema.Types.ObjectId, ref: LinkModel },
     file: { type: mongoose.Schema.Types.ObjectId, ref: FileModel },
 }, {

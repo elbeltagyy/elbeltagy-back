@@ -17,7 +17,10 @@ const addToCloud = (file, settings) => {
     return new Promise(async (resolve, reject) => {
         try {
             const path = file.path
-            const result = await cloudinary.uploader.upload(path, settings)
+            const result = await cloudinary.uploader.upload(path, {
+                resource_type: 'auto',
+                folder: settings.folder || 'admin'
+            })
             const { original_filename, resource_type, secure_url, url, format, bytes } = result
 
             const createdFile = {}

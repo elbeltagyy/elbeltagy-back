@@ -1,4 +1,4 @@
-const { getUsersCount, getUnitsCount, getCoursesCount, getLecturesCount, getSubscriptionsCount } = require("../controllers/statisticsController")
+const { getUsersCount, getUnitsCount, getCoursesCount, getLecturesCount, getSubscriptionsCount, getNotificationsCount } = require("../controllers/statisticsController")
 
 const router = require("express").Router()
 
@@ -16,5 +16,8 @@ router.route("/lectures")
 
 router.route("/subscriptions")
     .get(getSubscriptionsCount)
+
+router.route("/notifications")
+    .get(getNotificationsCount)
 
 module.exports = router

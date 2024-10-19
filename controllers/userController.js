@@ -5,7 +5,7 @@ const bcrypt = require("bcryptjs")
 const statusTexts = require("../tools/statusTexts.js");
 const createError = require("../tools/createError.js");
 
-const { addToCloud } = require("../middleware/cloudinary");
+const { addToCloud } = require("../middleware/upload/cloudinary");
 const { user_roles } = require("../tools/constants/rolesConstants.js");
 const { getAll } = require("./factoryHandler.js");
 
@@ -22,7 +22,7 @@ const userParams = (query) => {
         { key: "wallet", value: query.wallet, type: 'number' },
         { key: "isActive", value: query.isActive, type: "boolean" },
         { key: "grade", value: query.grade, operator: "equal" },
-        { key: "group", value: query.group, operator: "equal" },
+        // { key: "group", value: query.group, operator: "equal" },
         { key: "courses", value: query.courses, type: "array" },
         { key: "exams", value: query.exams, type: "array" },
     ]
@@ -46,8 +46,7 @@ const getByUserName = asyncHandler(async (req, res, next) => {
     const select = query.select ? query.select : ""
 
     if (userName) {
-
-        const user = await UserModel.find({ userName }).select(select).populate("group")
+        const user = await UserModel.findOne({ userName }).select(select)
         res.status(200).json({ status: statusTexts.SUCCESS, values: user })
 
     } else {

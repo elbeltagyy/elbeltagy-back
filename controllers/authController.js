@@ -17,9 +17,8 @@ const clearTokens = require("../tools/clearTokens.js")
 
 
 const { makeLoginSession, useCode } = require("./factoryHandler.js")
-const { addToCloud } = require("../middleware/cloudinary.js")
-
-
+const { addToCloud } = require("../middleware/upload/cloudinary.js")
+const { uploadFile } = require("../middleware/upload/uploadFiles.js")
 
 
 // @desc user login
@@ -69,9 +68,11 @@ const signup = asyncHandler(async (req, res, next) => {
     //file confirm
     const file = req.file
     if (file) {
-        const fileConfirm = await addToCloud(file, {
+        const fileConfirm = await uploadFile(file, {
             folder: 'filesConfirm',
-            resource_type: "auto"
+            resource_type: "auto",
+            name: user.userName,
+            secure: true
         })
 
         user.fileConfirm = fileConfirm

@@ -9,7 +9,7 @@ const makeMatch = (match, params) => {
             const valueSplitted = param.value.split("_split_")
             param.operator = valueSplitted[0]
             param.value = valueSplitted[1] || ''
-            console.log(param.operator)
+            // console.log(param.operator)
         }
 
 

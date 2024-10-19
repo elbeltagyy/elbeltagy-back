@@ -1,6 +1,7 @@
 const fs = require('fs')
 const axios = require('axios');
-const videoPlayers = require('../tools/constants/videoPlayers');
+
+const filePlayers = require('../tools/constants/filePlayers');
 const fileTypes = require('../tools/constants/fileTypes');
 
 const apiKey = '330bfc43-e10a-462a-8af602136946-f87a-4dbb'; // BunnyCDN FTP/Storage API key
@@ -20,7 +21,7 @@ const addToBunny = (file, settings) => {
                 const fileStream = fs.createReadStream(filePath);
                 const fileName = settings.name
                 const uploadUrl = `https://storage.bunnycdn.com/${STORAGE_ZONE_NAME}/${fileName}`;
-                const response = await axios.put(uploadUrl, fileStream, {
+                await axios.put(uploadUrl, fileStream, {
                     headers: {
                         'AccessKey': BUNNYCDN_API_KEY,
                         'Content-Type': 'application/pdf', // Set the content type as PDF
@@ -28,10 +29,8 @@ const addToBunny = (file, settings) => {
                 });
 
                 const url = `https://${STORAGE_ZONE_NAME}.bunnycdn.com/${fileName}`;
-                const size = file.size; // Size in bytes
-                const player = videoPlayers.BUNNY_UPLOAD
-                console.log(response.data)
-                return resolve({ url, resource_type, size, player })
+                const player = filePlayers.BUNNY_UPLOAD
+                return resolve({ url, resource_type, player })
             }
             // Upload video to BunnyCDN streaming
             const videoData = fs.readFileSync(filePath);
@@ -63,11 +62,9 @@ const addToBunny = (file, settings) => {
 
 
             if (result) {
-                console.log(result)
-                const size = file.size; // Size in bytes
                 const url = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`
-                const player = videoPlayers.BUNNY_UPLOAD
-                resolve({ url, resource_type, size, player })
+                const player = filePlayers.BUNNY_UPLOAD
+                resolve({ url, resource_type, player })
             }
         } catch (error) {
             reject(error)

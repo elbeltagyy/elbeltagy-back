@@ -11,7 +11,7 @@ const unitParams = (query) => {
 
 
 
-const getUnits = getAll(UnitModel, 'units', unitParams)
+const getUnits = getAll(UnitModel, 'units', unitParams, false)
 const getOneUnit = getOne(UnitModel)
 
 const createUnit = insertOne(UnitModel)

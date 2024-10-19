@@ -1,6 +1,6 @@
 const expressAsyncHandler = require("express-async-handler");
 const CodeModel = require("../models/CodeModel");
-const { getAll, getOne, updateOne, deleteOne, insertOne } = require("./factoryHandler");
+const { getAll, getOne, updateOne, deleteOne, insertOne, useCode } = require("./factoryHandler");
 const createError = require("../tools/createError");
 const { FAILED, SUCCESS } = require("../tools/statusTexts");
 const codeConstants = require("../tools/constants/codeConstants");
@@ -14,11 +14,12 @@ const codeParams = (query) => {
         { key: "price", value: query.price },
         { key: "numbers", value: query.phone },
         { key: "isActive", value: query.isActive, type: "boolean" },
+        { key: "usedBy", value: query.usedBy, type: 'array' },
     ]
 }
 
 
-const getCodes = getAll(CodeModel, 'codes', codeParams, 'usedBy')
+const getCodes = getAll(CodeModel, 'codes', codeParams, true, 'usedBy')
 const getOneCode = getOne(CodeModel)
 const createCode = insertOne(CodeModel)
 
@@ -38,39 +39,12 @@ const verifyCode = expressAsyncHandler(async (req, res, next) => {
 
     const code = await CodeModel.findOne({ code: userCode })
     if (!code) return next(createError('invalid code', 404, FAILED))
-
-    if (code.numbers === 0 || !code.isActive) return next(createError('sorry, this code is invalid', 400, FAILED))
+    // if (code.numbers === 0 || !code.isActive) return next(createError('sorry, this code is invalid', 400, FAILED))
 
     //activate => error
     if (code.type === codeConstants.ACTIVATE) return next(createError('sorry, this code used only for activation', 400, FAILED))
-
-    //wallet
-    if (code.type === codeConstants.WALLET) {
-        const before = user.wallet
-        user.wallet = user.wallet + code.price
-
-        code.usedBy.push(user._id)
-        code.numbers = code.numbers - 1
-
-        await user.save()
-        await code.save()
-
-        return res.status(200).json({ status: SUCCESS, message: `Your wallet was ${before} and became ${user.wallet}, + ${code.price}`, values: user })
-    }
-
-    //center
-    if (code.type === codeConstants.CENTER) {
-        user.role = user_roles.CENTER
-        user.grade = code.grade || user.grade
-
-        code.usedBy.push(user._id)
-        code.numbers = code.numbers - 1
-
-        await user.save()
-        await code.save()
-
-        return res.status(200).json({ status: SUCCESS, message: `You bacame student in center grade => ${user.grade}`, values: user })
-    }
+    const message = await useCode(code, user)
+    return res.status(200).json({ status: SUCCESS, message, values: user })
 })
 
 const getUserUsedCodes = expressAsyncHandler(async (req, res, next) => {

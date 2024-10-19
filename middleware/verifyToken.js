@@ -21,6 +21,7 @@ const verifyToken = (isAllowNotUser = false) => {
 
                 const user = await UserModel.findById(userId)
                 if (!user) return next(createError("المستخدم غير مسجل", 401, FAILED, true))
+
                 if (user.isActive) {
                     req.user = user
                     next()
