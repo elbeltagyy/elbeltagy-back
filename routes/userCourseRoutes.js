@@ -1,6 +1,6 @@
 const { filterById } = require("../controllers/factoryHandler")
 const { userParams, getUsers } = require("../controllers/userController")
-const { getCourseSubscriptions, addSubscription, removeSubscription } = require("../controllers/userCourseController")
+const { getCourseSubscriptions, addSubscription, removeSubscription, updateSubscription } = require("../controllers/userCourseController")
 const verifyToken = require("../middleware/verifyToken")
 const CourseModel = require("../models/CourseModel")
 const UserModel = require("../models/UserModel")
@@ -18,6 +18,7 @@ router.route("/courses")
     .post(addSubscription)
 
 router.route("/courses/:id")
+    .put(updateSubscription)
     .delete(removeSubscription)
 
 // router.route("/users/:userId")

@@ -1,23 +1,18 @@
 const expressAsyncHandler = require("express-async-handler")
 const upload = require("../middleware/storage")
-const { addToCloud } = require("../middleware/upload/cloudinary")
-const { deleteFile } = require("../middleware/upload/uploadFiles")
+const { deleteFile, uploadFile } = require("../middleware/upload/uploadFiles")
+const makeRandom = require("../tools/makeRandom")
 
 const router = require("express").Router()
 
 const uploadFiles = expressAsyncHandler(async (req, res, next) => {
     const files = req.files
-    console.log(files)
+
     if (files.length !== 0) {
         for (i = 0; i < files.length; i++) {
-            const result = await addToCloud(files[i], {
-                folder: "admin",
-                resource_type: "auto"
-            })
-            console.log('uploaded done ==?', i)
+            const result = await uploadFile(files[i], { name: 'myFile-' + i, secure: true })
             files[i] = result
         }
-        console.log('uploaded done ==?', files)
     }
     res.status(201).json({ values: files })
 })
@@ -32,8 +27,5 @@ const deleteFileFc = expressAsyncHandler(async (req, res, next) => {
 router.route("/")
     .post(upload.array('files', 50), uploadFiles)
     .delete(deleteFileFc)
-
-// router.route("/:fileName")
-//     .delete(deleteFile)
 
 module.exports = router

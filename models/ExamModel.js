@@ -1,14 +1,12 @@
 const mongoose = require("mongoose")
+const filePlayers = require("../tools/constants/filePlayers")
 
 const examSchema = new mongoose.Schema({
     name: { type: String, required: true },
     total: { type: Number },
     time: { type: String, default: '15m' }, //seconds
-    // isActive: { type: Boolean, default: true },
-    dateStart: { type: Date },
-    dateEnd: { type: Date },
     showAnswersDate: { type: Date },
-    
+
     isShowAnswers: { type: Boolean, default: true },
     attemptsNums: { type: Number, default: 1 },
     questions: [{
@@ -18,8 +16,9 @@ const examSchema = new mongoose.Schema({
         points: { type: Number, default: 1 },
         image: {
             url: { type: String },
-            size: { type: Number },
+            // size: { type: Number },
             resource_type: { type: String },
+            player: { type: String, enum: [filePlayers.SERVER] }
         },
         options: [{
             id: { type: String },

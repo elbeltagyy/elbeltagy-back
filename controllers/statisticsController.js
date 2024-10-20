@@ -27,17 +27,19 @@ const getLecturesCount = expressAsyncHandler(async (req, res, next) => {
 
     const course = await CourseModel.findById(courseId).lean().select("linkedTo")
     let ids = []
-    if (course) {
-        ids = [...course.linkedTo, course._id]
-    }
+
 
     const query = req.query
 
     // search && filter
     const match = {}
     makeMatch(match, lectureParams(query))
+    if (course) {
+        ids = [...course.linkedTo, course._id]
+        match.course = { $in: ids }
+    }
 
-    const count = await LectureModel.countDocuments({ ...match, course: { $in: ids } })
+    const count = await LectureModel.countDocuments(match)
     return res.status(200).json({ status: SUCCESS, values: { count } })
 
 })

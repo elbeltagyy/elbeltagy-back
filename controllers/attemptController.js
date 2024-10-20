@@ -36,13 +36,13 @@ const getUserInfo = expressAsyncHandler(async (req, res, next) => {
     const populateLecture = [
         {
             path: 'exam',
-            select: 'total time'
+            select: 'time'
         }
     ]
 
     const populateAttempt = [
         {
-            path: 'exam', select: 'time name'
+            path: 'exam', select: 'time name questions'
         }
     ]
     //attempts

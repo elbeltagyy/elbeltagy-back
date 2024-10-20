@@ -69,8 +69,6 @@ const signup = asyncHandler(async (req, res, next) => {
     const file = req.file
     if (file) {
         const fileConfirm = await uploadFile(file, {
-            folder: 'filesConfirm',
-            resource_type: "auto",
             name: user.userName,
             secure: true
         })

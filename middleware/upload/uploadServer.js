@@ -3,6 +3,7 @@ const fs = require('fs');
 const filePlayers = require('../../tools/constants/filePlayers');
 const dotenv = require("dotenv");
 const sharp = require('sharp');
+const makeRandom = require('../../tools/makeRandom');
 
 //config
 dotenv.config()
@@ -14,7 +15,7 @@ const addToServer = (file, settings = { secure: true, name: "unknown" }) => {
             const resource_type = file.mimetype; // e.g., 'video/mp4'
             const isImage = file.mimetype.startsWith('image')
 
-            let filePath = `storage/${settings.secure ? 'secure' : 'public'}/${fileName}-${Date.now()}${isImage ? '.webp' : path.extname(file.originalname)}`
+            let filePath = `storage/${settings.secure ? 'secure' : 'public'}/${fileName}-${Date.now()}-${makeRandom(0, 9, 4)}${isImage ? '.webp' : path.extname(file.originalname)}`
             // const fileStoragePath = path.join(__dirname, '../../../storage/' + settings.secure ? 'secure' : 'public');
             const fileStoragePath = path.join(__dirname, '../../storage/', settings.secure ? 'secure' : 'public');
 

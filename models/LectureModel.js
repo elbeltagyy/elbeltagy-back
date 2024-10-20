@@ -17,6 +17,10 @@ const lectureSchema = new mongoose.Schema({
     description: { type: String, required: true },
     isActive: { type: Boolean, required: true, default: true },
 
+    dateStart: { type: Date },
+    dateEnd: { type: Date },
+    isMust: { type: Boolean, default: false },
+
     index: { type: Number, required: true },
     isCenter: { type: Boolean, required: true, default: false },
     sectionType: { type: String, required: true, enum: [sectionConstants.VIDEO, sectionConstants.EXAM, sectionConstants.LINK, sectionConstants.FILE] },

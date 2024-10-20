@@ -161,17 +161,18 @@ const deleteLecture = expressAsyncHandler(async (req, res, next) => {
     const lectureId = req.params.id
 
     const lecture = await LectureModel.findById(lectureId).populate("exam video link file").lean()
-
     if (lecture.file) {
         await deleteFile(lecture.file)
         await FileModel.findByIdAndDelete(lecture.file._id)
     }
     if (lecture.exam) {
-        exam.questions.forEach(async question => {
+        const examId = lecture.exam._id
+        lecture.exam.questions.forEach(async question => {
             if (question.image) {
                 await deleteFile(question.image)
             }
         })
+        await AttemptModel.deleteMany({ exam: examId })
         await ExamModel.findByIdAndDelete(lecture.exam._id)
     }
     if (lecture.link) {
@@ -200,7 +201,7 @@ const updateOneExam = expressAsyncHandler(async (req, res, next) => {
     const lectureId = req.params.id
     const exam = req.body
 
-    const lecture = await LectureModel.findByIdAndUpdate(lectureId, exam)
+    const lecture = await LectureModel.findByIdAndUpdate(lectureId, exam, { new: true })
     const updatedExam = await ExamModel.findByIdAndUpdate(lecture.exam, exam, { new: true })
     res.json({ message: 'تم تعديل الاختبار بنجاح', status: SUCCESS, values: { lecture, updatedExam } })
 })

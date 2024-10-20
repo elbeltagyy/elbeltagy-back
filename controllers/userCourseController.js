@@ -1,5 +1,5 @@
 const expressAsyncHandler = require("express-async-handler");
-const { getAll, getOne, insertOne, deleteOne } = require("./factoryHandler");
+const { getAll, getOne, insertOne, deleteOne, updateOne } = require("./factoryHandler");
 const UserCourseModel = require("../models/UserCourseModel");
 const CourseModel = require("../models/CourseModel");
 const createError = require("../tools/createError.js");
@@ -18,6 +18,8 @@ const userCoursesParams = (query) => {
 
 // const getUsersCourses = getAll(UserCourseModel, 'subscriptions', userCoursesParams)
 const getCourseSubscriptions = getAll(UserCourseModel, 'subscriptions', userCoursesParams)
+const updateSubscription = updateOne(UserCourseModel)
+
 const removeSubscription = expressAsyncHandler(async (req, res, next) => {
     const subscriptionId = req.params.id
 
@@ -57,4 +59,4 @@ const addSubscription = expressAsyncHandler(async (req, res, next) => {
 })
 // insertOne(UserCourseModel)
 //add to courses in user
-module.exports = { getCourseSubscriptions, userCoursesParams, addSubscription, removeSubscription }
+module.exports = { getCourseSubscriptions, userCoursesParams, updateSubscription, addSubscription, removeSubscription }

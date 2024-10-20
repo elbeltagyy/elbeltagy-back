@@ -21,7 +21,8 @@ const userSchema = new mongoose.Schema({
     userName: { type: String, unique: true }, // as code | phone | userName
     email: { type: String, required: false },
     password: { type: String, required: true, select: false },
-    phone: { type: String },
+    isResetPassword: { type: Boolean },
+    phone: { type: String, unique: true, required: true, },
     familyPhone: { type: String },
     isActive: { type: Boolean, default: true },
     role: {
@@ -32,7 +33,7 @@ const userSchema = new mongoose.Schema({
 
     devicesAllowed: { type: Number, default: 3 }, // max 2
     devicesRegistered: [{ type: String, default: [] }],
-    wallet: { type: Number, default: 0 },
+    wallet: { type: Number, default: 0, max: [2000, "اقصى مبلغ هو 2000 جنيه"] },
     fileConfirm: {
         original_filename: { type: String },
         url: { type: String },

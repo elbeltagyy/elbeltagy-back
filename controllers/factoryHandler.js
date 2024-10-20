@@ -233,6 +233,8 @@ exports.useCode = async (code, user) => {
             let message = ''
             switch (code.type) {
                 case codeConstants.WALLET:
+                    if ((user.wallet + code.price) >= 2000) return reject(createError("اقصى مبلغ للمحفظه 2000 جنيه", 400, statusTexts.FAILED))
+                        
                     const before = user.wallet
                     user.wallet = user.wallet + code.price
                     message = `Your wallet was ${before} and became ${user.wallet}, + ${code.price}`

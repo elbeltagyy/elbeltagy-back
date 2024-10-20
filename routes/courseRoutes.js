@@ -1,4 +1,4 @@
-const { getCourses, createCourse, getOneCourse, updateCourse, deleteCourse, uploadCourseImg, getCourseLecturesAndCheckForUser, subscribe, getLectureAndCheck, lecturePassed, getExam, createAttempt, linkCourse } = require("../controllers/courseController")
+const { getCourses, createCourse, getOneCourse, updateCourse, deleteCourse, uploadCourseImg, getCourseLecturesAndCheckForUser, subscribe, getLectureAndCheck, lecturePassed, getExam, createAttempt, linkCourse, checkDeleteCourse } = require("../controllers/courseController")
 const allowedTo = require("../middleware/allowedTo")
 const upload = require("../middleware/storage")
 const verifyToken = require("../middleware/verifyToken")
@@ -13,11 +13,11 @@ router.route("/")
 router.route("/:id")
     .get(getOneCourse)
     .put(upload.single('thumbnail'), uploadCourseImg, updateCourse)
-    .delete(deleteCourse)
+    .delete(checkDeleteCourse, deleteCourse)
 
 router.route("/:id/link")
     .post(linkCourse)
-    
+
 // USER LECTURES ROUTES ######
 router.route('/:id/lectures') //most important id === index
     .get(verifyToken(true), getCourseLecturesAndCheckForUser)

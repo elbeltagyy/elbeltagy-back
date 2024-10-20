@@ -14,7 +14,7 @@ const ExamModel = require("../models/ExamModel");
 const AttemptModel = require("../models/AttemptModel");
 const getAttemptMark = require("../tools/getAttemptMark");
 const { ObjectId } = require('mongodb');
-const { uploadFile } = require("../middleware/upload/uploadFiles");
+const { uploadFile, deleteFile } = require("../middleware/upload/uploadFiles");
 const lockLectures = require("../tools/lockLectures");
 
 
@@ -38,6 +38,22 @@ const getOneCourse = getOne(CourseModel, 'linkedTo', [
 const updateCourse = updateOne(CourseModel)
 const deleteCourse = deleteOne(CourseModel)
 
+//route /content/courses/:id
+//method Delete
+const checkDeleteCourse = expressAsyncHandler(async (req, res, next) => {
+    const courseId = req.params.id
+    const foundUserCourse = await UserCourseModel.findOne({ course: courseId })
+    if (foundUserCourse) return next(createError("هناك اشتراكات فى هذا الكورس, يجب حذف جميع الاشتراكات", 400, FAILED))
+
+    const lecture = await LectureModel.findOne({ course: courseId })
+    if (lecture) return next(createError("هناك محاضرات فى هذا الكورس, يجب حذف جميع المحاضرات", 400, FAILED))
+
+    const course = await CourseModel.findById(courseId)
+    if (course.thumbnail) {
+        await deleteFile(course.thumbnail)
+    }
+    next()
+})
 // @desc push course
 // @route POST /content/courses/:id/link
 // @access Private   ==> admin/subAdmin
@@ -217,7 +233,7 @@ const createAttempt = expressAsyncHandler(async (req, res, next) => {
 })
 
 module.exports = {
-    getCourses, getOneCourse, uploadCourseImg, createCourse, updateCourse, deleteCourse, coursesParams,
+    getCourses, getOneCourse, uploadCourseImg, createCourse, updateCourse, checkDeleteCourse, deleteCourse, coursesParams,
     getCourseLecturesAndCheckForUser, getLectureAndCheck, lecturePassed, subscribe,
     getExam, createAttempt, linkCourse
 }

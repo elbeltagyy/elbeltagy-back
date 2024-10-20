@@ -1,4 +1,4 @@
-const { getUnits, createUnit, getOneUnit, updateUnit, deleteUnit } = require("../controllers/unitController")
+const { getUnits, createUnit, getOneUnit, updateUnit, deleteUnit, checkUnitsBeforeDelete } = require("../controllers/unitController")
 
 const router = require("express").Router()
 
@@ -9,6 +9,6 @@ router.route("/")
 router.route("/:id")
     .get(getOneUnit)
     .put(updateUnit)
-    .delete(deleteUnit)
+    .delete(checkUnitsBeforeDelete, deleteUnit)
 
 module.exports = router

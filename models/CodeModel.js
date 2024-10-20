@@ -10,9 +10,9 @@ const codeSchema = new mongoose.Schema({
     isChecked: { type: Boolean, default: false },
     code: { type: String, required: true, unique: true },
     type: { type: String, required: true, enum: [codeConstants.ACTIVATE, codeConstants.CENTER, codeConstants.WALLET] },
-    price: { type: Number, default: 0 },
+    price: { type: Number, default: 0, max: [2000, "اقصى مبلغ هو 2000 جنيه"] },
     isActive: { type: Boolean, default: true },
-    numbers: { type: Number, default: 1 }
+    numbers: { type: Number, default: 1, max: [200, 'اقصى عدد هو 200'] }
 }, {
     timestamps: true,
     versionKey: false

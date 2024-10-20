@@ -8,6 +8,7 @@ const createError = require("../tools/createError.js");
 const { addToCloud } = require("../middleware/upload/cloudinary");
 const { user_roles } = require("../tools/constants/rolesConstants.js");
 const { getAll } = require("./factoryHandler.js");
+const { uploadFile } = require("../middleware/upload/uploadFiles.js");
 
 
 const userParams = (query) => {
@@ -47,11 +48,11 @@ const getByUserName = asyncHandler(async (req, res, next) => {
 
     if (userName) {
         const user = await UserModel.findOne({ userName }).select(select)
-        res.status(200).json({ status: statusTexts.SUCCESS, values: user })
+        return res.status(200).json({ status: statusTexts.SUCCESS, values: user })
 
     } else {
         const error = createError('Not found', 404, statusTexts.FAILED)
-        next(error)
+        return next(error)
     }
 
 })
@@ -65,14 +66,15 @@ const createUser = asyncHandler(async (req, res, next) => {
 
     if (user.userName) {
         const foundUser = await UserModel.findOne({ userName: user.userName })
+        const hasPhone = await UserModel.findOne({ phone: user.phone })
         // for exsiting user ----
-        if (foundUser) {
-            const error = createError("found user", 400, statusTexts.FAILED)
-            next(error)
+        if (foundUser || hasPhone) {
+            const error = createError("المستخدم موجود", 400, statusTexts.FAILED)
+            return next(error)
         }
     } else {
-        const error = createError("no data", 400, statusTexts.FAILED)
-        next(error)
+        const error = createError("Bad data", 400, statusTexts.FAILED)
+        return next(error)
     }
 
     // ------
@@ -81,7 +83,7 @@ const createUser = asyncHandler(async (req, res, next) => {
     user.password = hashedPassword
     const createdUser = await UserModel.create({ ...user })
 
-    res.status(201).json({ status: statusTexts.SUCCESS, values: createdUser, message: "user has been added successfully" })
+    res.status(201).json({ status: statusTexts.SUCCESS, values: createdUser, message: "تم انشاء المستخدم بنجاح" })
 })
 
 // @desc update user // user profile 
@@ -89,12 +91,8 @@ const createUser = asyncHandler(async (req, res, next) => {
 // @access private   ==> admin/subAdmin
 const updateUser = asyncHandler(async (req, res, next) => {
 
-    const query = req.query
     const id = req.params.id
     const { grade, name, email, password, phone, familyPhone, isActive, role, paymentId, devicesAllowed, devicesRegistered } = req.body
-
-    //select
-    const select = query.select ? query.select : ""
 
     const user = await UserModel.findById(id) //.select(select) populate
     if (!user) return next(createError("No users found ..!", 404, statusTexts.FAILED))
@@ -113,12 +111,8 @@ const updateUser = asyncHandler(async (req, res, next) => {
     user.isActive = typeof isActive === "boolean" ? isActive : user.isActive
     user.role = role || user.role
 
-
-    // user.payments.includes(paymentId) ?
-    //     user.payments = user.payments.filter(payment => paymentId !== payment) :
-    //     user.payments = [...user.payments, paymentId]
-
     if (password === 'reset') {
+        user.isResetPassword = true
         const hashedPassword = bcrypt.hashSync(user.userName, 10)
         user.password = hashedPassword
 
@@ -130,7 +124,7 @@ const updateUser = asyncHandler(async (req, res, next) => {
     await user.save()
 
 
-    return res.status(200).json({ status: statusTexts.SUCCESS, values: user, message: "User edited successfully" })
+    return res.status(200).json({ status: statusTexts.SUCCESS, values: user, message: "تم تعديل البيانات بنجاح" })
 
 })
 
@@ -150,11 +144,14 @@ const updateUserProfile = asyncHandler(async (req, res, next) => {
     let avatar = {}
 
     if (file) {
-        avatar = await addToCloud(file, {
-            folder: userName,
-            resource_type: "auto"
+        avatar = await uploadFile(file, {
+            name: userName,
+            secure: true
         })
+        delete user.avatar
+        user.avatar = avatar
     }
+
     //avater
 
     user.name = name || user.name
@@ -163,16 +160,12 @@ const updateUserProfile = asyncHandler(async (req, res, next) => {
     user.familyPhone = familyPhone || user.familyPhone
 
     if (password) {
+        user.isResetPassword = false
         const hashedPassword = bcrypt.hashSync(password, 10)
         user.password = hashedPassword
     }
-
-    if (file && avatar) {
-        user.avatar = avatar || user.avatar
-    }
-
     await user.save()
-    return res.status(200).json({ status: statusTexts.SUCCESS, values: user, message: "User edited successfully" })
+    return res.status(200).json({ status: statusTexts.SUCCESS, values: user, message: "تم تعديل البيانات بنجاح" })
 
 })
 
@@ -191,6 +184,9 @@ const deleteUser = asyncHandler(async (req, res, next) => {
     }
 
     await UserModel.findByIdAndDelete(id)
+    // await UserCourseModel.findOneAndDelete()
+    //await attemptModel.deleteMany()
+    
     res.status(200).json({ status: statusTexts.SUCCESS, message: "User deleted successfuly" })
 })
 
