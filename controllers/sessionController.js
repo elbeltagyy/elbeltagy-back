@@ -8,6 +8,7 @@ const sessionParams = (query) => {
         // { key: "isExpired", value: query.isExpired, type: "boolean" },
         { key: "browserName", value: query.browserName },
         { key: "deviceType", value: query.deviceType },
+        { key: "user", value: query.user, operator: 'equal' },
     ]
 }
 

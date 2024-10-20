@@ -33,6 +33,20 @@ const lectureParams = (query) => {
     ]
 }
 
+const getGoogleDrivePreviewLink = (originalLink) => {
+    const fileIdRegex = /\/d\/(.*?)\//;
+    const match = originalLink.match(fileIdRegex);
+
+    if (match && match[1]) {
+        const fileId = match[1];
+        return `https://drive.google.com/file/d/${fileId}/preview`;
+    } else {
+        console.error('Invalid Google Drive link');
+        return null;
+    }
+};
+
+
 
 const getLectures = getAll(LectureModel, 'lectures', lectureParams, false, 'video') //used bu users
 
@@ -100,6 +114,10 @@ const createLecture = expressAsyncHandler(async (req, res, next) => {
         file.url = lecture.url
         file.resource_type = 'application/pdf'
 
+        if (lecture.player === filePlayers.GOOGLE_DRIVE) {
+            file.url = getGoogleDrivePreviewLink(lecture.url)
+        }
+
         if (lecture.player === filePlayers.SERVER) {
             const uploadedFile = await uploadFile(req.file, { name: lecture.name, secure: true })
             file = { ...file, ...uploadedFile }
@@ -141,6 +159,10 @@ const handelUpdateLecture = expressAsyncHandler(async (req, res, next) => {
         if (file) {
             uploadedFile = await uploadFile(file, { name: lecture.name, secure: true })
         }
+        if (lecture.player === filePlayers.GOOGLE_DRIVE) {
+            lecture.url = getGoogleDrivePreviewLink(lecture.url)
+        }
+        
         const updatedFile = await FileModel.findByIdAndUpdate(savedLecture.file._id, { ...lecture, ...uploadedFile }, { new: true })
         savedLecture.file = updatedFile
     }

@@ -22,7 +22,7 @@ const userParams = (query) => {
         { key: "devicesAllowed", value: query.devicesAllowed, type: 'number' },
         { key: "wallet", value: query.wallet, type: 'number' },
         { key: "isActive", value: query.isActive, type: "boolean" },
-        { key: "grade", value: query.grade, operator: "equal" },
+        { key: "grade", value: query.grade, type: "number", },
         // { key: "group", value: query.group, operator: "equal" },
         { key: "courses", value: query.courses, type: "array" },
         { key: "exams", value: query.exams, type: "array" },
@@ -186,7 +186,7 @@ const deleteUser = asyncHandler(async (req, res, next) => {
     await UserModel.findByIdAndDelete(id)
     // await UserCourseModel.findOneAndDelete()
     //await attemptModel.deleteMany()
-    
+
     res.status(200).json({ status: statusTexts.SUCCESS, message: "User deleted successfuly" })
 })
 

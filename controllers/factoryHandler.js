@@ -37,7 +37,9 @@ exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '
         //find({course: {$in: [90, 80, 40]}})
         //sort 
         const sort = {}
-        query.sortkey ? sort[query.sortkey] = query.sortvalue : null
+        query.sortkey ? sort[query.sortkey] = query.sortValue : null
+        sort.createdAt = isModernSort ? -1 : 1
+        query.sortkey === 'createdAt' ? sort.createdAt = query.sortValue : null
 
         //select
         const select = query.select ? query.select : ""
@@ -49,7 +51,7 @@ exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '
             .select(select)
             .populate(populate)
             .limit(limit).skip(skip)
-            .sort({ createdAt: isModernSort && -1, ...sort }).lean()
+            .sort(sort).lean()
 
         const count = await Model.countDocuments(match)
 
@@ -234,7 +236,7 @@ exports.useCode = async (code, user) => {
             switch (code.type) {
                 case codeConstants.WALLET:
                     if ((user.wallet + code.price) >= 2000) return reject(createError("اقصى مبلغ للمحفظه 2000 جنيه", 400, statusTexts.FAILED))
-                        
+
                     const before = user.wallet
                     user.wallet = user.wallet + code.price
                     message = `Your wallet was ${before} and became ${user.wallet}, + ${code.price}`
