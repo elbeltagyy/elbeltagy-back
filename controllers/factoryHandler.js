@@ -40,6 +40,7 @@ exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '
         query.sortkey ? sort[query.sortkey] = query.sortValue : null
         sort.createdAt = isModernSort ? -1 : 1
         query.sortkey === 'createdAt' ? sort.createdAt = query.sortValue : null
+        query.sortkey === 'updatedAt' ? sort.updatedAt = query.sortValue : null
 
         //select
         const select = query.select ? query.select : ""
