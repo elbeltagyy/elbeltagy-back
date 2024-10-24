@@ -66,6 +66,7 @@ app.use("/api/content/units", unitRoutes)
 app.use("/api/content/courses", courseRoutes)
 app.use("/api/content/lectures", lecturesRoutes)
 app.use("/api/attempts", require('./routes/attemptRoutes'))
+app.use("/api/privacy", require('./routes/privacyRoutes'))
 
 app.use("/api/subscriptions", userCourseRoutes)
 app.use("/api/statistics", statisticsRoutes)
