@@ -1,15 +1,15 @@
 const { createCode, getOneCode, updateCode, deleteCode, getCodes, verifyCode, getUserUsedCodes } = require("../controllers/codeController")
+const allowedTo = require("../middleware/allowedTo")
 const verifyToken = require("../middleware/verifyToken")
 const codeConstants = require("../tools/constants/codeConstants")
+const { user_roles } = require("../tools/constants/rolesConstants")
 const makeRandom = require("../tools/makeRandom")
 
 const router = require("express").Router()
 
-
-
 router.route("/")
-    .get(verifyToken(), getCodes)
-    .post((req, res, next) => {
+    .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), getCodes)
+    .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), (req, res, next) => {
         const code = req.body
         let start
         switch (code.type) {
@@ -33,11 +33,11 @@ router.route('/user') //for user
     .get(verifyToken(), getUserUsedCodes)
 
 router.route('/verify')
-    .post(verifyToken(), verifyCode)
+    .post(verifyToken(), allowedTo(user_roles.STUDENT, user_roles.ONLINE), verifyCode)
 
 router.route("/:id")
-    .get(getOneCode)
-    .put(updateCode)
-    .delete(deleteCode)
+    .get(verifyToken(), getOneCode)
+    .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), updateCode)
+    .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), deleteCode)
 
 module.exports = router

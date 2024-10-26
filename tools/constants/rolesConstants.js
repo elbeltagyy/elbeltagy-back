@@ -4,7 +4,8 @@ const user_roles = {
     STUDENT: "طالب",
     ONLINE: 'اونلاين',
     INREVIEW: "تحت المراجعه",
-    NOT_USER: 'غير مسجل'
+    NOT_USER: 'غير مسجل',
+    MENTOR: ""
 }
 
 

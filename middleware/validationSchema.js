@@ -1,15 +1,14 @@
 const { body } = require('express-validator');
-const { expressValidate } = require('./errorsHandler');
 
 
 const loginSchema = () => {
     return [
         body('userName', 'اسم المستخدم غير صالح')
             .notEmpty().escape()
-            .isLength({ min: 6 }).withMessage('يجب ان تكون اكبر من او تساوى 6 عناصر'),
+            .isLength({ min: 6, max: 20 }).withMessage('يجب ان تكون اكبر من او تساوى 6 عناصر'),
         body('password', 'كلمه السر غير صالحه')
             .notEmpty().escape()
-            .isLength({ min: 6 }).withMessage('يجب ان تكون اكبر من او تساوى 6 عناصر')
+            .isLength({ min: 6, max: 20 }).withMessage('يجب ان تكون اكبر من او تساوى 6 عناصر')
     ]
 }
 
@@ -17,6 +16,7 @@ const signupSchema = () => {
     return [
         body('name', 'الاسم غير صالح')
             .notEmpty().trim().escape()
+            .isLength({ min: 6, max: 20 }).withMessage('يجب ان تكون اكبر من او تساوى 6 عناصر')
             .custom((value) => {
                 console.log('here')
                 const words = value.split(/\s+/);
@@ -28,9 +28,12 @@ const signupSchema = () => {
             }),
         body('email', 'الايميل غير صالح')
             .trim().escape()
+            .isLength({ min: 6, max: 20 }).withMessage('يجب ان تكون اكبر من او تساوى 6 عناصر')
             .isEmail().withMessage('يجب ادخال ايميل صالح'),
+
         body('phone', 'الرقم غير صالح')
             .notEmpty().trim()
+            .isLength({ min: 6, max: 20 }).withMessage('يجب ان تكون اكبر من او تساوى 6 عناصر')
             .matches(/^\d{11}$/).withMessage('يجب ان يكون 11 رقم'),
         body('familyPhone', 'الاسم غير صالح')
             .notEmpty().trim()
@@ -42,17 +45,17 @@ const signupSchema = () => {
                 return true;
             }),
         body('grade', 'يجب اختيار صف دراسى')
-            .notEmpty().trim().escape(),
+            .notEmpty().trim().escape().isLength({ max: 20 }).withMessage('يجب ان تكون اقل من او تساوى 20 عناصر'),
+
         body('government', 'يجب اختيار  محافظه')
-            .notEmpty().trim().escape(),
+            .notEmpty().trim().escape().isLength({ max: 20 }).withMessage('يجب ان تكون اقل من او تساوى 20 عناصر'),
         // body('code')
         //     .trim()
         //     .optional()  // Only validate if this field exists in the request
         //     .matches(/^\d{11}$/).withMessage('الكود عباره عن 16 رقم'),
         body('password', 'كلمه السر غير صالحه')
             .notEmpty()
-            .isLength({ min: 6 })
-            .withMessage('يجب ان تكون اكبر من او تساوى 6 عناصر'),
+            .isLength({ min: 6, max: 20 }).withMessage('يجب ان تكون اكبر من او تساوى 6 عناصر')
     ]
 }
 

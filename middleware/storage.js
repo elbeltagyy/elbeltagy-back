@@ -2,12 +2,12 @@ const multer = require("multer");
 const fileTypes = require("../tools/constants/fileTypes");
 
 const fileFilter = (req, file, cb) => {
-    const allowedFiles = [fileTypes.JPEG, fileTypes.MP4, fileTypes.PDF, fileTypes.PNG, fileTypes.WebP]
+    const allowedFiles = [fileTypes.JPEG, fileTypes.PDF, fileTypes.PNG, fileTypes.WebP] //fileTypes.MP4,
 
     if (allowedFiles.includes(file.mimetype)) {
         cb(null, true); // Accept the file
     } else {
-        cb(new Error('Invalid file type. Only PDF, images (JPEG, JPG, PNG,  WebP), or MP4 files are allowed.'), false); // Reject the file
+        cb(new Error('Invalid file type. Only PDF, images (JPEG, JPG, PNG,  WebP) files are allowed.'), false); // Reject the file , or MP4
     }
 };
 
@@ -21,10 +21,36 @@ const storage = multer.diskStorage({
 })
 
 
+// #### uploader #####
 const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
-    limits: { fileSize: 10 * 100000000 }, // Limit file size to 100MB * 15 =>1.5 Giga
+    limits: { fileSize: 50 * 1024 * 1024 }, // Limit file size to 100MB * 15
 });
 
-module.exports = upload
+const imageUpload = multer({
+    storage: storage,
+    fileFilter: (req, file, cb) => {
+        const allowedFiles = [fileTypes.JPEG, fileTypes.PNG, fileTypes.WebP] //fileTypes.MP4,
+        if (allowedFiles.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image formats allowed!'));
+        }
+    },
+    limits: { fileSize: 3 * 1024 * 1024 } // 3 MB limit
+});
+
+const pdfUpload = multer({
+    storage: storage,
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'application/pdf') {
+            cb(null, true);
+        } else {
+            cb(new Error('Only .pdf format allowed!'));
+        }
+    },
+    limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
+});
+
+module.exports = { upload, imageUpload }

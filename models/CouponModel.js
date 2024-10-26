@@ -1,0 +1,21 @@
+const mongoose = require("mongoose")
+const UserModel = require("./UserModel")
+const CourseModel = require("./CourseModel")
+
+
+const couponSchema = new mongoose.Schema({
+    usedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: UserModel }],
+    course: { type: mongoose.Schema.Types.ObjectId, ref: CourseModel, required: true, },
+    discount: {
+        type: Number, default: 0, max: [100, "اقصى مبلغ هو 100 جنيه"], min: [0, "القيمة الدنيا هي 0 جنيه"],
+    },
+    isChecked: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
+    numbers: { type: Number, default: 1, max: [200, 'اقصى عدد هو 200'] }
+}, {
+    timestamps: true,
+    versionKey: false
+})
+
+const CouponModel = mongoose.model("coupon", couponSchema)
+module.exports = CouponModel

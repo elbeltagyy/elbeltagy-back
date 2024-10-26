@@ -1,9 +1,13 @@
 const { getUsersCount, getUnitsCount, getCoursesCount, getLecturesCount, getSubscriptionsCount, getNotificationsCount } = require("../controllers/statisticsController")
+const allowedTo = require("../middleware/allowedTo")
+const { secureGetAll } = require("../middleware/secureMiddleware")
+const verifyToken = require("../middleware/verifyToken")
+const { user_roles } = require("../tools/constants/rolesConstants")
 
 const router = require("express").Router()
 
 router.route("/users")
-    .get(getUsersCount)
+    .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), getUsersCount)
 
 router.route("/units")
     .get(getUnitsCount)
@@ -15,9 +19,9 @@ router.route("/lectures")
     .get(getLecturesCount)
 
 router.route("/subscriptions")
-    .get(getSubscriptionsCount)
+    .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), getSubscriptionsCount)
 
 router.route("/notifications")
-    .get(getNotificationsCount)
+    .get(verifyToken(), secureGetAll(), getNotificationsCount)
 
 module.exports = router

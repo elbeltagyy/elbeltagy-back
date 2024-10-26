@@ -1,7 +1,9 @@
 const expressAsyncHandler = require("express-async-handler")
-const upload = require("../middleware/storage")
+const { upload } = require("../middleware/storage")
 const { deleteFile, uploadFile } = require("../middleware/upload/uploadFiles")
-const makeRandom = require("../tools/makeRandom")
+const verifyToken = require("../middleware/verifyToken")
+const allowedTo = require("../middleware/allowedTo")
+const { user_roles } = require("../tools/constants/rolesConstants")
 
 const router = require("express").Router()
 
@@ -24,8 +26,10 @@ const deleteFileFc = expressAsyncHandler(async (req, res, next) => {
     res.json({ message: isFoundAndDeleted ? 'تم حذف الملف بنجاح' : 'الملف غير موجود, ارفع ملف اخر' })
 })
 
+
+
 router.route("/")
-    .post(upload.array('files', 50), uploadFiles)
-    .delete(deleteFileFc)
+    .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), upload.array('files', 50), uploadFiles)
+    .delete(verifyToken(), deleteFileFc)
 
 module.exports = router

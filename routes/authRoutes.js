@@ -1,25 +1,27 @@
+const router = require("express").Router()
+const jwt = require('jsonwebtoken');
+const expressAsyncHandler = require("express-async-handler");
+
 const { login, signup, logout } = require("../controllers/authController")
 
-const router = require("express").Router()
-const createError = require("../tools/createError");
-const expressAsyncHandler = require("express-async-handler");
 const SessionModel = require("../models/SessionModel");
-const { FAILED, SUCCESS } = require("../tools/statusTexts");
 const { generateAccessToken } = require("../middleware/generateAccessToken");
-const jwt = require('jsonwebtoken');
-const { makeLoginSession } = require("../controllers/factoryHandler");
 
+const { makeLoginSession } = require("../controllers/factoryHandler");
+const { imageUpload } = require("../middleware/storage");
 const { expressValidate } = require("../middleware/errorsHandler");
 const { loginSchema, signupSchema } = require("../middleware/validationSchema");
-const upload = require("../middleware/storage");
+
 const clearTokens = require("../tools/clearTokens");
+const createError = require("../tools/createError");
+const { FAILED, SUCCESS } = require("../tools/statusTexts");
 
 //config
 require("dotenv").config()
 
 router.post("/login", loginSchema(), expressValidate, login, makeLoginSession())
 
-router.post('/signup', upload.single('fileConfirm'), signupSchema(), expressValidate, signup, makeLoginSession())
+router.post('/signup', imageUpload.single('fileConfirm'), signupSchema(), expressValidate, signup, makeLoginSession())
 router.get('/logout', logout)
 
 router.get("/refresh", expressAsyncHandler(async (req, res, next) => {
