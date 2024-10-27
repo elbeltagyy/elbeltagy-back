@@ -106,7 +106,7 @@ exports.updateOne = (Model) =>
         const doc = await Model.findByIdAndUpdate(
             req.params.id,
             req.body,
-            { new: true }
+            { new: true, runValidators: true }
         );
         if (!doc) {
             return next('error');

@@ -1,9 +1,11 @@
 const { createCode, getOneCode, updateCode, deleteCode, getCodes, verifyCode, getUserUsedCodes } = require("../controllers/codeController")
+
+const codeConstants = require("../tools/constants/codeConstants")
+const makeRandom = require("../tools/makeRandom")
+
 const allowedTo = require("../middleware/allowedTo")
 const verifyToken = require("../middleware/verifyToken")
-const codeConstants = require("../tools/constants/codeConstants")
 const { user_roles } = require("../tools/constants/rolesConstants")
-const makeRandom = require("../tools/makeRandom")
 
 const router = require("express").Router()
 

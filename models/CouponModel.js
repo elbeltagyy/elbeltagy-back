@@ -6,8 +6,9 @@ const CourseModel = require("./CourseModel")
 const couponSchema = new mongoose.Schema({
     usedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: UserModel }],
     course: { type: mongoose.Schema.Types.ObjectId, ref: CourseModel, required: true, },
+    coupon: { type: String, min: [6, 'اقل عدد للحروف هو 6 احرف'] },
     discount: {
-        type: Number, default: 0, max: [100, "اقصى مبلغ هو 100 جنيه"], min: [0, "القيمة الدنيا هي 0 جنيه"],
+        type: Number, default: 0, max: [100, "اقصى خصم هو 100 %"], min: [0, "القيمة الدنيا هي 0 %"],
     },
     isChecked: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },

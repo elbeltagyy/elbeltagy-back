@@ -11,8 +11,9 @@ const codeParams = (query) => {
         { key: "grade", value: query.grade },
         { key: "code", value: query.code },
         { key: "type", value: query.type },
-        { key: "price", value: query.price },
-        { key: "numbers", value: query.phone },
+        { key: "price", value: query.price, type: 'number' },
+        { key: "numbers", value: query.numbers, type: 'number' },
+        { key: "isChecked", value: query.isChecked, type: "boolean" },
         { key: "isActive", value: query.isActive, type: "boolean" },
         { key: "usedBy", value: query.usedBy, type: 'array' },
     ]

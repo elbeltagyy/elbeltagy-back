@@ -60,6 +60,7 @@ app.use("/api/sessions", require("./routes/sessionRoutes"))
 app.use("/api/auth", authRoutes)
 app.use("/api/users", userRoutes)
 app.use("/api/codes", codeRoutes)
+app.use("/api/coupons", require("./routes/couponRoutes"))
 app.use("/api/notifications", require('./routes/notificationRoutes'))
 
 app.use("/api/content/units", unitRoutes)

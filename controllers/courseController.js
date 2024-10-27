@@ -16,6 +16,7 @@ const getAttemptMark = require("../tools/getAttemptMark");
 const { ObjectId } = require('mongodb');
 const { uploadFile, deleteFile } = require("../middleware/upload/uploadFiles");
 const lockLectures = require("../tools/lockLectures");
+const CouponModel = require("../models/CouponModel");
 
 
 const coursesParams = (query) => {
@@ -110,14 +111,28 @@ const getCourseLecturesAndCheckForUser = expressAsyncHandler(async (req, res, ne
 const subscribe = expressAsyncHandler(async (req, res, next) => {
     const user = req.user
     const courseId = req.params.id
+    const coupon = req.body.coupon
 
-    const isUserSubscribed = await UserCourseModel.findOne({ user: user._id, course: courseId })
+    const isUserSubscribed = await UserCourseModel.findOne({ user: user._id, course: courseId }).lean()
     if (isUserSubscribed) {
         return next(createError('انت بالفعل مشترك بالكورس', 400, FAILED))
     }
 
-
     const currentCourse = await CourseModel.findById(courseId).lean()
+    let foundCoupon = null
+    if (coupon) {
+        foundCoupon = await CouponModel.findOne({ course: courseId, isActive: true, coupon, usedBy: { $nin: [user._id] }, numbers: { $gte: 1 } })
+        if (!foundCoupon) return next(createError("الكوبون غير صالح", 404, FAILED))
+
+        const couponDiscount = foundCoupon.discount
+        const coursePrice = currentCourse.price
+        const coursePriceAfterDiscount = (coursePrice - ((couponDiscount / 100) * coursePrice))
+        currentCourse.price = coursePriceAfterDiscount
+
+        foundCoupon.usedBy.push(user._id)
+        foundCoupon.numbers = foundCoupon.numbers - 1
+    }
+
     if (currentCourse?.price > user.wallet) {  //course.discount
         return next(createError('المحفظه لا تكفى, بالرجاء شحن مبلغ ' + (currentCourse.price - user.wallet) + ' جنيه', 400, FAILED))
     }
@@ -133,6 +148,10 @@ const subscribe = expressAsyncHandler(async (req, res, next) => {
         $push: { courses: currentCourse._id },
         $set: { wallet: user.wallet }
     })
+
+    if (foundCoupon) {
+        await foundCoupon.save() //
+    }
 
     const [course, lectures] = await lockLectures(currentCourse, userCourse)
     res.status(200).json({ status: SUCCESS, values: { course, lectures, currentIndex: userCourse.currentIndex, wallet: user.wallet }, message: 'تم الاشتراك بنجاح فى كورس ' + course.name })
