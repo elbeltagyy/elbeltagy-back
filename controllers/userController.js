@@ -8,7 +8,13 @@ const createError = require("../tools/createError.js");
 const { addToCloud } = require("../middleware/upload/cloudinary");
 const { user_roles } = require("../tools/constants/rolesConstants.js");
 const { getAll } = require("./factoryHandler.js");
-const { uploadFile } = require("../middleware/upload/uploadFiles.js");
+const { uploadFile, deleteFile } = require("../middleware/upload/uploadFiles.js");
+const UserCourseModel = require("../models/UserCourseModel.js");
+const AttemptModel = require("../models/AttemptModel.js");
+const CodeModel = require("../models/CodeModel.js");
+const CouponModel = require("../models/CouponModel.js");
+const SessionModel = require("../models/SessionModel.js");
+const NotificationModel = require("../models/NotificationModel.js");
 
 
 const userParams = (query) => {
@@ -183,9 +189,16 @@ const deleteUser = asyncHandler(async (req, res, next) => {
         next(error)
     }
 
-    await UserModel.findByIdAndDelete(id)
-    // await UserCourseModel.findOneAndDelete()
-    //await attemptModel.deleteMany()
+    await Promise.all([
+        UserModel.findByIdAndDelete(id),
+        UserCourseModel.deleteMany({ user: id }),
+        AttemptModel.deleteMany({ user: id }),
+        SessionModel.deleteMany({ user: id }),
+        NotificationModel.deleteMany({ user: id }), ,
+        CodeModel.updateMany({ usedBy: id }, { $pull: { usedBy: id } }),
+        CouponModel.updateMany({ usedBy: id }, { $pull: { usedBy: id } }),
+        deleteFile(user.avatar)
+    ]);
 
     res.status(200).json({ status: statusTexts.SUCCESS, message: "User deleted successfuly" })
 })

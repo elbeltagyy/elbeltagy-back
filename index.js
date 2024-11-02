@@ -30,6 +30,8 @@ const userCourseRoutes = require("./routes/userCourseRoutes")
 const statisticsRoutes = require("./routes/statisticsRoutes")
 
 const UserModel = require("./models/UserModel")
+const governments = require("./tools/constants/governments")
+const makeRandom = require("./tools/makeRandom")
 
 // config
 dotenv.config()
@@ -85,16 +87,45 @@ app.use('/storage', express.static(path.join(__dirname, 'storage')))
 app.use(notFound)
 app.use(errorrHandler)
 
-const connectDb = async () => {
-    await mongoose.connect(DB_URI).then(() => {
-        console.log('DB connected successfully')
-    })
+const createUsers = async () => {
+    try {
+        console.log('start Injection')
+
+        for (let i = 0; i < 10000; i++) {
+            const randomFrom1To0 = makeRandom(1, 2, 1)
+            const radnomAll = makeRandom(1, 9, 1)
+
+            const user = {
+                userName: 'usermee' + i,
+                grade: randomFrom1To0,
+                name: 'name is ' + i,
+                email: 'test@gmail.com',
+                password: '$2a$10$K2Vu6hIa3O5mgAxDsk7jUOGJLmsiQgvc2161T7EDkkjXlpIODEH3C',
+                phone: '01000' + i,
+                familyPhone: '010' + i,
+                role: 'اونلاين',
+                government: radnomAll
+            }
+            await UserModel.create(user)
+        }
+        console.log('injected done')
+    } catch (error) {
+        console.log('failed ==>', error)
+    }
 }
+
+const connectDb = async () => {
+    try {
+        await mongoose.connect(DB_URI)
+        console.log('connected')
+    } catch (error) {
+        console.log('failed to connect ==>', error)
+    }
+
+}
+
 connectDb()
 
 app.listen(port, async () => {
-    // await mongoose.connect(DB_URI).then(() => {
-    //     console.log('DB connected successfully')
-    // })
     console.log(`the app is working on port: ${port}`)
 })

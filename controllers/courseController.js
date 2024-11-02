@@ -17,6 +17,7 @@ const { ObjectId } = require('mongodb');
 const { uploadFile, deleteFile } = require("../middleware/upload/uploadFiles");
 const lockLectures = require("../tools/lockLectures");
 const CouponModel = require("../models/CouponModel");
+const codeConstants = require("../tools/constants/codeConstants");
 
 
 const coursesParams = (query) => {
@@ -121,8 +122,11 @@ const subscribe = expressAsyncHandler(async (req, res, next) => {
     const currentCourse = await CourseModel.findById(courseId).lean()
     let foundCoupon = null
     if (coupon) {
-        foundCoupon = await CouponModel.findOne({ course: courseId, isActive: true, coupon, usedBy: { $nin: [user._id] }, numbers: { $gte: 1 } })
+        foundCoupon = await CouponModel.findOne({ isActive: true, coupon, usedBy: { $nin: [user._id] }, numbers: { $gte: 1 } })
         if (!foundCoupon) return next(createError("الكوبون غير صالح", 404, FAILED))
+
+        const course = new mongoose.Types.ObjectId(courseId);
+        if ((foundCoupon.type === codeConstants.PRIVATE || foundCoupon.course) && !foundCoupon.course.equals(course)) return next(createError("الكوبون غير صالح", 404, FAILED))
 
         const couponDiscount = foundCoupon.discount
         const coursePrice = currentCourse.price
@@ -133,7 +137,7 @@ const subscribe = expressAsyncHandler(async (req, res, next) => {
         foundCoupon.numbers = foundCoupon.numbers - 1
     }
 
-    if (currentCourse?.price > user.wallet) {  //course.discount
+    if (currentCourse?.price > user.wallet) {
         return next(createError('المحفظه لا تكفى, بالرجاء شحن مبلغ ' + (currentCourse.price - user.wallet) + ' جنيه', 400, FAILED))
     }
 
