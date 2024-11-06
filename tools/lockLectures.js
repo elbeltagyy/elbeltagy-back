@@ -22,6 +22,7 @@ const lockLectures = async (course, userCourse) => {
         } else {
             course.isSubscribed = false
         }
+
         let lectures = await LectureModel.find({ course: { $in: [...course.linkedTo, course._id] }, isActive: true }).populate(populate).lean()
 
         lectures.map((lecture, i) => {
@@ -35,14 +36,23 @@ const lockLectures = async (course, userCourse) => {
         if (userCourse && course.isMust) {
             //lock lectures
             lectures.map(lecture => {
-                if (lecture.sectionType === sectionConstants.EXAM) {
-                    //info
-                }
                 if (userCourse.currentIndex < lecture.index) {
                     lecture.locked = true
                 }
                 return lecture
             })
+
+            let startIndex = lectures.findIndex(obj => obj.index === userCourse.currentIndex);
+
+            if (startIndex < 0) {
+                startIndex = 0
+            }
+            // Slice from the found startIndex to the end, and from the beginning to startIndex
+            const firstPart = lectures.slice(startIndex); // Elements from found index to end
+            const secondPart = lectures.slice(0, startIndex); // Elements from beginning to found index - 1
+
+            // Concatenate the two parts
+            lectures = firstPart.concat(secondPart);
         }
 
         return [course, lectures]
