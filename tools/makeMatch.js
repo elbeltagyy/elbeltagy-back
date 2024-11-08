@@ -8,7 +8,7 @@ const makeMatch = (match, params) => {
         if (String(param.value).includes("_split_")) {
             const valueSplitted = param.value.split("_split_")
             param.operator = valueSplitted[0]
-            param.value = valueSplitted[1] || ''
+            param.value = valueSplitted[1] ?? ''
         }
 
 
@@ -31,7 +31,7 @@ const makeMatch = (match, params) => {
         }
 
         if (param.type === "number") {
-
+            
             if (param.operator === '>=') {
                 param.value ? match[param.key] = { $gte: Number(param.value) } : null
             } else if (param.operator === '<=') {
@@ -42,7 +42,7 @@ const makeMatch = (match, params) => {
                 param.value ? match[param.key] = { $lt: Number(param.value) } : null
             } else if (param.operator === '=!' || param.operator === '!=') {
                 param.value ? match[param.key] = { $ne: Number(param.value) } : null
-            } else if (Number(param.value)) {
+            } else if ((Number(param.value) || Number(param.value) === 0)) {
                 param.value ? match[param.key] = Number(param.value) : null
             }
             return

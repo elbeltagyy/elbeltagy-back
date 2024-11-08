@@ -13,6 +13,7 @@ const userCoursesParams = (query) => {
         { key: "course", value: query.course, operator: "equal" },
         { key: "user", value: query.user, operator: "equal" },
         { key: "currentIndex", value: query.currentIndex, type: "number" },
+        { key: "payment", value: query.payment, type: "number" },
     ]
 }
 

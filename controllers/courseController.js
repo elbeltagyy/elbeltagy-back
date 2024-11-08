@@ -145,7 +145,8 @@ const subscribe = expressAsyncHandler(async (req, res, next) => {
 
     const userCourse = await UserCourseModel.create({
         user: user._id,
-        course: currentCourse._id
+        course: currentCourse._id,
+        payment: currentCourse.price
     })
 
     await UserModel.updateOne({ _id: user._id }, {

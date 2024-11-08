@@ -9,6 +9,7 @@ const userCourseSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: UserModel },
     course: { type: mongoose.Schema.Types.ObjectId, ref: CourseModel },
     currentIndex: { type: Number, default: 1 },
+    payment: { type: Number, default: 0 }
     // views: { type: Number }, timesWatching: { type: Number }
 }, {
     timestamps: true,
