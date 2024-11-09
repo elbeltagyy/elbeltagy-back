@@ -10,7 +10,7 @@ var cookieParser = require('cookie-parser')
 const crypto = require('crypto')
 var device = require('express-device');
 const path = require('path')
-
+const { rateLimit } = require("express-rate-limit")
 
 // get fc routes
 const verifyToken = require("./middleware/verifyToken")
@@ -35,6 +35,17 @@ const makeRandom = require("./tools/makeRandom")
 
 // config
 dotenv.config()
+const limiter = rateLimit({
+    windowMs: 2 * 60 * 1000, // 2 minutes
+    limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+    standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+    message: "Too many login attempts, please try again later.",
+    // store: ... , // Redis, Memcached, etc. See below.
+})
+app.use(limiter)
+
+app.use(helmet());
 app.use(express.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
