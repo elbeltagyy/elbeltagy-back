@@ -55,7 +55,7 @@ app.use(device.capture());
 
 app.use(cors(
     {
-        origin: ['https://elbeltagy-front.vercel.app', 'http://localhost:3000', 'http://192.168.1.16:3000'],
+        origin: ['https://elbeltagy-front.vercel.app', 'http://localhost:3000', 'http://192.168.1.16:3000', 'https://mrelbeltagy.com'],
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
         credentials: true
     }
@@ -63,7 +63,7 @@ app.use(cors(
 
 process.env.NODE_ENV === 'development' && app.use(morgan('tiny'))
 
-const port = process.env.PORT || 5001
+const port = process.env.PORT || 3030
 const DB_URI = process.env.MONGO_URI
 
 
