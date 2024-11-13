@@ -181,7 +181,7 @@ exports.makeLoginSession = () => {
             res.cookie(deviceIdSignedCookie, deviceId, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',  // Secure only in production
-                sameSite: (process.env.NODE_ENV === 'production' && process.env.host === 'server') ? 'lax' : 'none', // lax for local dev
+                sameSite: process.env.host === 'server' ? 'lax' : 'none', // lax for local dev
                 maxAge: ms('2y') //signed
             })
         }
@@ -219,7 +219,7 @@ exports.makeLoginSession = () => {
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',  // Secure only in production
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // lax for local dev
+            sameSite: process.env.host === 'server' ? 'lax' : 'none', // lax for local dev
             maxAge: ms(process.env.REFRESH_TOKEN_LIFE), // signed = true
         })
 

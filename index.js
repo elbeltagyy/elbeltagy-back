@@ -2,12 +2,11 @@ const express = require("express")
 const dotenv = require("dotenv")
 const cors = require("cors")
 const bodyParser = require("body-parser")
-const helmet = require("helmet")
+// const helmet = require("helmet")
 const morgan = require("morgan")
 const app = express()
 const { default: mongoose } = require("mongoose")
 var cookieParser = require('cookie-parser')
-const crypto = require('crypto')
 var device = require('express-device');
 const path = require('path')
 const { rateLimit } = require("express-rate-limit")
@@ -41,12 +40,12 @@ const limiter = rateLimit({
     limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
     standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
-    message: "Too many login attempts, please try again later.",
+    message: "Too many requests, please try again later.",
     // store: ... , // Redis, Memcached, etc. See below.
 })
 app.use(limiter)
 
-app.use(helmet());
+// 
 app.use(express.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
@@ -63,13 +62,17 @@ app.use(cors(
 ))
 
 process.env.NODE_ENV === 'development' && app.use(morgan('tiny'))
+process.env.NODE_ENV === 'development' && app.use("/test", testRoutes)
+process.env.NODE_ENV === 'development' && app.use("/api/test", testRoutes)
+
+// process.env.NODE_ENV === 'production' && app.use(helmet());
 
 const port = process.env.PORT || 3030
 const DB_URI = process.env.MONGO_URI
 
 
 //routes config
-app.use("/api/test", testRoutes)
+
 app.use("/api/sessions", require("./routes/sessionRoutes"))
 app.use("/api/auth", authRoutes)
 app.use("/api/users", userRoutes)
@@ -87,12 +90,12 @@ app.use("/api/subscriptions", userCourseRoutes)
 app.use("/api/statistics", statisticsRoutes)
 
 app.use('/api/files', require('./routes/fileRoutes'))
-app.get("/test", testRoutes)
+
 
 // for secure folders
-app.use("/storage/secure", (req, res, next) => {
-    next()
-})
+// app.use("/storage/secure", (req, res, next) => {
+//     next()
+// })
 app.use('/storage', express.static(path.join(__dirname, 'storage')))
 
 // for errors 
@@ -128,7 +131,10 @@ const createUsers = async () => {
 
 const connectDb = async () => {
     try {
-        await mongoose.connect(DB_URI)
+        await mongoose.connect(DB_URI, {
+            useNewUrlParser: true,            // Use the new URL string parser
+            useUnifiedTopology: true,         // Use the new Server Discover and Monitoring engine
+        })
         console.log('connected')
     } catch (error) {
         console.log('failed to connect ==>', error)

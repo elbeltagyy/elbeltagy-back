@@ -30,11 +30,11 @@ const login = asyncHandler(async (req, res, next) => {
     const select = 'grade userName name password avatar email  phone familyPhone isActive government role totalPoints wallet devicesAllowed devicesRegistered'
     const user = await UserModel.findOne({ userName }).select(select)
 
-    if (!user) return next(createError("لم يتم العثور على المستخدم", 404, statusTexts.FAILED))
+    if (!user) return next(createError("هناك خطا فى البيانات المدخله", 404, statusTexts.FAILED))
     if (user?.role === user_roles?.INREVIEW) return next(createError("حسابك تحت المراجعه, سيتم تفعيله فى اقل من 24 ساعه", 401, statusTexts.FAILED))
 
     const isTruePass = await bcrypt.compare(password, user.password)
-    if (!isTruePass) return next(createError("كلمة المرور خاطئه", 400, statusTexts.FAILED))
+    if (!isTruePass) return next(createError("هناك خطا فى البيانات المدخله", 400, statusTexts.FAILED))
 
     if (!user.isActive) {
         const error = createError("عذرًا, حسابك غير مفعل", 401, statusTexts.FAILED)
