@@ -54,6 +54,10 @@ const checkDeleteCourse = expressAsyncHandler(async (req, res, next) => {
     if (course.thumbnail) {
         await deleteFile(course.thumbnail)
     }
+
+    await CouponModel.deleteMany({
+        course: courseId
+    })
     next()
 })
 // @desc push course

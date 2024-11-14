@@ -186,7 +186,7 @@ const deleteUser = asyncHandler(async (req, res, next) => {
     // console.log(user)
     if (user.role === user_roles.ADMIN) {
         const error = createError("admin can`t be deleted", 400, statusTexts.FAILED)
-        next(error)
+        return next(error)
     }
 
     await Promise.all([
@@ -197,12 +197,12 @@ const deleteUser = asyncHandler(async (req, res, next) => {
         NotificationModel.deleteMany({ user: id }), ,
         CodeModel.updateMany({ usedBy: id }, { $pull: { usedBy: id } }),
         CouponModel.updateMany({ usedBy: id }, { $pull: { usedBy: id } }),
-        deleteFile(user.avatar)
+        deleteFile(user.avatar),
+        deleteFile(user.fileConfirm)
     ]);
 
-    res.status(200).json({ status: statusTexts.SUCCESS, message: "User deleted successfuly" })
+    return res.status(200).json({ status: statusTexts.SUCCESS, message: "User deleted successfuly" })
 })
 
 
-//.findOne ==> __obj
 module.exports = { getUsers, getByUserName, createUser, updateUserProfile, updateUser, deleteUser, userParams }

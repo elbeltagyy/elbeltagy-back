@@ -22,7 +22,6 @@ exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '
 
         const query = req.query
 
-
         //pagination
         const limit = query.limit || 10000
         const page = query.page || 1
@@ -147,7 +146,6 @@ exports.getDocCount = (Model, params = []) =>
 exports.filterById = (Model, params = [], idName) =>
     asyncHandler(async (req, res, next) => {
         const query = req.query
-
         // search && filter
         const match = {}
         if (params.length > 0) {
