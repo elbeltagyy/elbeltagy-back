@@ -55,7 +55,7 @@ app.use(device.capture());
 
 app.use(cors(
     {
-        origin: ['https://elbeltagy-front.vercel.app', 'http://localhost:3000', 'http://192.168.1.16:3000', 'https://mrelbeltagy.com'],
+        origin: ['https://elbeltagy-front.vercel.app', 'http://localhost:3000', 'http://192.168.1.16:3000', 'https://mrelbeltagy.com', 'https://www.mrelbeltagy.com'],
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
         credentials: true
     }
