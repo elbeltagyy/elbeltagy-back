@@ -166,8 +166,8 @@ exports.makeLoginSession = () => {
         // recorded devices
         let deviceId = req.cookies[deviceIdSignedCookie]  //true or false //signedCookies
 
-        // if never login => create device ID
-        if (!deviceId || user.devicesRegistered?.length === 0) {
+        // if never login => !deviceId = true + || if logged before but invalid deviceId
+        if (!deviceId || !user?.devicesRegistered?.includes(deviceId)) {
 
             if (user.devicesRegistered.length === user.devicesAllowed) {
                 return next(createError("لقد تجاوزت عدد الاجهزه المسموح بالتسجيل بها", 401, statusTexts.FAILED))
