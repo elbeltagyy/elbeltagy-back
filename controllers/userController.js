@@ -111,6 +111,9 @@ const updateUser = asyncHandler(async (req, res, next) => {
     user.devicesAllowed = devicesAllowed || user.devicesAllowed
     user.devicesRegistered = devicesRegistered || user.devicesRegistered
 
+
+    if ((user.role !== user_roles.ADMIN || user.role !== user_roles.SUBADMIN) && (role === user_roles.ADMIN || role === user_roles.SUBADMIN)) return next(createError('لا يمكن تغيير حاله المستخدم الي ادمن او مشرف'))
+
     if (user.role === user_roles.ADMIN && !isActive) return next(createError('لا يمكن الغاء تفعيل الادمن .'))
     if (user.role === user_roles.ADMIN && role !== user_roles.ADMIN) return next(createError('لا يمكن الغاء تفعيل الادمن .'))
 
