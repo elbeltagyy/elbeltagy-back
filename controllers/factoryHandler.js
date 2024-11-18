@@ -117,7 +117,7 @@ exports.updateOne = (Model) =>
 exports.deleteOne = (Model) =>
     asyncHandler(async (req, res, next) => {
         const { id } = req.params;
-        console.log('id ==>', id)
+        // console.log('id ==>', id)
         const document = await Model.findByIdAndDelete(id);
 
         if (!document) {

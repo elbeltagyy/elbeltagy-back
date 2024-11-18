@@ -18,7 +18,7 @@ const signupSchema = () => {
             .notEmpty().trim().escape()
             .isLength({ min: 6, max: 100 }).withMessage('يجب ان تكون اكبر من او تساوى 6 عناصر')
             .custom((value) => {
-                console.log('here')
+                // console.log('here')
                 const words = value.split(/\s+/);
                 // Check if there are exactly 3 words
                 if (words.length !== 3) {
