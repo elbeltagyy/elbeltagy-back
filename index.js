@@ -43,7 +43,7 @@ const limiter = rateLimit({
     message: "Too many requests, please try again later.",
     // store: ... , // Redis, Memcached, etc. See below.
 })
-app.use(limiter)
+// app.use(limiter)
 
 // 
 app.use(express.urlencoded({ extended: true }))
