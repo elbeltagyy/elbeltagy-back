@@ -31,6 +31,9 @@ const statisticsRoutes = require("./routes/statisticsRoutes")
 const UserModel = require("./models/UserModel")
 const governments = require("./tools/constants/governments")
 const makeRandom = require("./tools/makeRandom")
+const AttemptModel = require("./models/AttemptModel")
+const CourseModel = require("./models/CourseModel")
+const UserCourseModel = require("./models/UserCourseModel")
 
 // config
 dotenv.config()
@@ -98,6 +101,7 @@ app.use('/api/files', require('./routes/fileRoutes'))
 // })
 app.use('/storage', express.static(path.join(__dirname, 'storage')))
 
+
 // for errors 
 app.use(notFound)
 app.use(errorrHandler)
@@ -127,6 +131,32 @@ const createUsers = async () => {
     } catch (error) {
         console.log('failed ==>', error)
     }
+}
+
+const handelAttempts = async () => {
+    // linked to 
+    console.log('start modifiynig')
+    const attempts = await AttemptModel.find()
+    // const bigCourse = await CourseModel.findById('673c5d58236a64fb00c48a1f')
+
+    attempts.forEach(async (attempt) => {
+        const user = await UserModel.findById(attempt.user).select('courses')
+        const userCourse = await UserCourseModel.findOne({
+            user: attempt.user,
+            currentIndex: { $gte: 3 }
+        })
+
+        if (user.courses.length === 1) {
+            attempt.course = user.courses[0]
+        } else {
+            attempt.course = userCourse.course
+        }
+        await attempt.save()
+        console.log('user Name ==>', user.name, '|| courses number ==> ', user.courses.length, ' || userCourse CurrentIndex ===', userCourse.currentIndex)
+    })
+
+    console.log('finish modifiynig')
+
 }
 
 const connectDb = async () => {

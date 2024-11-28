@@ -50,6 +50,27 @@ const getGoogleDrivePreviewLink = (originalLink) => {
 
 const getLectures = getAll(LectureModel, 'lectures', lectureParams, false, 'video') //used bu users
 
+const getLecturesForAdmin = expressAsyncHandler(async (req, res, next) => {
+    const courseId = req.query.course
+
+
+    const course = await CourseModel.findById(courseId).lean().select('linkedTo _id')
+    if (!course) return next(createError('Course Not Found', 404, FAILED))
+
+    const populate = [
+        {
+            path: 'course',
+            select: 'name',
+        }
+    ];
+
+    let lectures = await LectureModel.find(
+        { course: { $in: [...course.linkedTo, course._id] } }
+    ).lean().populate(populate)
+
+    res.json({ status: SUCCESS, values: { lectures } })
+})
+
 const getOneLecture = getOne(LectureModel)
 const updateLecture = updateOne(LectureModel)
 
@@ -162,7 +183,7 @@ const handelUpdateLecture = expressAsyncHandler(async (req, res, next) => {
         if (lecture.player === filePlayers.GOOGLE_DRIVE) {
             lecture.url = getGoogleDrivePreviewLink(lecture.url)
         }
-        
+
         const updatedFile = await FileModel.findByIdAndUpdate(savedLecture.file._id, { ...lecture, ...uploadedFile }, { new: true })
         savedLecture.file = updatedFile
     }
@@ -228,7 +249,7 @@ const updateOneExam = expressAsyncHandler(async (req, res, next) => {
     res.json({ message: 'تم تعديل الاختبار بنجاح', status: SUCCESS, values: { lecture, updatedExam } })
 })
 
-module.exports = { getLectures, getOneLecture, getLectureForCenter, createLecture, updateLecture, handelUpdateLecture, deleteLecture, createExam, updateOneExam, lectureParams }
+module.exports = { getLectures, getLecturesForAdmin, getOneLecture, getLectureForCenter, createLecture, updateLecture, handelUpdateLecture, deleteLecture, createExam, updateOneExam, lectureParams }
 
 
 

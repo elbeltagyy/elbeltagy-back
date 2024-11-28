@@ -13,6 +13,8 @@ const attemptParams = (query) => {
         { key: "mark", value: query.mark, type: 'number' },
         { key: "exam", value: query.exam, operator: 'equal' },
         { key: "user", value: query.user, operator: 'equal' },
+        { key: "course", value: query.course, operator: 'equal' },
+        { key: "role", value: query.attemptRole },
     ]
 }
 
