@@ -16,7 +16,7 @@ const attemptParams = (query) => {
     ]
 }
 
-const getAttempts = getAll(AttemptModel, 'attempts', attemptParams, false, 'user')
+const getAttempts = getAll(AttemptModel, 'attempts', attemptParams, true, 'user')
 const getOneAttempt = getOne(AttemptModel, 'exam')
 
 const getUserInfo = expressAsyncHandler(async (req, res, next) => {
@@ -54,4 +54,4 @@ const getUserInfo = expressAsyncHandler(async (req, res, next) => {
     res.status(200).json({ status: SUCCESS, values: { attempts: userAttempts, examsNotDid: attemptsNot } })
 })
 
-module.exports = { getAttempts, getOneAttempt, getUserInfo }
+module.exports = { getAttempts, getOneAttempt, getUserInfo, attemptParams }

@@ -13,7 +13,11 @@ const { userCoursesParams } = require("./userCourseController");
 const { makeMatch } = require("../tools/makeMatch");
 const { SUCCESS } = require("../tools/statusTexts");
 const NotificationModel = require("../models/NotificationModel");
+
 const { notificationParams } = require("./notificationController");
+const { attemptParams } = require("./attemptController");
+const AttemptModel = require("../models/AttemptModel");
+
 
 const getUsersCount = getDocCount(UserModel, userParams)
 
@@ -48,4 +52,6 @@ const getSubscriptionsCount = getDocCount(UserCourseModel, userCoursesParams)
 
 const getNotificationsCount = getDocCount(NotificationModel, notificationParams)
 
-module.exports = { getUsersCount, getUnitsCount, getCoursesCount, getLecturesCount, getSubscriptionsCount, getNotificationsCount }
+const getAttemptsCount = getDocCount(AttemptModel, attemptParams)
+
+module.exports = { getUsersCount, getUnitsCount, getCoursesCount, getLecturesCount, getSubscriptionsCount, getNotificationsCount, getAttemptsCount }

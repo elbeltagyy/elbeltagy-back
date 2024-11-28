@@ -1,4 +1,4 @@
-const { getUsersCount, getUnitsCount, getCoursesCount, getLecturesCount, getSubscriptionsCount, getNotificationsCount } = require("../controllers/statisticsController")
+const { getUsersCount, getUnitsCount, getCoursesCount, getLecturesCount, getSubscriptionsCount, getNotificationsCount, getAttemptsCount } = require("../controllers/statisticsController")
 const allowedTo = require("../middleware/allowedTo")
 const { secureGetAll } = require("../middleware/secureMiddleware")
 const verifyToken = require("../middleware/verifyToken")
@@ -24,4 +24,6 @@ router.route("/subscriptions")
 router.route("/notifications")
     .get(verifyToken(), secureGetAll(), getNotificationsCount)
 
+router.route("/attempts")
+    .get(verifyToken(), secureGetAll(), getAttemptsCount)
 module.exports = router

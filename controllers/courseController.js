@@ -225,8 +225,8 @@ const getExam = expressAsyncHandler(async (req, res, next) => {
     const foundExam = await ExamModel.findById(exam).lean().select('-questions.rtOptionId')
     const attempts = foundExam.attemptsNums
 
-    const userAttempts = await AttemptModel.countDocuments({ user, course })
-    if (userAttempts === attempts) return createError("لقد استنفزت كل محاولاتك", 400, FAILED)
+    const userAttempts = await AttemptModel.countDocuments({ user, exam })
+    if (userAttempts >= attempts) return next(createError("لقد استنفزت كل محاولاتك", 400, FAILED))
 
 
     //attempts check
@@ -242,6 +242,10 @@ const createAttempt = expressAsyncHandler(async (req, res, next) => {
 
     const exam = await ExamModel.findById(attempt.exam).lean()
     if (!exam) return next(createError('لا يوجد هذا الاختبار', 404, FAILED))
+    const userAttempts = await AttemptModel.countDocuments({ user: user._id, exam: attempt.exam })
+
+    if (userAttempts >= exam.attemptsNums) return next(createError("لقد استنفزت كل محاولاتك , بالرجاء العوده", 400, FAILED))
+
 
     const score = getAttemptMark(exam, attempt.chosenOptions)
 

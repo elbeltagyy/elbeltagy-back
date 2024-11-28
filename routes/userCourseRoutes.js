@@ -12,7 +12,7 @@ const router = require("express").Router()
 
 const courseParams = (query) => {
     return [
-        { key: "course", value: query.courseName },
+        { key: "name", value: query.courseName },
     ]
 }
 
