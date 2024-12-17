@@ -225,15 +225,19 @@ exports.makeLoginSession = () => {
     });
 }
 
-exports.useCode = async (code, user) => {
+exports.useCode = async (code = null, user) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (code?.numbers === 0 || !code.isActive || !code) return reject(createError("هذا الكود غير صالح", 400, statusTexts.FAILED))
+            if (!code) return reject(createError("هذا الكود غير صالح", 400, statusTexts.FAILED))
+            if (code?.numbers === 0 || !code.isActive) return reject(createError("هذا الكود غير صالح", 400, statusTexts.FAILED))
             if (code.usedBy.includes(user._id)) return reject(createError("الكود يستخدم مره واحده لكل مستخدم", 400, statusTexts.FAILED))
 
             let message = ''
             switch (code.type) {
                 case codeConstants.WALLET:
+                    if (user.role === user_roles.INREVIEW) {
+                        user.role = user_roles.ONLINE
+                    }
                     if ((user.wallet + code.price) >= 2000) return reject(createError("اقصى مبلغ للمحفظه 2000 جنيه", 400, statusTexts.FAILED))
 
                     const before = user.wallet

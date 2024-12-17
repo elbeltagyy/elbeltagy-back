@@ -52,8 +52,23 @@ const signup = asyncHandler(async (req, res, next) => {
     const { phone, code, password } = req.body
 
     const foundUser = await UserModel.findOne({ phone })
+
     if (foundUser) {
-        const error = createError("هذا الرقم غير صالح !", 400, statusTexts.FAILED)
+
+        if (foundUser.role === user_roles.INREVIEW && code) {
+
+            const foundCode = await CodeModel.findOne({ code, numbers: { $ne: 0 } })
+            await useCode(foundCode, foundUser)
+
+            const hashedPassword = bcrypt.hashSync(password, 10)
+            const user = await UserModel.findOneAndUpdate({ _id: foundUser._id },
+                { ...req.body, password: hashedPassword }
+            )
+            req.user = user
+            return next()
+        }
+
+        const error = createError("هذا الرقم مسجل بالفعل !", 400, statusTexts.FAILED)
         return next(error)
     }
 
@@ -77,7 +92,7 @@ const signup = asyncHandler(async (req, res, next) => {
     }
 
     if (foundCode) {
-        const codeRes = await useCode(foundCode, user, next)
+        const codeRes = await useCode(foundCode, user)
         if (codeRes) {
             if (user.role === user_roles.INREVIEW) {
                 user.role = user_roles.ONLINE

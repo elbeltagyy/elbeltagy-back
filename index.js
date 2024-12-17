@@ -145,6 +145,9 @@ const handelAttempts = async () => {
             user: attempt.user,
             currentIndex: { $gte: 3 }
         })
+        if (attempt.course) {
+            return
+        }
 
         if (user.courses.length === 1) {
             attempt.course = user.courses[0]
@@ -158,7 +161,7 @@ const handelAttempts = async () => {
     console.log('finish modifiynig')
 
 }
-
+ 
 const connectDb = async () => {
     try {
         await mongoose.connect(DB_URI, {
@@ -171,7 +174,7 @@ const connectDb = async () => {
     }
 
 }
-
+ 
 connectDb()
 
 app.listen(port, async () => {
