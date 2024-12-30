@@ -38,7 +38,7 @@ const UserCourseModel = require("./models/UserCourseModel")
 // config
 dotenv.config()
 // app.set('trust proxy', 'loopback');
-app.set('trust proxy', 1);
+// app.set('trust proxy', 1);
 const limiter = rateLimit({
     windowMs: 2 * 60 * 1000, // 2 minutes
     limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
@@ -99,14 +99,14 @@ app.use('/api/get-ip', (req, res, next) => {
     console.log('the ip ===>', req.ip)
     console.log('X-Forwarded-For:', req.headers['x-forwarded-for']);
     console.log('X-real-ip:', req.headers['x-real-ip']);
-    console.log('X-real-ip:', req.headers['cf-connecting-ip']);
+    console.log('X-remote-ip:', req.socket.remoteAddress);
 
     res.json({
         msg: 'done here',
         ip: req.ip,
         x: req.headers['x-forwarded-for'],
         real: req.headers['x-real-ip'],
-        connect: req.headers['cf-connecting-ip']
+        remote: req.socket.remoteAddress
     })
 })
 
