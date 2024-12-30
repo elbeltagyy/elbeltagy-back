@@ -70,9 +70,9 @@ app.use('/api/get-ip', (req, res, next) => {
     res.json({
         msg: 'done here',
         ip: req.ip,
-        remote: req.socket.remoteAddress,
-        x: req.headers['x-forwarded-for'],
-        real: req.headers['x-real-ip'],
+        // remote: req.socket.remoteAddress,
+        // x: req.headers['x-forwarded-for'],
+        // real: req.headers['x-real-ip'],
     })
 })
 
