@@ -94,11 +94,20 @@ app.use("/api/subscriptions", userCourseRoutes)
 app.use("/api/statistics", statisticsRoutes)
 
 app.use('/api/files', require('./routes/fileRoutes'))
+
 app.use('/api/get-ip', (req, res, next) => {
     console.log('the ip ===>', req.ip)
     console.log('X-Forwarded-For:', req.headers['x-forwarded-for']);
+    console.log('X-real-ip:', req.headers['x-real-ip']);
+    console.log('X-real-ip:', req.headers['cf-connecting-ip']);
 
-    res.json({ msg: 'done here', ip: req.ip, x: req.headers['x-forwarded-for'] })
+    res.json({
+        msg: 'done here',
+        ip: req.ip,
+        x: req.headers['x-forwarded-for'],
+        real: req.headers['x-real-ip'],
+        connect: req.headers['cf-connecting-ip']
+    })
 })
 
 // for secure folders
