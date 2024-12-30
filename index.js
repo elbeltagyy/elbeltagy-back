@@ -1,15 +1,16 @@
 const express = require("express")
-const dotenv = require("dotenv")
-const cors = require("cors")
-const bodyParser = require("body-parser")
-// const helmet = require("helmet")
-const morgan = require("morgan")
 const app = express()
+const dotenv = require("dotenv")
+const path = require('path')
+const bodyParser = require("body-parser")
 const { default: mongoose } = require("mongoose")
 var cookieParser = require('cookie-parser')
 var device = require('express-device');
-const path = require('path')
+
+const cors = require("cors")
 const { rateLimit } = require("express-rate-limit")
+const morgan = require("morgan")
+const helmet = require("helmet")
 
 // get fc routes
 const verifyToken = require("./middleware/verifyToken")
@@ -49,7 +50,6 @@ const limiter = rateLimit({
 })
 app.use(limiter)
 
-// 
 app.use(express.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
@@ -76,20 +76,22 @@ app.use('/api/get-ip', (req, res, next) => {
     })
 })
 
-
 app.use(cors(
     {
         origin: ['https://elbeltagy-front.vercel.app', 'http://localhost:3000', 'http://192.168.1.16:3000', 'https://mrelbeltagy.com', 'https://www.mrelbeltagy.com'],
-        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         credentials: true
     }
 ))
+app.use(
+    helmet({
+        crossOriginResourcePolicy: { policy: "cross-origin" },
+    })
+);
 
 process.env.NODE_ENV === 'development' && app.use(morgan('tiny'))
 process.env.NODE_ENV === 'development' && app.use("/test", testRoutes)
 process.env.NODE_ENV === 'development' && app.use("/api/test", testRoutes)
-
-// process.env.NODE_ENV === 'production' && app.use(helmet());
 
 const port = process.env.PORT || 3030
 const DB_URI = process.env.MONGO_URI
