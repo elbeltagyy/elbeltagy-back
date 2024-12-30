@@ -93,7 +93,12 @@ app.use("/api/subscriptions", userCourseRoutes)
 app.use("/api/statistics", statisticsRoutes)
 
 app.use('/api/files', require('./routes/fileRoutes'))
+app.use('/api/get-ip', (req, res, next) => {
+    console.log('the ip ===>', req.ip)
+    console.log('X-Forwarded-For:', req.headers['x-forwarded-for']);
 
+    res.json({ msg: 'done here', ip: req.ip, x: req.headers['x-forwarded-for'] })
+})
 
 // for secure folders
 // app.use("/storage/secure", (req, res, next) => {
@@ -161,7 +166,7 @@ const handelAttempts = async () => {
     console.log('finish modifiynig')
 
 }
- 
+
 const connectDb = async () => {
     try {
         await mongoose.connect(DB_URI, {
@@ -174,7 +179,7 @@ const connectDb = async () => {
     }
 
 }
- 
+
 connectDb()
 
 app.listen(port, async () => {
