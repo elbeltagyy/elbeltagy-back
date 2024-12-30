@@ -37,7 +37,8 @@ const UserCourseModel = require("./models/UserCourseModel")
 
 // config
 dotenv.config()
-app.set('trust proxy', 'loopback');
+// app.set('trust proxy', 'loopback');
+app.set('trust proxy', 1);
 const limiter = rateLimit({
     windowMs: 2 * 60 * 1000, // 2 minutes
     limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
