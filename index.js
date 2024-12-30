@@ -47,7 +47,7 @@ const limiter = rateLimit({
     message: "Too many requests, please try again later.",
     // store: ... , // Redis, Memcached, etc. See below.
 })
-// app.use(limiter)
+app.use(limiter)
 
 // 
 app.use(express.urlencoded({ extended: true }))
@@ -58,7 +58,7 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(device.capture());
 
 app.use('/api/get-ip', (req, res, next) => {
-    // req.ip === req.socket.remoteAddress
+    // req.ip === req.socket.remoteAddress if proxy trust not 1 (loopback)
     // req.headers['x-forwarded-for'] === req.headers['x-real-ip']
     console.log('the ip ===>', req.ip)
     console.log('X-remote-ip:', req.socket.remoteAddress);
