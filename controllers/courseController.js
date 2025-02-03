@@ -98,10 +98,14 @@ const uploadCourseImg = expressAsyncHandler(async (req, res, next) => {
 // @route get /content/courses/:index/lectures
 // @access Public   ==> admin/user/subAdmin/not
 const getCourseLecturesAndCheckForUser = expressAsyncHandler(async (req, res, next) => {
-    const index = req.params.id
+    const index = Number(req.params.id)
     const user = req.user
 
+    if (typeof index !== 'number' || isNaN(index)) return next(createError('قيمه خاطئه', 400, FAILED))
+
     const currentCourse = await CourseModel.findOne({ index }).lean()
+    if (!currentCourse) return next(createError('هذا الكورس غير موجود', 404, FAILED))
+
     const courseId = currentCourse._id
 
     const userCourse = await UserCourseModel.findOne({ course: courseId, user: user?._id }).lean()

@@ -28,14 +28,14 @@ const UserModel = require("./models/UserModel")
 // app.set('trust proxy', 'loopback');
 dotenv.config()
 app.set('trust proxy', 1);
-const trustedIps = ["102.189.29.120", '156.197.75.241'] //, '::ffff:192.168.1.16'
+const trustedIps = ["102.189.10.217", '156.197.75.241'] //, '::ffff:192.168.1.16'
 
 const limiter = rateLimit({
     windowMs: 2 * 60 * 1000, // 2 minutes
-    limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+    limit: 120, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
     standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
-    message: "Too many requests, please try again later.",
+    message: "Too many requests, please try again after 2 minutes.",
     skip: (req) => {
         return trustedIps.includes(req.ip);
     },
@@ -125,13 +125,7 @@ const connectDb = async () => {
             useNewUrlParser: true,            // Use the new URL string parser
             useUnifiedTopology: true,         // Use the new Server Discover and Monitoring engine
         })
-
         console.log('connected')
-
-        // await UserModel.updateMany({}, {
-        //     devicesRegistered: []
-        // })
-        // await SessionModel.deleteMany({}) 
     } catch (error) {
         console.log('failed to connect ==>', error)
     }
