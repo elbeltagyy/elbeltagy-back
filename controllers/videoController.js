@@ -53,7 +53,7 @@ const countStatistics = expressAsyncHandler(async (req, res, next) => {
     //find Statistics
 
     const videoStatistics = await VideoStatisticsModel.findOne({
-        user: user._id, statisticsId
+        user: user._id, statisticsId, lecture
     })
 
     if (!videoStatistics) {
