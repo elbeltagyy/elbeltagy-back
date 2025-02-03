@@ -202,7 +202,8 @@ exports.makeLoginSession = () => {
         // logout from other sessions
         if (user.role !== user_roles.ADMIN && process.env.NODE_ENV === 'production') {
             await SessionModel.updateMany({
-                logout: { $exists: false }
+                logout: { $exists: false },
+                user: user._id
             }, {
                 logout: new Date(),
                 isLoggedOutAutomatic: true

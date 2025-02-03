@@ -131,7 +131,7 @@ const connectDb = async () => {
         // await UserModel.updateMany({}, {
         //     devicesRegistered: []
         // })
-        // await SessionModel.deleteMany({})
+        // await SessionModel.deleteMany({}) 
     } catch (error) {
         console.log('failed to connect ==>', error)
     }
