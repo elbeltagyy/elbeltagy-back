@@ -1,6 +1,7 @@
 const expressAsyncHandler = require("express-async-handler");
 const { getAll, deleteOne, updateOne } = require("./factoryHandler");
 const VideoStatisticsModel = require("../models/VideoStatisticsModel.js");
+const UserModel = require("../models/UserModel.js");
 
 
 const viewParams = (query) => {

@@ -17,4 +17,6 @@ router.route("/users/:id")
 
 router.route("/:id")
     .get(verifyToken(), getOneAttempt)
+    .delete(verifyToken(), getOneAttempt)
+
 module.exports = router

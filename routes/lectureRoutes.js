@@ -14,7 +14,7 @@ router.route('/all')
 
 router.route("/")
     .get(getLectures)
-    .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), upload.single('video'), createLecture, insertOne(LectureModel, true))
+    .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), upload.single('video'), createLecture, insertOne(LectureModel, true, 'course'))
 
 router.route("/exams")
     .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), createExam, insertOne(LectureModel, true))

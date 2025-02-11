@@ -27,12 +27,12 @@ const removeSubscription = expressAsyncHandler(async (req, res, next) => {
     const userCourse = await UserCourseModel.findById(subscriptionId)
 
     await Promise.all([
-        await UserModel.findByIdAndUpdate(
+        UserModel.findByIdAndUpdate(
             userCourse.user,
             { $pull: { courses: userCourse.course } },
             { new: true }
         ),
-        await userCourse.deleteOne()
+        userCourse.deleteOne()
     ])
 
     res.json({ message: 'تم ازاله الاشتراك', status: SUCCESS })

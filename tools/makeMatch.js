@@ -28,7 +28,7 @@ const makeMatch = (match, params) => {
         if (param.type === "boolean") {
             if (param.value === 'all' || param.value === 'All') return
 
-            param.value ? match[param.key] = (param.value === 'true') : null
+            param.value || param.value === false ? match[param.key] = (param.value === 'true' || param.value === true) : null
             return
         }
 

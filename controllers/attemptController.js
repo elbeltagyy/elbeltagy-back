@@ -1,6 +1,6 @@
 const expressAsyncHandler = require("express-async-handler")
 const AttemptModel = require("../models/AttemptModel")
-const { getAll, getOne } = require("./factoryHandler")
+const { getAll, getOne, deleteOne } = require("./factoryHandler")
 const UserModel = require("../models/UserModel")
 const CourseModel = require("../models/CourseModel")
 const LectureModel = require("../models/LectureModel")
@@ -57,4 +57,5 @@ const getUserInfo = expressAsyncHandler(async (req, res, next) => {
     res.status(200).json({ status: SUCCESS, values: { attempts: userAttempts, examsNotDid: attemptsNot } })
 })
 
+const deleteOneAttempt = deleteOne(AttemptModel)
 module.exports = { getAttempts, getOneAttempt, getUserInfo, attemptParams }

@@ -1,0 +1,215 @@
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Amiri', serif;
+      text-align: right;
+      margin: 20px;
+      position: relative;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f2f2f2;
+      color: black;
+      text-align: center;
+    }
+
+    .colored-cell {
+      background-color: #d0f0c0;
+      text-align: center;
+    }
+
+    header {
+      background-color: lightblue;
+      padding: 10px;
+    }
+
+    .text-box {
+      background-color: white;
+      padding: 6px 3px;
+      margin-top: 3px;
+      width: fit-content;
+      border-radius: 6px;
+    }
+
+    .flex-tables {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 6px 0;
+    }
+
+    .green {
+      background-color: #388e3c;
+      color: #d0f0c0;
+    }
+
+    .red {
+      background-color: #e53935;
+      color: #d0f0c0;
+    }
+
+    .yellow {
+      background-color: #ffeb3b;
+      color: #000;
+    }
+
+    .text-center {
+      text-align: center;
+      margin: 6px 0;
+    }
+
+    .flex-col {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .footer {
+      /* position: absolute; */
+      /* bottom: 6px; */
+      margin: 8px 0;
+      padding: 8px 4px;
+      background-color: #ffeb3b;
+      color: #000;
+    }
+
+    .meLogo {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h3 style="text-align: center;">منصه مستر البلتاجى (mrelbeltagy.com) </h3>
+    <p>تقرير الطالب من :
+      <% if (startDate) { %>
+        <%= startDate %>
+      <% } %>
+      <br />
+      الي : 
+      <% if (endDate) { %>
+        <p> <%= endDate %></p>
+      <% } %>
+    </p>
+    
+    <br />
+    <h4 class="text-box">اسم الطالب: <%= name %></h4>
+    <div class="flex-tables">
+      <h6 class="text-box">رقم الطالب : <%= phone %></h6>
+      <h6 class="text-box">رقم ولى امر الطالب : <%= familyPhone %></h6>
+      <h6 class="text-box">حاله الطالب : <%= role %></h6>
+    </div>
+  </header>
+
+  <div class="flex-col">
+    <h3 class="text-center">اشتراكات الطالب</h3>
+    <table>
+      <tr>
+        <th>الكورس</th>
+        <th>تاريخ الاشتراك</th>
+        <th>سعر الكورس</th>
+      </tr>
+      <% subscriptions.forEach(subscribe => { %>
+      <tr>
+        <td><%= subscribe.name %></td>
+        <td><%= subscribe.createdAt %></td>
+        <td><%= subscribe.price %> جنيه</td>
+      </tr>
+      <% }) %>
+    </table>
+  </div>
+
+
+  <div class="flex-tables">
+    <div class="flex-col">
+      <h3 class="text-center">محاضرات الطالب</h3>
+      <table>
+        <tr>
+          <th>اسم المحاضره</th>
+          <th>تاريخ المشاهده </th>
+          <th> وقت المشاهده </th>
+        </tr>
+        <% views.forEach(view => { %>
+        <tr>
+          <td><%= view.name %></td>
+          <td><%= view.createdAt %> </td>
+          <td><%= view.watchedTime %></td>
+        </tr>
+        <% }) %>
+      </table>
+    </div>
+
+    <div class="flex-col">
+
+
+      <h3 class="text-center">اختبارات الطالب</h3>
+      <table>
+        <tr class="">
+          <th>اسم الاختبار</th>
+          <th>تاريخ الاختبار</th>
+          <th>درجه الطالب</th>
+          <th>تقدير الطالب</th>
+        </tr>
+        <% exams.forEach(exam => { %>
+        <tr class="<%= exam.class %>">
+          <td><%= exam.name %></td>
+          <td><%= exam.attemptDate %></td>
+          <td><%= exam.mark %> من <%= exam.total %></td>
+          <td><%= exam.rating %></td>
+        </tr>
+        <% }) %>
+      </table>
+    </div>
+
+  </div>
+
+  <table>
+    <tr>
+      <th> محاضرات لم يتم مشاهدتها</th>
+    </tr>
+    <% unWatchedLectures.forEach(lecture => { %>
+    <tr>
+      <td><%= lecture.name %></td>
+    </tr>
+    <% }) %>
+  </table>
+  <!-- <tr>
+        <td>01068750726</td>
+        <td>محمود محمد العوضى</td>
+        <td>2025/02/01</td>
+        <td class="colored-cell">85</td>
+      </tr> -->
+  <div class="footer text-center" style="width: 100%;">
+    <p>
+      هذا التقرير لغرض المشاركه الاسريه فى زياده مستوى الطالب و الوصول به الي اعلى درجات التفوق و النجاح
+      <br />
+      وكل التقدير و الاحترام لكم من اسره البلتاجى
+    </p>
+  </div>
+</body>
+
+</html>

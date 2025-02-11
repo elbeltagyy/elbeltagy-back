@@ -28,7 +28,7 @@ const UserModel = require("./models/UserModel")
 // app.set('trust proxy', 'loopback');
 dotenv.config()
 app.set('trust proxy', 1);
-const trustedIps = ["102.189.10.217", '156.197.75.241'] //, '::ffff:192.168.1.16'
+const trustedIps = ["102.189.10.217", '156.197.75.241', '::ffff:192.168.1.16'] //, '::ffff:192.168.1.16'
 
 const limiter = rateLimit({
     windowMs: 2 * 60 * 1000, // 2 minutes
@@ -42,6 +42,10 @@ const limiter = rateLimit({
     // store: ... , // Redis, Memcached, etc. See below.
 })
 app.use(limiter)
+
+// Set EJS as the view engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.urlencoded({ extended: true }))
 app.use(bodyParser.json())
@@ -99,6 +103,7 @@ app.use('/api', require('./routes/APIS'))
 //     next()
 // })
 app.use('/storage', express.static(path.join(__dirname, 'storage')))
+
 app.post("/send_message", async (req, res) => {
     try {
         // const result = await WhatsAppClient.sendMessage(req.body.phone, req.body.msg) => (2010... + @c.us)
@@ -135,7 +140,6 @@ const connectDb = async () => {
 connectDb()
 
 app.listen(port, async () => {
-
     console.log(`the app is working on port: ${port}`)
 })
 

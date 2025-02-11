@@ -86,17 +86,18 @@ exports.getOne = (Model, populate = '') =>
 
     });
 
-exports.insertOne = (Model, withIndex = false) =>
+exports.insertOne = (Model, withIndex = false, populate = '') =>
     asyncHandler(async (req, res) => {
 
         if (withIndex) {
             const lastDoc = await Model.findOne().sort({ createdAt: -1 })
             const index = lastDoc?.index + 1 || 1
             req.body.index = index
-            const doc = await Model.create(req.body);
-            return res.status(201).json({ status: statusTexts.SUCCESS, values: doc, message: 'تم الانشاء بنجاح' })
         }
         const doc = await Model.create(req.body);
+        if (populate) {
+            await doc.populate(populate)
+        }
         return res.status(201).json({ status: statusTexts.SUCCESS, values: doc, message: 'تم الانشاء بنجاح' })
     });
 
@@ -114,7 +115,7 @@ exports.updateOne = (Model) =>
         return res.status(200).json({ status: statusTexts.SUCCESS, values: doc, message: 'تم التعديل بنجاح' })
     });
 
-exports.deleteOne = (Model) =>
+exports.deleteOne = (Model, relatedDocs = [], relatedModels = []) =>
     asyncHandler(async (req, res, next) => {
         const { id } = req.params;
         // console.log('id ==>', id)
@@ -124,8 +125,14 @@ exports.deleteOne = (Model) =>
             return next('لم يوجد');
         }
 
-        // Trigger "remove" event when update document
-        // await document.remove();
+        if (relatedDocs.length > 0) {
+            await deleteOtherDocs(relatedDocs, id)
+        }
+
+        if (relatedModels.length > 0) {
+            await deleteOtherModels(relatedModels, id)
+        }
+
         return res.status(200).json({ status: statusTexts.SUCCESS, message: 'تمت الازاله بنجاح' })
     });
 
@@ -279,9 +286,33 @@ exports.useCode = async (code = null, user) => {
     })
 }
 
+const deleteOtherDocs = async (relatedDocs, id) => {
+    //    { model: UserModel, fields: ['groups'] },
+    try {
+        const updateTasks = relatedDocs.map(({ model, fields }) =>
+            fields.map(field =>
+                model.updateMany(
+                    { [field]: id },
+                    { $pull: { [field]: id } }
+                )
+            )
+        ).flat();
+        await Promise.all(updateTasks);
+    } catch (error) {
+        console.log('error from deleteOtherDocs ==>', error.message)
+    }
+}
 
+const deleteOtherModels = async (relatedModels, id) => {
+    //    { model: UserModel, field: 'group' },
+    try {
+        const updateTasks = relatedModels.map(({ model, field }) =>
+            model.deleteMany({ [field]: id })
+        ).flat();
+        await Promise.all(updateTasks);
+    } catch (error) {
+        console.log('error from deleteOtherModels ==>', deleteOtherModels)
+    }
+}
 // in route('/', getAll) return as object so no middleware Fc
 // in route('/', getAll()) return from parent Fc
-
-// const activeSessions = await SessionModel.countDocuments({ user: userDoc._id, expiresAt: { $lt: new Date() }, logout: null })
-// if (activeSessions > user.devicesAllowed) return next(createError("حسابك تحت المراجعه, سيتم تفعيله فى اقل من 24 ساعه", 401, statusTexts.FAILED))

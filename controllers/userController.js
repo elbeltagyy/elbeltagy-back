@@ -30,7 +30,7 @@ const userParams = (query) => {
         { key: "isActive", value: query.isActive, type: "boolean" },
         { key: "grade", value: query.grade, type: "number", },
         { key: "government", value: query.government, type: "number", },
-        // { key: "group", value: query.group, operator: "equal" },
+        { key: "groups", value: query.groups, type: 'array' },
         { key: "courses", value: query.courses, type: "array" },
         { key: "exams", value: query.exams, type: "array" },
         { key: "lectures", value: query.lectures, type: "array" },

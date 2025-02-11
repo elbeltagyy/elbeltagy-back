@@ -6,6 +6,7 @@ const governments = require("../tools/constants/governments")
 const CourseModel = require("./CourseModel")
 const ExamModel = require("./ExamModel")
 const LectureModel = require("./LectureModel")
+const GroupModel = require("./GroupModel")
 
 const governDefault = 4
 
@@ -49,6 +50,7 @@ const userSchema = new mongoose.Schema({
     courses: [{ type: mongoose.Schema.Types.ObjectId, ref: CourseModel, select: false }],
     exams: [{ type: mongoose.Schema.Types.ObjectId, ref: ExamModel, select: false }],
     lectures: [{ type: mongoose.Schema.Types.ObjectId, ref: LectureModel, select: false }],
+    groups: [{ type: mongoose.Schema.Types.ObjectId, ref: GroupModel, select: false }]
 }, {
     timestamps: true,
     versionKey: false

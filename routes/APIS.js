@@ -28,6 +28,11 @@ router.use("/privacy", require('./privacyRoutes'))
 
 router.use("/subscriptions", userCourseRoutes)
 router.use("/statistics", statisticsRoutes)
+router.use("/whatsapp", require('./whatsappRoutes'))
+router.use("/reports", require('./reportRoutes'))
+router.use("/reports_failed", require('./reportFailedRoutes'))
+
+router.use("/groups", require("./groupRoutes"))
 
 router.use('/files', require('./fileRoutes'))
 

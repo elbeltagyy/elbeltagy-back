@@ -18,6 +18,7 @@ const { uploadFile, deleteFile } = require("../middleware/upload/uploadFiles");
 const lockLectures = require("../tools/lockLectures");
 const CouponModel = require("../models/CouponModel");
 const codeConstants = require("../tools/constants/codeConstants");
+const VideoStatisticsModel = require("../models/VideoStatisticsModel");
 
 
 const coursesParams = (query) => {
@@ -38,26 +39,25 @@ const getOneCourse = getOne(CourseModel, 'linkedTo', [
     { path: 'linkedTo', select: 'name _id' }
 ])
 const updateCourse = updateOne(CourseModel)
-const deleteCourse = deleteOne(CourseModel)
+const deleteCourse = deleteOne(CourseModel,
+    [{ model: UserModel, fields: ['courses'] }],
+    [
+        { model: CouponModel, field: 'course' },
+        { model: UserCourseModel, field: 'course' },
+    ])
 
 //route /content/courses/:id
 //method Delete
 const checkDeleteCourse = expressAsyncHandler(async (req, res, next) => {
     const courseId = req.params.id
-    const foundUserCourse = await UserCourseModel.findOne({ course: courseId })
-    if (foundUserCourse) return next(createError("هناك اشتراكات فى هذا الكورس, يجب حذف جميع الاشتراكات", 400, FAILED))
 
-    const lecture = await LectureModel.findOne({ course: courseId })
+    const lecture = await LectureModel.findOne({ course: courseId }).lean()
     if (lecture) return next(createError("هناك محاضرات فى هذا الكورس, يجب حذف جميع المحاضرات", 400, FAILED))
 
     const course = await CourseModel.findById(courseId)
     if (course.thumbnail) {
         await deleteFile(course.thumbnail)
     }
-
-    await CouponModel.deleteMany({
-        course: courseId
-    })
     next()
 })
 // @desc push course

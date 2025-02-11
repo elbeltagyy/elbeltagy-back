@@ -16,7 +16,9 @@ const filePlayers = require("../tools/constants/filePlayers");
 const { addToBunny } = require("../middleware/bunny");
 const { addToServer } = require("../middleware/upload/uploadServer");
 const { uploadFile, deleteFile } = require("../middleware/upload/uploadFiles");
-const dotenv = require("dotenv")
+const dotenv = require("dotenv");
+const UserModel = require("../models/UserModel");
+const VideoStatisticsModel = require("../models/VideoStatisticsModel");
 
 dotenv.config()
 const lectureParams = (query) => {
@@ -87,7 +89,7 @@ const getLectureForCenter = expressAsyncHandler(async (req, res, next) => {
 
 const createLecture = expressAsyncHandler(async (req, res, next) => {
     const lecture = req.body
-    // console.log('from here')
+    console.log('from here create lecture')
     //validation => courseId, name, grade
     if (lecture.sectionType === sectionConstants.VIDEO) {
         let video = {
@@ -205,8 +207,10 @@ const deleteLecture = expressAsyncHandler(async (req, res, next) => {
 
     const lecture = await LectureModel.findById(lectureId).populate("exam video link file").lean()
     if (lecture.file) {
-        await deleteFile(lecture.file)
-        await FileModel.findByIdAndDelete(lecture.file._id)
+        await Promise.all([
+            deleteFile(lecture.file),
+            FileModel.findByIdAndDelete(lecture.file._id)
+        ])
     }
     if (lecture.exam) {
         const examId = lecture.exam._id
@@ -215,20 +219,37 @@ const deleteLecture = expressAsyncHandler(async (req, res, next) => {
                 await deleteFile(question.image)
             }
         })
-        await AttemptModel.deleteMany({ exam: examId })
-        await ExamModel.findByIdAndDelete(lecture.exam._id)
+
+        await Promise.all([
+            AttemptModel.deleteMany({ exam: examId }),
+            ExamModel.findByIdAndDelete(lecture.exam._id),
+            UserModel.updateMany(
+                { exams: lecture.exam._id },
+                { $pull: { exams: lecture.exam._id } }
+            )])
     }
+
     if (lecture.link) {
         await LinkModel.findByIdAndDelete(lecture.link._id)
     }
-    if (lecture.video) {
-        await VideoModel.findByIdAndDelete(lecture.video._id)
-    }
 
+    if (lecture.video) {
+        await Promise.all([
+            VideoModel.findByIdAndDelete(lecture.video._id),
+            UserModel.updateMany(
+                { lectures: lecture._id },
+                { $pull: { lectures: lecture._id } }
+            ),
+            VideoStatisticsModel.deleteMany({
+                lecture: lecture._id
+            }),
+        ])
+    }
+    
     await LectureModel.findByIdAndDelete(lectureId)
     res.status(200).json({ message: 'تم الحذف بنجاح', status: SUCCESS })
-
 })
+
 // @route /content/courses/exams
 // @method POST
 const createExam = expressAsyncHandler(async (req, res, next) => {
