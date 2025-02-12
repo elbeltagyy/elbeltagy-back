@@ -18,7 +18,7 @@ const { useCode } = require("./factoryHandler.js")
 const { uploadFile } = require("../middleware/upload/uploadFiles.js")
 const senderConstants = require("../tools/constants/sendersConstants.js");
 const sendEmail = require("../tools/sendEmail.js");
-const { sendWhatsMsgFc } = require("./whatsappController.js");
+// const { sendWhatsMsgFc } = require("./whatsappController.js");
 
 // @desc user login
 // @route POST /login
@@ -221,7 +221,7 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
 
         if (forgetMethod === senderConstants.WHATSAPP) {
             const message = 'رمز التحقق هو: ' + resetCode + ' ' + "يرجى عدم مشاركته مع احد !"
-            await sendWhatsMsgFc(user.phone, message)
+            // await sendWhatsMsgFc(user.phone, message)
             return res.status(200).json({ status: statusTexts.SUCCESS, message: 'تم ارسال رمز التحقق على واتس اب' });
         } else {
             return next(createError("حدث خطا", 500, statusTexts.FAILED));
