@@ -2,7 +2,7 @@ const expressAsyncHandler = require("express-async-handler")
 const { getAll, insertOne, updateOne, deleteOne } = require("./factoryHandler")
 const createError = require("../tools/createError")
 const { FAILED, SUCCESS } = require("../tools/statusTexts");
-const WhatsappService = require("../tools/WhatsappClient"); // now w small
+const WhatsappService = require("../tools/whatsappClient"); // now w small
 const { MessageMedia } = require("whatsapp-web.js");
 
 const whatsappService = new WhatsappService();
