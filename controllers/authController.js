@@ -172,7 +172,7 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
         let currentTime = new Date();
         if ((user.ResetCodeAt.getTime() + (1 * 60000)) >= currentTime) {
             // You should wait 1 minute from previous attempt
-            console.log('wait 1 minute')
+            // console.log('wait 1 minute')
             return next(createError("من فضلك انتظر دقيقه لارسال رمز اخر"))
         }
     }

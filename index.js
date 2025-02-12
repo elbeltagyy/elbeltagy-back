@@ -13,15 +13,8 @@ const morgan = require("morgan")
 const helmet = require("helmet")
 
 // get fc routes
-const verifyToken = require("./middleware/verifyToken")
-const createError = require("./tools/createError")
 const { notFound, errorrHandler } = require("./middleware/errorsHandler")
 const testRoutes = require("./routes/testRoutes")
-
-const WhatsAppClient = require("./tools/WhatsAppClient")
-const { MessageMedia } = require("whatsapp-web.js")
-const SessionModel = require("./models/SessionModel")
-const UserModel = require("./models/UserModel")
 
 
 // config
@@ -104,22 +97,6 @@ app.use('/api', require('./routes/APIS'))
 // })
 app.use('/storage', express.static(path.join(__dirname, 'storage')))
 
-app.post("/send_message", async (req, res) => {
-    try {
-        // const result = await WhatsAppClient.sendMessage(req.body.phone, req.body.msg) => (2010... + @c.us)
-        const media = MessageMedia.fromFilePath('./storage/secure/image.webp');
-        const result = await WhatsAppClient.sendMessage(req.body.phone, media);
-
-        res.json(
-            {
-                phone: req.body.phone, status: 'done', body: req.body, result
-            }
-        )
-    } catch (error) {
-        console.log('error in send_messagae ==>', error)
-    }
-})
-
 // for errors 
 app.use(notFound)
 app.use(errorrHandler)
@@ -142,6 +119,3 @@ connectDb()
 app.listen(port, async () => {
     console.log(`the app is working on port: ${port}`)
 })
-
-
-// WhatsAppClient.initialize(); 

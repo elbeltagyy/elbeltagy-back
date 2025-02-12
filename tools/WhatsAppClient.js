@@ -1,8 +1,7 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
 const qrcodeTerminal = require("qrcode-terminal")
-// const fs = require('fs');
-// const path = require('path');
+
 const createError = require('./createError');
 const { FAILED } = require('./statusTexts');
 
