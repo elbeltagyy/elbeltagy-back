@@ -4,7 +4,7 @@ const createError = require("../tools/createError")
 const { FAILED, SUCCESS } = require("../tools/statusTexts");
 const WhatsappService = require("../tools/whatsappClient");
 const { MessageMedia } = require("whatsapp-web.js");
-
+console.log(require.resolve("../tools/whatsappClient"))
 const whatsappService = new WhatsappService();
 const whatsappId = 'test-whatsapp'
 
