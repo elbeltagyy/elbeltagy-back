@@ -23,7 +23,7 @@ const VideoStatisticsModel = require("../models/VideoStatisticsModel");
 
 const coursesParams = (query) => {
     return [
-        { key: "grade", value: query.grade, operator: "equal" },
+        { key: "grade", value: query.grade, type: "number" },
         { key: "name", value: query.name },
         { key: "description", value: query.description },
         { key: "price", value: query.price },
@@ -258,11 +258,11 @@ const createAttempt = expressAsyncHandler(async (req, res, next) => {
 
     //update user and exam
     const [updatedUser] = await Promise.all([
-        await UserModel.findByIdAndUpdate(
+        UserModel.findByIdAndUpdate(
             user._id,
             { $addToSet: { exams: exam._id }, totalPoints: user.totalPoints }, // $addToSet prevents duplicates
             { new: true } // returns the updated user
-        ), await AttemptModel.create(attempt)])
+        ), AttemptModel.create(attempt)])
 
     //elevate user current index in course
     res.status(201).json({ status: SUCCESS, values: updatedUser.totalPoints, message: "تم الانتهاء من الاختبار بنجاح" })

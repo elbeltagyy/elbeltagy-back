@@ -271,6 +271,12 @@ exports.useCode = async (code = null, user) => {
                     user.role = user_roles.STUDENT
                     message = `انت الان اصبحت طالب سنتر`
                     break;
+                case codeConstants.LECTURES:
+                    if (user.role === user_roles.INREVIEW) {
+                        user.role = user_roles.ONLINE
+                    }
+                    message = 'تم ايضافه محاضراتك بنجاح, يمكنك الوصول اليها من الصفحه الرئيسيه'
+                    break;
                 default: // activate
                     user.role = user_roles.ONLINE
                     message = true
@@ -278,7 +284,7 @@ exports.useCode = async (code = null, user) => {
             code.usedBy.push(user._id)
             code.numbers = code.numbers - 1
 
-            await Promise.all([await user.save(), await code.save()])
+            await Promise.all([user.save(), code.save()])
             return resolve(message)
         } catch (error) {
             return reject(createError(error.message, 400, statusTexts.FAILED))

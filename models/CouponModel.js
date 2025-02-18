@@ -17,7 +17,7 @@ const couponSchema = new mongoose.Schema({
     },
     isChecked: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
-    numbers: { type: Number, default: 1, max: [200, 'اقصى عدد هو 200'] }
+    numbers: { type: Number, default: 1, min: [0, 'القيمة الدنيا هي 0'], max: [200, 'اقصى عدد هو 200'] }
 }, {
     timestamps: true,
     versionKey: false

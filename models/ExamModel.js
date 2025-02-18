@@ -8,7 +8,7 @@ const examSchema = new mongoose.Schema({
     showAnswersDate: { type: Date },
 
     isShowAnswers: { type: Boolean, default: true },
-    attemptsNums: { type: Number, default: 1 },
+    attemptsNums: { type: Number, default: 1, min: [0, 'القيمة الدنيا هي 0'], },
     questions: [{
         title: { type: String },
         hints: { type: String },

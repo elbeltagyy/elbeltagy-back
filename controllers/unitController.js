@@ -9,7 +9,7 @@ const { FAILED } = require("../tools/statusTexts");
 const unitParams = (query) => {
 
     return [
-        { key: "grade", value: Number(query.grade), operator: "equal" },
+        { key: "grade", value: Number(query.grade), type: "number" },
         { key: "name", value: query.name },
     ]
 }

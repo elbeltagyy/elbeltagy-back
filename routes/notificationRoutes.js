@@ -1,6 +1,6 @@
 const router = require("express").Router()
 
-const { getNotifications, createNotification, updateNotification, deleteNotification, makeSeen } = require("../controllers/notificationController")
+const { getNotifications, createNotification, updateNotification, deleteNotification, makeSeen, handelNotification } = require("../controllers/notificationController")
 
 const { user_roles } = require("../tools/constants/rolesConstants")
 const allowedTo = require("../middleware/allowedTo")
@@ -10,7 +10,7 @@ const { secureGetAll } = require("../middleware/secureMiddleware")
 
 router.route("/")
     .get(verifyToken(), secureGetAll(), getNotifications)
-    .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN, user_roles.MENTOR), createNotification)
+    .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN, user_roles.MENTOR), handelNotification, createNotification)
 
 router.route("/seen/:userId")
     .get(verifyToken(), makeSeen)

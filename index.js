@@ -103,10 +103,7 @@ app.use(errorrHandler)
 
 const connectDb = async () => {
     try {
-        await mongoose.connect(DB_URI, {
-            useNewUrlParser: true,            // Use the new URL string parser
-            useUnifiedTopology: true,         // Use the new Server Discover and Monitoring engine
-        })
+        await mongoose.connect(DB_URI)
         console.log('connected')
     } catch (error) {
         console.log('failed to connect ==>', error)

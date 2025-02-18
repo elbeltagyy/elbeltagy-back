@@ -26,7 +26,7 @@ const { sendWhatsMsgFc } = require("./whatsappController.js");
 const login = asyncHandler(async (req, res, next) => {
     const { userName, password } = req.body
 
-    const select = 'grade userName name password avatar email  phone familyPhone isActive government role totalPoints wallet devicesAllowed devicesRegistered'
+    const select = 'grade userName name password avatar email  phone familyPhone isActive government role totalPoints wallet devicesAllowed devicesRegistered groups'
     const user = await UserModel.findOne({ userName }).select(select)
 
     if (!user) return next(createError("هناك خطا فى البيانات المدخله", 404, statusTexts.FAILED))

@@ -12,7 +12,6 @@ const governDefault = 4
 
 const userSchema = new mongoose.Schema({
     grade: { type: Number, enum: gradeConstants.map(grade => grade.index) },
-    // group: { type: mongoose.Schema.Types.ObjectId, ref: GroupModel }, // none => online
     name: { type: String },
     avatar: {
         url: { type: String },
@@ -48,9 +47,9 @@ const userSchema = new mongoose.Schema({
     ResetCodeVerified: Boolean,
 
     courses: [{ type: mongoose.Schema.Types.ObjectId, ref: CourseModel, select: false }],
-    exams: [{ type: mongoose.Schema.Types.ObjectId, ref: ExamModel, select: false }],
-    lectures: [{ type: mongoose.Schema.Types.ObjectId, ref: LectureModel, select: false }],
-    groups: [{ type: mongoose.Schema.Types.ObjectId, ref: GroupModel, select: false }]
+    exams: [{ type: mongoose.Schema.Types.ObjectId, ref: ExamModel, select: false }], //for passing exams
+    lectures: [{ type: mongoose.Schema.Types.ObjectId, ref: LectureModel, select: false }],// for passing vids
+    groups: [{ type: mongoose.Schema.Types.ObjectId, ref: GroupModel }]
 }, {
     timestamps: true,
     versionKey: false

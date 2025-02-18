@@ -7,6 +7,7 @@ const sectionConstants = require("../tools/constants/sectionConstants")
 const ExamModel = require("./ExamModel")
 const LinkModel = require("./LinkModel")
 const FileModel = require("./FileModel")
+const GroupModel = require("./GroupModel")
 
 
 const lectureSchema = new mongoose.Schema({
@@ -20,17 +21,19 @@ const lectureSchema = new mongoose.Schema({
     dateStart: { type: Date },
     dateEnd: { type: Date },
     isMust: { type: Boolean, default: false },
+    isCenter: { type: Boolean },
+    isFree: { type: Boolean, },
 
     index: { type: Number, required: true },
-    isCenter: { type: Boolean, required: true, default: false },
     sectionType: { type: String, required: true, enum: [sectionConstants.VIDEO, sectionConstants.EXAM, sectionConstants.LINK, sectionConstants.FILE] },
     video: {
         type: mongoose.Schema.Types.ObjectId, ref: VideoModel
     },
     exam: { type: mongoose.Schema.Types.ObjectId, ref: ExamModel },
-    // altExam: { type: mongoose.Schema.Types.ObjectId, ref: ExamModel },
     link: { type: mongoose.Schema.Types.ObjectId, ref: LinkModel },
     file: { type: mongoose.Schema.Types.ObjectId, ref: FileModel },
+    groups: [{ type: mongoose.Schema.Types.ObjectId, ref: GroupModel }],
+    codes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'code' }]
 }, {
     timestamps: true,
     versionKey: false

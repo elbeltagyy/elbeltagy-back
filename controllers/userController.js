@@ -15,6 +15,7 @@ const CodeModel = require("../models/CodeModel.js");
 const CouponModel = require("../models/CouponModel.js");
 const SessionModel = require("../models/SessionModel.js");
 const NotificationModel = require("../models/NotificationModel.js");
+const VideoStatisticsModel = require("../models/VideoStatisticsModel.js");
 
 
 const userParams = (query) => {
@@ -100,15 +101,27 @@ const createUser = asyncHandler(async (req, res, next) => {
 const updateUser = asyncHandler(async (req, res, next) => {
 
     const id = req.params.id
-    const { grade, name, email, password, phone, familyPhone, isActive, role, government, devicesAllowed, devicesRegistered } = req.body
+    const { grade, name, userName, email, password, phone, familyPhone, isActive, role, government, devicesAllowed, devicesRegistered } = req.body
 
     const user = await UserModel.findById(id) //.select(select) populate
     if (!user) return next(createError("No users found ..!", 404, statusTexts.FAILED))
 
+    if (userName) {
+        const searchedUser = await UserModel.findOne({ userName, _id: { $ne: id } }).lean().select('_id')
+        if (searchedUser) return next(createError("هناك مستخدم موجود بالفعل ", 400, statusTexts.FAILED))
+    }
+
+    if (phone) {
+        const userHasPhone = await UserModel.findOne({ phone, _id: { $ne: id } }).lean().select('_id')
+        if (userHasPhone) return next(createError("هناك مستخدم موجود بالفعل ", 400, statusTexts.FAILED))
+    }
+
     user.grade = grade || user.grade
     user.name = name || user.name
-    user.email = email || user.email
+    user.userName = userName || user.userName
     user.phone = phone || user.phone
+
+    user.email = email || user.email
     user.familyPhone = familyPhone || user.familyPhone
     user.devicesAllowed = devicesAllowed || user.devicesAllowed
     user.devicesRegistered = devicesRegistered || user.devicesRegistered
@@ -163,11 +176,20 @@ const updateUserProfile = asyncHandler(async (req, res, next) => {
         user.avatar = avatar
     }
 
-    //avater
+    if (userName) {
+        const searchedUser = await UserModel.findOne({ userName, _id: { $ne: id } }).lean().select('_id')
+        if (searchedUser) return next(createError("هناك مستخدم موجود بالفعل ", 400, statusTexts.FAILED))
+        user.userName = userName || user.userName
+    }
+
+    if (phone) {
+        const userHasPhone = await UserModel.findOne({ phone, _id: { $ne: id } }).lean().select('_id')
+        if (userHasPhone) return next(createError("هناك مستخدم موجود بالفعل ", 400, statusTexts.FAILED))
+        user.phone = phone || user.phone
+    }
 
     user.name = name || user.name
     user.email = email || user.email
-    user.phone = phone || user.phone
     user.familyPhone = familyPhone || user.familyPhone
 
     if (password) {
@@ -177,7 +199,6 @@ const updateUserProfile = asyncHandler(async (req, res, next) => {
     }
     await user.save()
     return res.status(200).json({ status: statusTexts.SUCCESS, values: user, message: "تم تعديل البيانات بنجاح" })
-
 })
 
 // @desc update user // user profile 
@@ -198,6 +219,8 @@ const deleteUser = asyncHandler(async (req, res, next) => {
         UserModel.findByIdAndDelete(id),
         UserCourseModel.deleteMany({ user: id }),
         AttemptModel.deleteMany({ user: id }),
+        VideoStatisticsModel.deleteMany({ user: id }),
+
         SessionModel.deleteMany({ user: id }),
         NotificationModel.deleteMany({ user: id }), ,
         CodeModel.updateMany({ usedBy: id }, { $pull: { usedBy: id } }),
@@ -206,7 +229,7 @@ const deleteUser = asyncHandler(async (req, res, next) => {
         deleteFile(user.fileConfirm)
     ]);
 
-    return res.status(200).json({ status: statusTexts.SUCCESS, message: "User deleted successfuly" })
+    return res.status(200).json({ status: statusTexts.SUCCESS, message: "تم ازاله المستخدم بنجاح" })
 })
 
 

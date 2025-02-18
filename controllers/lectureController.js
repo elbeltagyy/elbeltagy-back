@@ -19,11 +19,14 @@ const { uploadFile, deleteFile } = require("../middleware/upload/uploadFiles");
 const dotenv = require("dotenv");
 const UserModel = require("../models/UserModel");
 const VideoStatisticsModel = require("../models/VideoStatisticsModel");
+const CodeModel = require("../models/CodeModel");
+const codeConstants = require("../tools/constants/codeConstants");
+const { user_roles } = require("../tools/constants/rolesConstants");
 
 dotenv.config()
 const lectureParams = (query) => {
     return [
-        { key: "grade", value: query.grade, operator: "equal" },
+        { key: "grade", value: query.grade, type: "number" },
         { key: "unit", value: query.unit, operator: "equal" },
         { key: "course", value: query.course, operator: "equal" },
         { key: "name", value: query.name },
@@ -32,6 +35,9 @@ const lectureParams = (query) => {
         { key: "_id", value: query._id, operator: 'equal' },
         { key: "sectionType", value: query.sectionType },
         { key: "isCenter", value: query.isCenter, type: 'boolean' },
+        { key: "isFree", value: query.isFree, type: 'boolean' },
+        { key: "groups", value: query.groups, type: 'array' },
+        { key: "codes", value: query.codes, type: 'array' },
     ]
 }
 
@@ -47,7 +53,6 @@ const getGoogleDrivePreviewLink = (originalLink) => {
         return null;
     }
 };
-
 
 
 const getLectures = getAll(LectureModel, 'lectures', lectureParams, false, 'video') //used bu users
@@ -73,18 +78,92 @@ const getLecturesForAdmin = expressAsyncHandler(async (req, res, next) => {
     res.json({ status: SUCCESS, values: { lectures } })
 })
 
+//ProtectLecture MiddleWare
+//....
+//Protect Lectures all 
+const protectGetLectures = expressAsyncHandler(async (req, res, next) => {
+    //isFree, codes, groups
+    const user = req.user
+    if (user.role === user_roles.ADMIN || user.role === user_roles.SUBADMIN) return next()
+
+    const isCenter = req.query.isCenter
+    const isFree = req.query.isFree
+    const codes = req.query.codes
+    const isGroups = req.query.isGroups
+
+    const query = {}
+
+    if (isCenter && user.role === user_roles.STUDENT) {
+        query.isCenter = true
+    }
+
+    if (isFree) {
+        query.isFree = true
+    }
+    if (codes) {
+        const userCodes = await CodeModel.find({ usedBy: user._id, type: codeConstants.LECTURES }).select('_id').lean()
+        if (userCodes?.length < 1) return res.status(200).json({ status: SUCCESS, values: { lectures: [] } })
+
+        const modifiedCodes = userCodes.map(c => c._id)
+        query.codes = modifiedCodes
+    }
+    if (isGroups) {
+        if (user.groups?.length < 1) return res.status(200).json({ status: SUCCESS, values: { lectures: [] } })
+        query.groups = user.groups || []
+    }
+
+
+    if (Object.keys(query).length < 1) return res.status(200).json({ status: SUCCESS, values: { lectures: [] } })
+    req.query = { ...query, select: req.query.select, populate: req.query.populate }
+    next()
+})
+
 const getOneLecture = getOne(LectureModel)
 const updateLecture = updateOne(LectureModel)
 
 const getLectureForCenter = expressAsyncHandler(async (req, res, next) => {
     const lectureId = req.params.id
     const user = req.user
-    const lecture = await LectureModel.findOne({ _id: lectureId, isActive: true }).lean().populate('exam video file link')
+    const lecture = await LectureModel
+        .findOne({ _id: lectureId, isActive: true })
+        .lean().populate('exam video file link')
+
+    let isValid = false
+
+    if (!lecture) return next(createError("المحاضره غير موجوده", 404, FAILED))
+
+    if (lecture.isFree) {
+        isValid = true
+    }
+    if (!isValid && lecture.isCenter && user.role === user_roles.STUDENT) {
+        isValid = true
+    }
+
+    if (!isValid && lecture.groups?.length > 0 && user.groups?.length > 0) {
+
+        const userGroupsSet = new Set(user.groups?.map(group => group?.toString())); // Convert ObjectIds to strings
+        const hasCommonGroup = lecture.groups.some(group => userGroupsSet.has(group?.toString())); // Convert ObjectIds to strings
+
+        if (hasCommonGroup) {
+            isValid = true
+        }
+    }
+
+    if (!isValid && lecture.codes?.length > 0) {
+        const hasCommonCodes = await CodeModel.findOne({ _id: { $in: lecture.codes }, usedBy: user._id })
+
+        if (hasCommonCodes) {
+            isValid = true
+        }
+    }
+
+    if (!isValid) return next(createError("يمكنك التواصل مع الدعم لشراء المحاضره", 401, FAILED))
+
     if (lecture.exam) {
         const userAttempts = await AttemptModel.find({ exam: lecture.exam._id, user: user._id }).lean()
         lecture.exam.attempts = userAttempts
     }
-    res.status(200).json({ ...lecture })
+    res.status(200).json({ values: lecture, status: SUCCESS })
 })
 
 const createLecture = expressAsyncHandler(async (req, res, next) => {
@@ -245,7 +324,7 @@ const deleteLecture = expressAsyncHandler(async (req, res, next) => {
             }),
         ])
     }
-    
+
     await LectureModel.findByIdAndDelete(lectureId)
     res.status(200).json({ message: 'تم الحذف بنجاح', status: SUCCESS })
 })
@@ -270,7 +349,58 @@ const updateOneExam = expressAsyncHandler(async (req, res, next) => {
     res.json({ message: 'تم تعديل الاختبار بنجاح', status: SUCCESS, values: { lecture, updatedExam } })
 })
 
-module.exports = { getLectures, getLecturesForAdmin, getOneLecture, getLectureForCenter, createLecture, updateLecture, handelUpdateLecture, deleteLecture, createExam, updateOneExam, lectureParams }
+//@route /content/lectures/array
+//@method POST
+const addToLectures = expressAsyncHandler(async (req, res, next) => {
+
+    const lectures = req.body.lectures || []
+
+    let addToSet = {}
+    const code = req.body.code
+    const group = req.body.group
+
+    if (code) {
+        addToSet.codes = code
+    }
+    if (group) {
+        addToSet.groups = group
+    }
+
+    await LectureModel.updateMany({ _id: { $in: lectures } }, { $addToSet: addToSet }) //, { new: true }
+    res.status(200).json({ message: 'تم ايضافه المحاضره بنجاح', status: SUCCESS })
+})
+
+//@route /content/lectures/array
+//@method delete
+const removeFromLectures = expressAsyncHandler(async (req, res, next) => {
+
+    const lectures = req.body.lectures || []
+    let match = { _id: { $in: lectures } }
+    const code = req.body.code
+    const group = req.body.group
+
+    let toPull = {}
+    if (code) {
+        match.codes = { $in: [code] }
+        toPull.codes = code
+    }
+    if (group) {
+        match.groups = { $in: [group] }
+        toPull.groups = group
+    }
+    await LectureModel.updateMany(
+        match,
+        { $pull: toPull }
+    );
+    res.status(200).json({ message: 'تم ازاله المحاضرات', status: SUCCESS })
+})
+module.exports = {
+    getLectures, protectGetLectures, getLecturesForAdmin,
+    getOneLecture, getLectureForCenter,
+    createLecture, updateLecture, handelUpdateLecture, deleteLecture,
+    createExam, updateOneExam, lectureParams,
+    removeFromLectures, addToLectures,
+}
 
 
 
