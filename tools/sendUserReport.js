@@ -5,10 +5,10 @@ const VideoStatisticsModel = require("../models/VideoStatisticsModel");
 const { formatDuration, getDateWithTime, getFullDate } = require("./dateFc");
 const path = require("path");
 const ejs = require('ejs');
-const createPdfFromHtml = require("./pdf/htmlPdf");
 const { sendWhatsFileFc } = require("../controllers/whatsappController");
 const { attemptAllInfo, getExamMark } = require("./getExamInfo");
 const { user_roles } = require("./constants/rolesConstants");
+const puppeteerPdf = require("./pdf/pupetteerPdf");
 
 const sendUserReport = ({ user, lectureQuery = {}, startDate = null, endDate = null, phoneToSend = null }) => new Promise(async (resolve, reject) => {
     try {
@@ -120,8 +120,8 @@ const sendUserReport = ({ user, lectureQuery = {}, startDate = null, endDate = n
         // Generate PDF using Puppeteer
         const pdfName = 'تقرير الطالب' + '-' + user.userName + '.pdf'
         // const pdfPath = path.join(__dirname, '..', 'storage', pdfName);
-        // let pdfBuffer = await puppeteerPdf(html);
-        let pdfBuffer = await createPdfFromHtml(html);
+        let pdfBuffer = await puppeteerPdf(html);
+        // let pdfBuffer = await createPdfFromHtml(html);
 
         //send to Whatsapp
         let numberToSend = phoneToSend || user.familyPhone
