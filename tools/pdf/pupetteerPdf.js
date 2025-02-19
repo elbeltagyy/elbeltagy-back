@@ -1,7 +1,11 @@
 const puppeteer = require('puppeteer');
 
 const puppeteerPdf = async (htmlContent, pdfPath = 'output.pdf') => {
-  const browser = await puppeteer.launch();
+
+  const browser = await puppeteer.launch({
+    headless: 'new', // Use the new headless mode
+    args: ['--no-sandbox', '--disable-setuid-sandbox'], // Required for Linux
+  });
   const page = await browser.newPage();
 
   await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
