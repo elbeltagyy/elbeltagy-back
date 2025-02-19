@@ -173,7 +173,6 @@ class WhatsappService {
 
     async getClientStatus(userId) {
         try {
-            console.log('userId from getClient status', userId)
             const client = this.clients.get(userId)
             // console.log('client from getClient status', client)
             if (!client) return false

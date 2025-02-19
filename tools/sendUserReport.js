@@ -26,92 +26,97 @@ const sendUserReport = ({ user, lectureQuery = {}, startDate = null, endDate = n
             name: user.name, phone: user.phone, familyPhone: user.familyPhone, role: user.role
         };
 
-        // Process each user course
-        for (const userCourse of userCourses) {
-            const course = userCourse.course;
-            const currentIndex = userCourse.currentIndex;
 
-            // Fetch lectures for the course
-            let lectures = await LectureModel.find({
-                course: { $in: [...course.linkedTo, course._id] },
-                isActive: true,
+        //lectures then push then filter
+        let lectures = []
+
+        if (user.role === user_roles.STUDENT) {
+            let centerLectures = await LectureModel.find({
+                isActive: true, isCenter: true,
                 ...lectureQuery
             }).lean().populate('exam');
+            lectures.push(...centerLectures)
+        }
 
-            //Get Center Lectures
-            if (user.role === user_roles.STUDENT) {
-                const LecturesIds = lectures.map(lecture => lecture._id)
-                const centerLectures = await LectureModel.find({
-                    _id: { $nin: LecturesIds },
-                    isActive: true, isCenter: true,
+        if (userCourses.length > 0) {
+            for (const userCourse of userCourses) {
+                const course = userCourse.course;
+                const currentIndex = userCourse.currentIndex;
+
+                let nin = lectures.map(lec => lec._id)
+                let CourseLectures = await LectureModel.find({
+                    _id: { $nin: nin },
+                    course: { $in: [...course.linkedTo, course._id] },
+                    isActive: true,
                     ...lectureQuery
                 }).lean().populate('exam');
-                lectures.push(...centerLectures)
+
+                // Add currentIndex to each lecture
+                CourseLectures.forEach((lecture) => {
+                    lecture.currentIndex = currentIndex;
+                });
+
+                lectures.push(...CourseLectures)
+                course.createdAt = getDateWithTime(userCourse.createdAt)
+                dataToExport.subscriptions.push(course)
             }
-
-
-            // Fetch views and attempts for the user
-            const [views, attempts] = await Promise.all([
-                VideoStatisticsModel.find({ user: user._id, ...lectureQuery }).populate('lecture').lean(),
-                AttemptModel.find({ user: user._id }).lean(),
-            ]);
-
-
-            const attemptMap = new Map(
-                attempts.map((attempt) => [attempt.exam.toString(), attempt])
-            );
-
-            const exams = []
-            // Add index to lectures
-            lectures.forEach((lecture, index) => {
-                lecture.index = index + 1;
-                if (lecture.exam) {
-                    const itsAttempt = attemptMap.get(lecture.exam._id.toString())
-                    //name - attempt date - mark - exam mark - degree
-                    let exam = {}
-                    exam.name = lecture.name
-                    exam.total = getExamMark(lecture.exam)
-
-                    if (itsAttempt) {
-                        exam.attemptDate = getDateWithTime(itsAttempt.createdAt)
-                        const [userMark, total, assessment] = attemptAllInfo(lecture.exam, itsAttempt.chosenOptions)
-                        exam.mark = userMark
-                        exam.rating = assessment.rating
-                        exam.class = assessment.ratingColor === 1 ? 'green' : assessment.ratingColor === 2 ? 'yellow' : 'red'
-                    } else {
-                        exam.class = 'red'
-                        exam.attemptDate = 'لم يتم حله'
-                        exam.rating = 'لم يتم حله'
-                    }
-                    exams.push(exam)
-                }
-            });
-
-
-            //Handel Views
-            views.forEach(view => {
-                view.name = view.lecture?.name
-                view.watchedTime = formatDuration(view.watchedTime, true)
-                view.createdAt = getDateWithTime(view.createdAt)
-            })
-
-
-            // Find un-watched lectures
-            const unWatchedLectures = lectures.filter(
-                (lecture, index) =>
-                    !views.some((view) => view.lecture._id.toString() === lecture._id.toString()) &&
-                    lecture.index > currentIndex &&
-                    lecture.video
-            );
-
-            // Update dataToExport
-            course.createdAt = getDateWithTime(userCourse.createdAt)
-
-            dataToExport.exams.push(...exams);
-            dataToExport.unWatchedLectures.push(...unWatchedLectures);
-            dataToExport.views.push(...views)
-            dataToExport.subscriptions.push(course)
         }
+
+        // Fetch views and attempts for the user
+        const [views, attempts] = await Promise.all([
+            VideoStatisticsModel.find({ user: user._id, ...lectureQuery }).populate('lecture').lean(),
+            AttemptModel.find({ user: user._id }).lean(),
+        ]);
+
+        const attemptMap = new Map(
+            attempts.map((attempt) => [attempt.exam.toString(), attempt])
+        );
+
+        const exams = []
+        // Add index to lectures
+        lectures.forEach((lecture, index) => {
+            lecture.index = index + 1;
+            if (lecture.exam) {
+                const itsAttempt = attemptMap.get(lecture.exam._id.toString())
+                //name - attempt date - mark - exam mark - degree
+                let exam = {}
+                exam.name = lecture.name
+                exam.total = getExamMark(lecture.exam)
+
+                if (itsAttempt) {
+                    exam.attemptDate = getDateWithTime(itsAttempt.createdAt)
+                    const [userMark, total, assessment] = attemptAllInfo(lecture.exam, itsAttempt.chosenOptions)
+                    exam.mark = userMark
+                    exam.rating = assessment.rating
+                    exam.class = assessment.ratingColor === 1 ? 'green' : assessment.ratingColor === 2 ? 'yellow' : 'red'
+                } else {
+                    exam.class = 'red'
+                    exam.attemptDate = 'لم يتم حله'
+                    exam.rating = 'لم يتم حله'
+                }
+                exams.push(exam)
+            }
+        });
+
+        //Handel Views
+        views.forEach(view => {
+            view.name = view.lecture?.name
+            view.watchedTime = formatDuration(view.watchedTime, true)
+            view.createdAt = getDateWithTime(view.createdAt)
+        })
+
+        // Find un-watched lectures
+        const unWatchedLectures = lectures.filter(
+            (lecture, index) =>
+                !views.some((view) => view.lecture._id.toString() === lecture._id.toString()) &&
+                lecture.index > (Number(lecture.currentIndex) || 0) &&
+                lecture.video
+        );
+
+        //Add Events
+        dataToExport.exams.push(...exams);
+        dataToExport.unWatchedLectures.push(...unWatchedLectures);
+        dataToExport.views.push(...views)
 
         // Render EJS template to HTML
         const templatePath = path.join(__dirname, '../views', 'template.ejs');

@@ -36,10 +36,10 @@ exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '
         //find({course: {$in: [90, 80, 40]}})
         //sort 
         const sort = {}
-        query.sortkey ? sort[query.sortkey] = query.sortValue : null
+        query.sortkey ? sort[query.sortkey] = Number(query.sortValue) : null
         sort.createdAt = isModernSort ? -1 : 1
-        query.sortkey === 'createdAt' ? sort.createdAt = query.sortValue : null
-        query.sortkey === 'updatedAt' ? sort.updatedAt = query.sortValue : null
+        query.sortkey === 'createdAt' ? sort.createdAt = Number(query.sortValue) : null
+        query.sortkey === 'updatedAt' ? sort.updatedAt = Number(query.sortValue) : null
 
         //select
         const select = query.select ? query.select : ""

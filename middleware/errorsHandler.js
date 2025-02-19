@@ -15,7 +15,6 @@ const notFound = ((req, res, next) => {
 
 const errorrHandler = ((err, req, res, next) => {
     const statusCode = err?.statusCode || err?.error?.statusCode || 500
-    // console.log(err)
     let message = err.message || err.error?.message || "connection confused"
     if (err.message.startsWith('Cast to') && process.env.NODE_ENV === 'production') {
         message = 'Invalid Values'

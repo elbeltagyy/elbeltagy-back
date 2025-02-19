@@ -5,7 +5,6 @@ const makeMatch = (match, params) => {
     params?.map(param => {
         if (Array.isArray(param.value) || String(param.value)?.includes(',')) {
             if (!Array.isArray(param.value) && String(param.value)?.includes(',')) {
-                console.log(param.value)
                 param.value = param.value?.split(',')
             }
 

@@ -168,7 +168,7 @@ const getLectureForCenter = expressAsyncHandler(async (req, res, next) => {
 
 const createLecture = expressAsyncHandler(async (req, res, next) => {
     const lecture = req.body
-    console.log('from here create lecture')
+
     //validation => courseId, name, grade
     if (lecture.sectionType === sectionConstants.VIDEO) {
         let video = {
