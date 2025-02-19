@@ -21,7 +21,7 @@ const testRoutes = require("./routes/testRoutes")
 // app.set('trust proxy', 'loopback');
 dotenv.config()
 app.set('trust proxy', 1);
-const trustedIps = ["102.189.10.217", '156.197.75.241', '::ffff:192.168.1.16'] //, '::ffff:192.168.1.16'
+const trustedIps = ["102.189.10.217", '156.197.75.241'] //, '::ffff:192.168.1.16' , '::ffff:192.168.1.16'
 
 const limiter = rateLimit({
     windowMs: 2 * 60 * 1000, // 2 minutes
@@ -65,10 +65,10 @@ app.use('/api/get-ip', (req, res, next) => {
         // real: req.headers['x-real-ip'],
     })
 })
-
+// 'http://localhost:3000', , 'https://www.mrelbeltagy.com' 'http://192.168.1.16:3000',
 app.use(cors(
     {
-        origin: ['https://elbeltagy-front.vercel.app', 'http://localhost:3000', 'http://192.168.1.16:3000', 'https://mrelbeltagy.com', 'https://www.mrelbeltagy.com'],
+        origin: ['https://elbeltagy-front.vercel.app', 'https://mrelbeltagy.com'],
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         credentials: true
     }
