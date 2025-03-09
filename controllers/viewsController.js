@@ -2,6 +2,7 @@ const expressAsyncHandler = require("express-async-handler");
 const { getAll, deleteOne, updateOne } = require("./factoryHandler");
 const VideoStatisticsModel = require("../models/VideoStatisticsModel.js");
 const UserModel = require("../models/UserModel.js");
+const { user_roles } = require("../tools/constants/rolesConstants.js");
 
 
 const viewParams = (query) => {
@@ -9,7 +10,8 @@ const viewParams = (query) => {
         { key: "user", value: query.user, operator: "equal" },
         { key: "course", value: query.course, operator: "equal" },
         { key: "lecture", value: query.lecture, operator: "equal" },
-        { key: "role", value: query.role },
+        // { key: "role", value: query.role },
+        { key: "role", value: query.view_role },
         { key: "totalTime", value: query.totalTime, type: "number" },
         { key: "watchedTime", value: query.watchedTime, type: "number" },
     ]

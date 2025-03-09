@@ -23,6 +23,8 @@ dotenv.config()
 app.set('trust proxy', 1);
 const trustedIps = ["102.189.10.217", '156.197.75.241'] //, '::ffff:192.168.1.16' , '::ffff:192.168.1.16'
 
+process.env.NODE_ENV === 'development' && trustedIps.push('::ffff:192.168.1.16')
+
 const limiter = rateLimit({
     windowMs: 2 * 60 * 1000, // 2 minutes
     limit: 120, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
@@ -66,9 +68,13 @@ app.use('/api/get-ip', (req, res, next) => {
     })
 })
 // 'http://localhost:3000', , 'https://www.mrelbeltagy.com' 'http://192.168.1.16:3000',
+
+const origin = ['https://elbeltagy-front.vercel.app', 'https://mrelbeltagy.com']
+process.env.NODE_ENV === 'development' && origin.push(...['http://192.168.1.16:3000'])
+
 app.use(cors(
     {
-        origin: ['https://elbeltagy-front.vercel.app', 'https://mrelbeltagy.com'],
+        origin,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         credentials: true
     }

@@ -177,25 +177,25 @@ exports.makeLoginSession = () => {
         }
 
         // if never login => !deviceId = true + || if logged before but invalid deviceId
-        if (!user?.devicesRegistered?.includes(deviceId)) {
+        // if (!user?.devicesRegistered?.includes(deviceId)) {
 
-            if (user.devicesRegistered.length === user.devicesAllowed) {
-                return next(createError("لقد تجاوزت عدد الاجهزه المسموح بالتسجيل بها", 401, statusTexts.FAILED))
-            }
-            user.devicesRegistered = [...user.devicesRegistered, deviceId]
-            await user.save()
+        //     if (user.devicesRegistered.length === user.devicesAllowed) {
+        //         return next(createError("لقد تجاوزت عدد الاجهزه المسموح بالتسجيل بها", 401, statusTexts.FAILED))
+        //     }
+        //     user.devicesRegistered = [...user.devicesRegistered, deviceId]
+        //     await user.save()
 
-            res.cookie(deviceIdSignedCookie, deviceId, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',  // Secure only in production
-                sameSite: process.env.host === 'server' ? 'lax' : 'none', // lax for local dev
-                maxAge: ms('2y') //signed
-            })
-        }
+        //     res.cookie(deviceIdSignedCookie, deviceId, {
+        //         httpOnly: true,
+        //         secure: process.env.NODE_ENV === 'production',  // Secure only in production
+        //         sameSite: process.env.host === 'server' ? 'lax' : 'none', // lax for local dev
+        //         maxAge: ms('2y') //signed
+        //     })
+        // }
 
-        if (!user?.devicesRegistered?.includes(deviceId)) {
-            return next(createError("حدث خطأ فى التعرف على جهازك, من فضلك تواصل مع الدعم , إذا كنت تعتقد أن هناك خطأ ؛ تواصل مع الدعم", 400, statusTexts.FAILED))
-        }
+        // if (!user?.devicesRegistered?.includes(deviceId)) {
+        //     return next(createError("حدث خطأ فى التعرف على جهازك, من فضلك تواصل مع الدعم , إذا كنت تعتقد أن هناك خطأ ؛ تواصل مع الدعم", 400, statusTexts.FAILED))
+        // }
         const userDoc = user._doc
         delete userDoc.password
 
