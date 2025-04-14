@@ -34,7 +34,7 @@ const coursesParams = (query) => {
     ]
 }
 const createCourse = insertOne(CourseModel, true)
-const getCourses = getAll(CourseModel, 'courses', coursesParams, false) //user admin
+const getCourses = getAll(CourseModel, 'courses', coursesParams, true) //user admin
 const getOneCourse = getOne(CourseModel, 'linkedTo', [
     { path: 'linkedTo', select: 'name _id' }
 ])
