@@ -50,7 +50,7 @@ const sendReports = expressAsyncHandler(async (req, res, next) => {
     let match = {}
     match.role = { $in: [user_roles.STUDENT, user_roles.ONLINE] }
 
-    makeMatch(match, userParams(req.body))
+    makeMatch(match, userParams({ ...req.body, courses: req.body.course }))
 
     if (excludedUsers?.length > 0 && isExcluded) {
         match = { ...match, _id: { $nin: excludedUsers } }
@@ -70,7 +70,7 @@ const sendReports = expressAsyncHandler(async (req, res, next) => {
     // Process each user in parallel
     await Promise.all(users.map(user => limit(async () => {
         try {
-            await sendUserReport({ user, lectureQuery })
+            await sendUserReport({ user, lectureQuery, course: req.body.course, startDate, endDate })
         } catch (error) {
             failedReport.users.push(user._id)
             failedReport.reportErrors.push(error?.message || 'unknown')
@@ -86,7 +86,7 @@ const sendReports = expressAsyncHandler(async (req, res, next) => {
     }
 
     if (!isNotCreateNewReport) {
-        const createdReport = await ReportModel.create(req.body)
+        const createdReport = await ReportModel.create({ ...req.body, numbers: (users.length - failedReport.users.length) })
 
         if (failedReport.users.length > 0) {
             //save it
@@ -104,11 +104,19 @@ const reportParams = (query) => {
     return [
         { key: "title", value: query.title },
         { key: "description", value: query.description },
+        { key: "course", value: query.course, operator: "equal" },
+        { key: "lecture", value: query.lecture, operator: "equal" },
     ]
 }
 
+const populate = [
+    {
+        path: 'course',
+        select: 'name',
+    }
+];
 
-const getReports = getAll(ReportModel, 'reports', reportParams, true)
+const getReports = getAll(ReportModel, 'reports', reportParams, true, populate)
 const updateReport = updateOne(ReportModel)
 
 const deleteReport = deleteOne(ReportModel)

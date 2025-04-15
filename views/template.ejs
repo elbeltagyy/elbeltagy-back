@@ -105,13 +105,13 @@
 <body>
   <header>
     <h3 style="text-align: center;">منصه مستر البلتاجى (mrelbeltagy.com) </h3>
+    <% if (startDate) { %>
     <p>تقرير الطالب من :
-      <% if (startDate) { %>
         <%= startDate %>
       <% } %>
       <br />
-      الي : 
       <% if (endDate) { %>
+      الي : 
         <p> <%= endDate %></p>
       <% } %>
     </p>

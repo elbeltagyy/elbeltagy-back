@@ -1,4 +1,5 @@
 const { getUsersCount, getUnitsCount, getCoursesCount, getLecturesCount, getSubscriptionsCount, getNotificationsCount, getAttemptsCount } = require("../controllers/statisticsController")
+const { getViewsCount, getByUsersCount } = require("../controllers/viewsController")
 const allowedTo = require("../middleware/allowedTo")
 const { secureGetAll } = require("../middleware/secureMiddleware")
 const verifyToken = require("../middleware/verifyToken")
@@ -20,6 +21,11 @@ router.route("/lectures")
 
 router.route("/subscriptions")
     .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), getSubscriptionsCount)
+
+router.route("/views")
+    .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), getViewsCount)
+router.route("/views_users")
+    .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), getByUsersCount)
 
 router.route("/notifications")
     .get(verifyToken(), secureGetAll(), getNotificationsCount)

@@ -1,7 +1,7 @@
 const { filterById } = require("../controllers/factoryHandler")
 const { userParams } = require("../controllers/userController")
 const { countStatistics } = require("../controllers/videoController")
-const { getViews, updateView, removeView } = require("../controllers/viewsController")
+const { getViews, updateView, removeView, viewParams, getByUserViews } = require("../controllers/viewsController")
 const allowedTo = require("../middleware/allowedTo")
 const verifyToken = require("../middleware/verifyToken")
 const CourseModel = require("../models/CourseModel")
@@ -9,7 +9,6 @@ const LectureModel = require("../models/LectureModel")
 const UserModel = require("../models/UserModel")
 
 const { user_roles } = require("../tools/constants/rolesConstants")
-
 const router = require("express").Router()
 
 const courseParams = (query) => {
@@ -27,12 +26,18 @@ const lectureParams = (query) => {
 }
 
 router.route("/")
-    .get(verifyToken(),
+    .get(
+        verifyToken(),
         allowedTo(user_roles.ADMIN, user_roles.SUBADMIN),
         filterById(UserModel, userParams, 'user'),
         filterById(CourseModel, courseParams, 'course'),
         filterById(LectureModel, lectureParams, 'lecture'),
         getViews)
+
+router.route("/users")
+    .get(verifyToken(),
+        allowedTo(user_roles.ADMIN, user_roles.SUBADMIN),
+        getByUserViews)
 
 router.route("/:id")
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), updateView)

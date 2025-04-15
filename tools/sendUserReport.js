@@ -9,12 +9,13 @@ const { sendWhatsFileFc } = require("../controllers/whatsappController");
 const { attemptAllInfo, getExamMark } = require("./getExamInfo");
 const { user_roles } = require("./constants/rolesConstants");
 const puppeteerPdf = require("./pdf/pupetteerPdf");
+const createPdfFromHtml = require("./pdf/htmlPdf");
 
-const sendUserReport = ({ user, lectureQuery = {}, startDate = null, endDate = null, phoneToSend = null }) => new Promise(async (resolve, reject) => {
+const sendUserReport = ({ user, lectureQuery = {}, startDate = null, endDate = null, phoneToSend = null, course }) => new Promise(async (resolve, reject) => {
     try {
 
         // Fetch user courses and populate related course data
-        const userCourses = await UserCourseModel.find({ user: user._id }).populate("course").lean();
+        const userCourses = await UserCourseModel.find({ user: user._id, course }).populate("course").lean();
 
         // Prepare data for PDF generation
         const dataToExport = {
@@ -126,7 +127,7 @@ const sendUserReport = ({ user, lectureQuery = {}, startDate = null, endDate = n
         const pdfName = 'تقرير الطالب' + '-' + user.userName + '.pdf'
         // const pdfPath = path.join(__dirname, '..', 'storage', pdfName);
         let pdfBuffer = await puppeteerPdf(html);
-        // let pdfBuffer = await createPdfFromHtml(html);
+        //  await createPdfFromHtml(html);
 
         //send to Whatsapp
         let numberToSend = phoneToSend || user.familyPhone

@@ -1,4 +1,6 @@
 const mongoose = require("mongoose")
+const CourseModel = require("./CourseModel")
+const LectureModel = require("./LectureModel")
 
 
 const reportSchema = new mongoose.Schema({
@@ -6,6 +8,9 @@ const reportSchema = new mongoose.Schema({
     endDate: Date,
     title: String,
     description: String,
+    numbers: Number,
+    course: { type: mongoose.Schema.Types.ObjectId, ref: CourseModel },
+    lecture: { type: mongoose.Schema.Types.ObjectId, ref: LectureModel },
 }, {
     timestamps: true,
     versionKey: false

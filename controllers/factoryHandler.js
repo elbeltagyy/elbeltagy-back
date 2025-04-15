@@ -17,6 +17,8 @@ const dotenv = require("dotenv")
 // config
 dotenv.config()
 
+
+
 exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '') =>
     asyncHandler(async (req, res) => {
 
@@ -32,7 +34,7 @@ exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '
         if (params.length > 0) {
             makeMatch(match, params(query))
         }
-
+        // console.log(match)
         //find({course: {$in: [90, 80, 40]}})
         //sort 
         const sort = {}

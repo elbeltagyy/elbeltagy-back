@@ -1,18 +1,28 @@
 const makeMatch = (match, params) => {
 
+    //New Edition **
+    //  handel values types => array, String
+    //  handel Each Value => Boolean, ObjectId, Number
+    //  Extract Operator => !=, =! ...
+    //  handel Query => eq, neq, $in, $nin
+
+    // params => {key, value} ay from params
     if (params.length === 0) return match
 
     params?.map(param => {
         if (Array.isArray(param.value) || String(param.value)?.includes(',')) {
             if (!Array.isArray(param.value) && String(param.value)?.includes(',')) {
-                param.value = param.value?.split(',')
+                param.value = param.value?.split(',') // Strings became Array
             }
 
+            //if Array
             param.value.forEach((value) => {
                 handelMatch(value, match, param.key, 'array', param.operator)
             })
             return
         }
+
+        //if String
         handelMatch(param.value, match, param.key, param.type, param.operator)
     })
 
@@ -25,6 +35,7 @@ const handelMatch = (value, match, key, type, operator) => {
         [operator, value] = value.split("_split_")
     }
 
+    if (String(value) === 'null' || String(value) === 'undefined') return
 
     if (type === 'array') {
         if (operator === '=!' || operator === '!=') {
@@ -67,7 +78,7 @@ const handelMatch = (value, match, key, type, operator) => {
         return
     }
 
-    if (operator === "equal") {
+    if (operator === "equal" || type === 'objectId') {
         value && value !== "All" && value !== "all"
             ? match[key] = value : null
 
