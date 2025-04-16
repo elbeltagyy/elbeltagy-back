@@ -1,6 +1,6 @@
 const router = require("express").Router()
 
-const { getNotifications, createNotification, updateNotification, deleteNotification, makeSeen, handelNotification } = require("../controllers/notificationController")
+const { getNotifications, createNotification, updateNotification, deleteNotification, makeSeen, handelNotification, sendNotificationsToMany } = require("../controllers/notificationController")
 
 const { user_roles } = require("../tools/constants/rolesConstants")
 const allowedTo = require("../middleware/allowedTo")
@@ -15,7 +15,12 @@ router.route("/")
 router.route("/seen/:userId")
     .get(verifyToken(), makeSeen)
 
-router.route("/:id")
+router.route("/many")
+    .post(verifyToken(),
+        allowedTo(user_roles.ADMIN, user_roles.SUBADMIN, user_roles.MENTOR),
+        sendNotificationsToMany)
+
+router.route("/one/:id")
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN, user_roles.MENTOR), updateNotification)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN, user_roles.MENTOR), deleteNotification)
 
