@@ -13,11 +13,12 @@ const courseSchema = new mongoose.Schema({
     price: { type: Number, required: true },
     preDiscount: { type: Number },
 
-    isMust: {type: Boolean, default: true},
+    isMust: { type: Boolean, default: true },
     isActive: { type: Boolean, required: true, default: true },
+    isFixed: Boolean,
     dateStart: { type: Date },
     dateEnd: { type: Date },
-    
+
     thumbnail: {
         name: { type: String },
         url: { type: String },
