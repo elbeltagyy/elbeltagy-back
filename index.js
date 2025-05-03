@@ -26,8 +26,8 @@ const trustedIps = ["102.189.10.217", '156.197.75.241'] //, '::ffff:192.168.1.16
 process.env.NODE_ENV === 'development' && trustedIps.push('::ffff:192.168.1.16')
 
 const limiter = rateLimit({
-    windowMs: 2 * 60 * 1000, // 2 minutes
-    limit: 120, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+    windowMs: 1 * 60 * 1000, // 2 minutes
+    limit: 400, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
     standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
     message: "Too many requests, please try again after 2 minutes.",
@@ -70,7 +70,7 @@ app.use('/api/get-ip', (req, res, next) => {
 // 'http://localhost:3000', , 'https://www.mrelbeltagy.com' 'http://192.168.1.16:3000',
 
 const origin = ['https://elbeltagy-front.vercel.app', 'https://mrelbeltagy.com']
-process.env.NODE_ENV === 'development' && origin.push(...['http://192.168.1.16:3000'])
+process.env.NODE_ENV === 'development' && origin.push(...['http://192.168.1.16:3000', 'http://localhost:3000'])
 
 app.use(cors(
     {
