@@ -27,7 +27,7 @@ const getByUserViews = expressAsyncHandler(async (req, res, next) => {
     const query = req.query
 
     //pagination
-    const limit = Number(query.limit) || 20
+    const limit = Number(query.limit) || 10000
     const page = query.page || 1
     const skip = (page - 1) * limit
 
@@ -37,12 +37,11 @@ const getByUserViews = expressAsyncHandler(async (req, res, next) => {
 
     // console.log(matchView)
     //sort 
-    const sort = { createdAt: -1 }
+    const sort = { _id: 1 } //To Make it stable in Pagination
     query.sortkey ? sort[query.sortkey] = Number(query.sortValue) : null
 
     query.sortkey === 'createdAt' ? sort.createdAt = Number(query.sortValue) : null
     query.sortkey === 'updatedAt' ? sort.updatedAt = Number(query.sortValue) : null
-
     // console.log({ matchView, matchUser })
     // console.log(sort)
     const usersWithWatchedTime = await VideoStatisticsModel.aggregate([
