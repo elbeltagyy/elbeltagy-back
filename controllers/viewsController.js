@@ -37,11 +37,22 @@ const getByUserViews = expressAsyncHandler(async (req, res, next) => {
 
     // console.log(matchView)
     //sort 
-    const sort = { _id: 1 } //To Make it stable in Pagination
+    let sort = { createdAt: -1 } //To Make it stable in Pagination
     query.sortkey ? sort[query.sortkey] = Number(query.sortValue) : null
 
     query.sortkey === 'createdAt' ? sort.createdAt = Number(query.sortValue) : null
     query.sortkey === 'updatedAt' ? sort.updatedAt = Number(query.sortValue) : null
+
+
+    // Custom sorting logic
+    if (query.sortkey) {
+        // Clear default sorts if custom sort is applied
+        sort = {}
+        sort[query.sortkey] = Number(query.sortValue)
+        // Always include _id as secondary sort for stability
+        sort._id = Number(query.sortValue) || -1
+    }
+
     // console.log({ matchView, matchUser })
     // console.log(sort)
     const usersWithWatchedTime = await VideoStatisticsModel.aggregate([
@@ -52,7 +63,9 @@ const getByUserViews = expressAsyncHandler(async (req, res, next) => {
                 _id: "$user",
                 watchedTime: { $sum: "$watchedTime" },
                 totalTime: { $sum: "$totalTime" },
-                watches: { $sum: 1 }
+                watches: { $sum: 1 },
+                createdAt: { $first: "$createdAt" }
+
             }
         }, {
             $lookup: {
@@ -76,6 +89,7 @@ const getByUserViews = expressAsyncHandler(async (req, res, next) => {
                             grade: 1,
                             role: 1,
                             isActive: 1,
+                            createdAt: 1
                         }
                     }
                 ],
