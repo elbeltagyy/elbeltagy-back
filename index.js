@@ -99,7 +99,7 @@ process.env.NODE_ENV === 'development' && app.use("/api/test", testRoutes)
 const port = process.env.PORT || 3030
 const DB_URI = process.env.MONGO_URI
 
-
+app.use('/storage', express.static(path.join(__dirname, 'storage')))
 //routes config
 app.use((req, res, next) => {
     const clientX = 'teacher'
@@ -120,7 +120,6 @@ app.use('/api', require('./routes/APIS'))
 // app.use("/storage/secure", (req, res, next) => {
 //     next()
 // })
-app.use('/storage', express.static(path.join(__dirname, 'storage')))
 
 // for errors 
 app.use(notFound)
