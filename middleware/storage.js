@@ -19,7 +19,20 @@ const storage = multer.diskStorage({
         cb(null, fileName)
     }
 })
+const secureStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "storage/secure"); // or wherever you want to store
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    },
+});
 
+const uploadAndStore = multer({
+    storage: secureStorage,
+    fileFilter: fileFilter,
+    limits: { fileSize: 200 * 1024 * 1024 }, // Limit file size to 100MB * 15
+});
 
 // #### uploader #####
 const upload = multer({
@@ -53,4 +66,4 @@ const pdfUpload = multer({
     limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
 });
 
-module.exports = { upload, imageUpload }
+module.exports = { upload, imageUpload, uploadAndStore }

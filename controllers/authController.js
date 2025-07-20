@@ -26,7 +26,7 @@ const { sendWhatsMsgFc } = require("./whatsappController.js");
 const login = asyncHandler(async (req, res, next) => {
     const { userName, password } = req.body
 
-    const select = 'grade userName name password avatar email  phone familyPhone isActive government role totalPoints wallet devicesAllowed devicesRegistered groups'
+    const select = 'grade userName name password avatar email  phone familyPhone isActive government role totalPoints wallet devicesAllowed devicesRegistered groups exam_marks marks'
     const user = await UserModel.findOne({ userName }).select(select)
 
     if (!user) return next(createError("هناك خطا فى البيانات المدخله", 404, statusTexts.FAILED))
@@ -76,19 +76,18 @@ const signup = asyncHandler(async (req, res, next) => {
 
     const hashedPassword = bcrypt.hashSync(password, 10)
     const user = new UserModel({
-        ...req.body, password: hashedPassword, role: user_roles.INREVIEW, userName: phone
+        ...req.body, password: hashedPassword, role: user_roles.ONLINE, userName: phone
     })
 
     //file confirm
-    const file = req.file
-    if (file) {
-        const fileConfirm = await uploadFile(file, {
-            name: user.userName,
-            secure: true
-        })
-
-        user.fileConfirm = fileConfirm
-    }
+    // const file = req.file
+    // if (file) {
+    //     const fileConfirm = await uploadFile(file, {
+    //         name: user.userName,
+    //         secure: true
+    //     })
+    //     user.fileConfirm = fileConfirm
+    // }
 
     if (foundCode) {
         const codeRes = await useCode(foundCode, user)
@@ -96,13 +95,12 @@ const signup = asyncHandler(async (req, res, next) => {
             if (user.role === user_roles.INREVIEW) {
                 user.role = user_roles.ONLINE
             }
-            req.user = user
-            return next()
         }
-    } else { // no codes , put inreview role
-        await user.save()
-        return res.status(201).json({ status: statusTexts.SUCCESS, message: "تم اضافه المستخدم بنجاح, سيتم التفعيل فى اقل من 24 ساعه!" })
     }
+
+    await user.save()
+    req.user = user
+    return next()
 })
 
 const logout = asyncHandler(async (req, res, next) => {

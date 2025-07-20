@@ -16,11 +16,6 @@ router.route("/")
     .get(verifyToken(), protectGetLectures, getLectures)
     .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), upload.single('video'), createLecture, insertOne(LectureModel, true, 'course'))
 
-router.route("/exams")
-    .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), createExam, insertOne(LectureModel, true))
-router.route("/exams/:id") //lectureId
-    .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), updateOneExam)
-
 router.route("/center/:id")
     .get(verifyToken(), allowedTo(user_roles.STUDENT, user_roles.ONLINE), getLectureForCenter) //allowed to center
 

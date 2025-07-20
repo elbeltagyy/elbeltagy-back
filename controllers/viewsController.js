@@ -50,7 +50,7 @@ const getByUserViews = expressAsyncHandler(async (req, res, next) => {
         sort = {}
         sort[query.sortkey] = Number(query.sortValue)
         // Always include _id as secondary sort for stability
-        sort._id = Number(query.sortValue) || -1
+        sort._id = -1
     }
 
     // console.log({ matchView, matchUser })

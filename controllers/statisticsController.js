@@ -17,6 +17,12 @@ const NotificationModel = require("../models/NotificationModel");
 const { notificationParams } = require("./notificationController");
 const { attemptParams } = require("./attemptController");
 const AttemptModel = require("../models/AttemptModel");
+const TagModel = require("../models/TagModel");
+const { tagParams } = require("./tagController");
+const QuestionModel = require("../models/QuestionModel");
+const { questionParams } = require("./questionController");
+const AnswerModel = require("../models/AnswerModel");
+const { answerParams } = require("./answerController");
 
 
 const getUsersCount = getDocCount(UserModel, userParams)
@@ -54,4 +60,13 @@ const getNotificationsCount = getDocCount(NotificationModel, notificationParams)
 
 const getAttemptsCount = getDocCount(AttemptModel, attemptParams)
 
-module.exports = { getUsersCount, getUnitsCount, getCoursesCount, getLecturesCount, getSubscriptionsCount, getNotificationsCount, getAttemptsCount }
+const getTagsCount = getDocCount(TagModel, tagParams)
+
+const getQuestionsCount = getDocCount(QuestionModel, questionParams)
+
+const getAnswersCount = getDocCount(AnswerModel, answerParams)
+
+module.exports = {
+    getUsersCount, getUnitsCount, getCoursesCount, getLecturesCount, getSubscriptionsCount, getNotificationsCount, getAttemptsCount,
+    getTagsCount, getQuestionsCount, getAnswersCount
+}

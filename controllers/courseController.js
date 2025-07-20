@@ -1,14 +1,14 @@
 const expressAsyncHandler = require("express-async-handler");
 const CourseModel = require("../models/CourseModel");
 const { getAll, getOne, insertOne, updateOne, deleteOne } = require("./factoryHandler");
-const { addToCloud } = require("../middleware/upload/cloudinary");
+
 const mongoose = require('mongoose');
 const LectureModel = require("../models/LectureModel");
 const UserCourseModel = require("../models/UserCourseModel");
-const { user_roles } = require("../tools/constants/rolesConstants");
+
 const { SUCCESS, FAILED } = require("../tools/statusTexts");
 const createError = require("../tools/createError");
-const sectionConstants = require("../tools/constants/sectionConstants");
+
 const UserModel = require("../models/UserModel");
 const ExamModel = require("../models/ExamModel");
 const AttemptModel = require("../models/AttemptModel");
@@ -19,6 +19,7 @@ const lockLectures = require("../tools/lockLectures");
 const CouponModel = require("../models/CouponModel");
 const codeConstants = require("../tools/constants/codeConstants");
 const VideoStatisticsModel = require("../models/VideoStatisticsModel");
+const handelExamAndAttempts = require("../tools/fcs/handelExamAndAttempts");
 
 
 const coursesParams = (query) => {
@@ -187,13 +188,13 @@ const getLectureAndCheck = expressAsyncHandler(async (req, res, next) => {
         return next(createError("انت غير مشترك", 401, FAILED))
     }
 
-    const lecture = await LectureModel.findOne({ _id: lectureId, isActive: true }).lean().populate('exam video file link')
+    let lecture = await LectureModel.findOne({ _id: lectureId, isActive: true }).lean().populate('exam video file link') //'exam video file link'
+
     if (lecture.exam) {
-        const userAttempts = await AttemptModel.find({ exam: lecture.exam._id, user: user._id }).lean()
-        lecture.exam.attempts = userAttempts
+        lecture = await handelExamAndAttempts(lecture, user)
     }
 
-    res.status(200).json({ ...lecture })
+    res.status(200).json({ values: lecture, status: SUCCESS })
 })
 
 //@desc pass lecture and make user current index of course = nextIndex
@@ -250,7 +251,6 @@ const createAttempt = expressAsyncHandler(async (req, res, next) => {
 
     if (userAttempts >= exam.attemptsNums) return next(createError("لقد استنفزت كل محاولاتك , بالرجاء العوده", 400, FAILED))
 
-
     const score = getAttemptMark(exam, attempt.chosenOptions)
 
     attempt.mark = score
@@ -273,37 +273,3 @@ module.exports = {
     getCourseLecturesAndCheckForUser, getLectureAndCheck, lecturePassed, subscribe,
     getExam, createAttempt, linkCourse
 }
-
-
-
-// if (userCourse) {
-//     //he is subscribed and has payed
-//     course.isSubscribed = true
-//     course.subscribedAt = userCourse.createdAt
-// } else {
-//     course.isSubscribed = false
-// }
-
-
-// let lectures = await LectureModel.find({ course: { $in: [...course.linkedTo, courseId] }, isActive: true }).populate(populate).lean()
-
-// lectures.map((lecture, i) => {
-//     lecture.index = i + 1
-//     if (lecture.sectionType === sectionConstants.EXAM) {
-//         lecture.exam.questionsLength = lecture.exam.questions.length
-//         delete lecture.exam.questions
-//     }
-// })
-// if (userCourse) {
-//     //lock lectures
-//     lectures.map(lecture => {
-//         if (lecture.sectionType === sectionConstants.EXAM) {
-//             //info
-//         }
-//         if (userCourse.currentIndex < lecture.index) {
-//             console.log('from calc')
-//             lecture.locked = true
-//         }
-//         return lecture
-//     })
-// }

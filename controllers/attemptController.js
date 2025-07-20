@@ -7,6 +7,8 @@ const LectureModel = require("../models/LectureModel")
 const sectionConstants = require("../tools/constants/sectionConstants")
 const createError = require("../tools/createError")
 const { FAILED, SUCCESS } = require("../tools/statusTexts")
+const ExamModel = require("../models/ExamModel")
+const { getExamMethod } = require("../tools/constants/examMethod")
 
 const attemptParams = (query) => {
     return [
@@ -14,13 +16,49 @@ const attemptParams = (query) => {
         { key: "exam", value: query.exam, operator: 'equal' },
         { key: "user", value: query.user, operator: 'equal' },
         { key: "course", value: query.course, operator: 'equal' },
-        { key: "role", value: query.attemptRole },
-        // { key: "tokenTime", value: query.tokenTime, type: 'number' },
+        { key: "role", value: query.role },
+        // { key: "tokenTime", value: query.tokenTime, type: 'number' }, *_*
     ]
 }
 
+const populateAttempt = [
+    {
+        path: 'exam',
+        populate: 'questions'
+    }, { path: 'answers' }
+]
 const getAttempts = getAll(AttemptModel, 'attempts', attemptParams, true, 'user')
-const getOneAttempt = getOne(AttemptModel, 'exam')
+const getOneAttempt = getOne(AttemptModel, populateAttempt)
+
+const startAttempt = expressAsyncHandler(async (req, res, next) => {
+    const exam = req.body.exam
+    const courseId = req.body.courseId
+    const user = req.user
+
+    const foundExam = await ExamModel.findById(exam).lean()
+    const examId = foundExam._id
+    if (!foundExam) return next(createError("The exam is not found", 404, FAILED))
+
+    const countAttempts = await AttemptModel.countDocuments({ exam, user: user._id })
+
+    if (countAttempts >= exam.attemptsNums) {
+        return res.status(400).json({ message: 'لقد انتهت كل محاولاتك', status: FAILED })
+    } else {
+        let attempt = null
+        if (foundExam.method === getExamMethod({ methodValue: 'question', key: 'value' })) {
+            [attempt] = await Promise.all([
+                AttemptModel.create({
+                    exam: examId, user: user._id, role: user.role, course: courseId
+                }),
+                UserModel.updateOne(
+                    { _id: user._id },
+                    { $addToSet: { exams: examId } }, // $addToSet prevents duplicates
+                    { new: true } // returns the updated user
+                ).lean()])
+        }
+        res.status(200).json({ values: { attempt }, status: SUCCESS })
+    }
+})
 
 const getUserInfo = expressAsyncHandler(async (req, res, next) => {
     const userId = req.params.id
@@ -58,4 +96,4 @@ const getUserInfo = expressAsyncHandler(async (req, res, next) => {
 })
 
 const deleteOneAttempt = deleteOne(AttemptModel)
-module.exports = { getAttempts, getOneAttempt, getUserInfo, attemptParams }
+module.exports = { getAttempts, getOneAttempt, startAttempt, getUserInfo, attemptParams, deleteOneAttempt }

@@ -11,15 +11,79 @@ const { generateRefreshToken } = require("../middleware/generateRefreshToken.js"
 const { generateAccessToken } = require("../middleware/generateAccessToken.js");
 const codeConstants = require("../tools/constants/codeConstants.js");
 const { user_roles } = require("../tools/constants/rolesConstants.js");
-const expressAsyncHandler = require("express-async-handler");
+const { uploadFile, deleteFile } = require("../middleware/upload/uploadFiles.js");
 
-const dotenv = require("dotenv")
-// config
+const dotenv = require("dotenv");
+const parseFilters = require("../tools/fcs/matchGPT.js");
 dotenv.config()
 
+exports.analysisMonthly = (Model) => asyncHandler(async (req, res, next) => {
+    const startYear = req.query.start ? Number(req.query.start) : null;
+    const endYear = req.query.end ? Number(req.query.end) : null;
 
+    /* ----------------------------------------------------------- *
+     * 1. Aggregate counts per { year, month }                     *
+     * ----------------------------------------------------------- */
+    const matchStage = {};
+    if (startYear || endYear) {
+        matchStage.createdAt = {};
+        if (startYear) {
+            matchStage.createdAt.$gte = new Date(Date.UTC(startYear, 0, 1));
+        }
+        if (endYear) {
+            matchStage.createdAt.$lt = new Date(Date.UTC(endYear + 1, 0, 1));
+        }
+    }
 
-exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '') =>
+    const pipeline = [
+        Object.keys(matchStage).length && { $match: matchStage },
+        {
+            $group: {
+                _id: {
+                    year: { $year: "$createdAt" },
+                    month: { $month: "$createdAt" } // 1‑12
+                },
+                count: { $sum: 1 }
+            }
+        },
+        { $sort: { "_id.year": 1, "_id.month": 1 } }
+    ].filter(Boolean);
+
+    const raw = await Model.aggregate(pipeline);
+    /* ----------------------------------------------------------- *
+ * 2. Shape result into [{ name, series[12] }]                 *
+ * ----------------------------------------------------------- */
+    const yearMap /* { [year]: number[12] } */ = {};
+
+    raw.forEach(({ _id: { year, month }, count }) => {
+        if (!yearMap[year]) yearMap[year] = Array(12).fill(0);
+        yearMap[year][month - 1] = count; // 0‑based index
+    });
+
+    // Fill missing years within range (optional convenience)
+    if (startYear !== null && endYear !== null) {
+        for (let y = startYear; y <= endYear; y++) {
+            yearMap[y] = yearMap[y] ?? Array(12).fill(0);
+        }
+    }
+    const result = Object.entries(yearMap)
+        .sort(([a], [b]) => a - b)
+        .map(([year, data]) => ({ name: year, data }));
+
+    const categories = ['يناير', "فبراير", "مارس", "ابريل", "مايو", "يونيو", "يوليو", "اغسطس", "سبتمبر", "اكتوبر", "نوفبمر", "ديسمبر"]
+
+    res.json({ values: { result, categories }, status: statusTexts.SUCCESS });
+})
+
+//analysisUsers ==> matching - anaMethod (strict - monthly - yearly) - by (default - roles)
+exports.handelOneFile = ({ fileKey }) =>
+    asyncHandler(async (req, res, next) => {
+        const file = req.file || null;
+        await uploadFile(file, { name: file?.originalname, secure: true }, { key: fileKey, parent: req.body })
+        next()
+    });
+
+exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '', embedFc = false) =>
     asyncHandler(async (req, res) => {
 
         const query = req.query
@@ -30,9 +94,10 @@ exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '
         const skip = (page - 1) * limit
 
         // search && filter
-        const match = {}
+        let match = {}
         if (params.length > 0) {
-            makeMatch(match, params(query))
+            // makeMatch(match, params(query))
+            match = parseFilters(params(query))
         }
         // console.log(match)
         //find({course: {$in: [90, 80, 40]}})
@@ -60,7 +125,9 @@ exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '
         let values = {}
         values[`${docName}`] = docs
         values.count = count
-
+        if (embedFc) {
+            values = await embedFc(req, values)
+        }
         return res.status(200).json({ status: statusTexts.SUCCESS, values })
 
     });
@@ -96,6 +163,7 @@ exports.insertOne = (Model, withIndex = false, populate = '') =>
             const index = lastDoc?.index + 1 || 1
             req.body.index = index
         }
+
         const doc = await Model.create(req.body);
         if (populate) {
             await doc.populate(populate)
@@ -117,7 +185,7 @@ exports.updateOne = (Model) =>
         return res.status(200).json({ status: statusTexts.SUCCESS, values: doc, message: 'تم التعديل بنجاح' })
     });
 
-exports.deleteOne = (Model, relatedDocs = [], relatedModels = []) =>
+exports.deleteOne = (Model, relatedDocs = [], relatedModels = [], relatedFile) =>
     asyncHandler(async (req, res, next) => {
         const { id } = req.params;
         // console.log('id ==>', id)
@@ -134,8 +202,16 @@ exports.deleteOne = (Model, relatedDocs = [], relatedModels = []) =>
         if (relatedModels.length > 0) {
             await deleteOtherModels(relatedModels, id)
         }
+        let isFoundFileAndDeleted = false
+        if (relatedFile && document[relatedFile]) {
+            isFoundFileAndDeleted = await deleteFile(document[relatedFile])
+        }
 
-        return res.status(200).json({ status: statusTexts.SUCCESS, message: 'تمت الازاله بنجاح' })
+        let message = 'تمت الازاله بنجاح'
+        if (isFoundFileAndDeleted) {
+            message += ' , ' + 'تم حذف الملف بنجاح'
+        }
+        return res.status(200).json({ status: statusTexts.SUCCESS, message })
     });
 
 exports.getDocCount = (Model, params = []) =>
@@ -162,7 +238,7 @@ exports.filterById = (Model, params = [], idName) =>
         }
         if (Object.entries(match).length > 0) {
             const filteredId = await Model.findOne(match).select('_id').lean()
-            req.query[idName] = filteredId?._id
+            req.query[idName] = filteredId?._id || 'emptyArray'
         }
         next()
     })

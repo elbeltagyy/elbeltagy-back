@@ -12,7 +12,7 @@ const uploadFiles = expressAsyncHandler(async (req, res, next) => {
 
     if (files.length !== 0) {
         for (i = 0; i < files.length; i++) {
-            const result = await uploadFile(files[i], { name: 'myFile-' + i, secure: true })
+            const result = await uploadFile(files[i], { name: 'myFile-' + i, secure: true }, { parent: null, key: null })
             files[i] = result
         }
     }

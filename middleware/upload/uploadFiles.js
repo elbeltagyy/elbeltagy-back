@@ -3,14 +3,26 @@ const { addToServer, deleteFromServer } = require("./uploadServer")
 const { addToCloud, deleteFromCloud } = require("./cloudinary")
 dotenv.config()
 
-const uploadFile = (file, settings) => {
+const uploadFile = (file, settings, meta = {}) => {
+
     return new Promise(async (resolve, reject) => {
         try {
+            if (!file) {
+                delete parent[key]
+                return resolve()
+            }
+
             if (process.env.host === 'server') {
                 const res = await addToServer(file, settings)
+                if (meta?.parent && meta?.key) {
+                    parent[key] = res
+                }
                 return resolve(res)
             } else {
                 const res = await addToCloud(file, settings)
+                if (meta?.parent && meta?.key) {
+                    parent[key] = res
+                }
                 return resolve(res)
             }
         } catch (error) {

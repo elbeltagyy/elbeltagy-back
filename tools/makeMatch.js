@@ -2,7 +2,7 @@ const makeMatch = (match, params) => {
 
     //New Edition **
     //  handel values types => array, String
-    //  handel Each Value => Boolean, ObjectId, Number
+    //  handel Each Value => Boolean, ObjectId, Number, String
     //  Extract Operator => !=, =! ...
     //  handel Query => eq, neq, $in, $nin
 
@@ -14,7 +14,6 @@ const makeMatch = (match, params) => {
             if (!Array.isArray(param.value) && String(param.value)?.includes(',')) {
                 param.value = param.value?.split(',') // Strings became Array
             }
-
             //if Array
             param.value.forEach((value) => {
                 handelMatch(value, match, param.key, 'array', param.operator)
@@ -33,9 +32,22 @@ const handelMatch = (value, match, key, type, operator) => {
 
     if (String(value).includes("_split_")) {
         [operator, value] = value.split("_split_")
+    } else if (String(value).startsWith('!=')) {
+        [operator, value] = value.split("!=")
+
+    } else if (String(value).startsWith('=!')) {
+        [operator, value] = value.split("=!")
+
+    } else if (String(value).startsWith('!')) {
+        [operator, value] = value.split("!")
     }
 
     if (String(value) === 'null' || String(value) === 'undefined') return
+
+    if (value === 'emptyArray' || value === 'empty') { // *_* filterById
+        match[key] = { $in: [] }
+        return
+    }
 
     if (type === 'array') {
         if (operator === '=!' || operator === '!=') {
@@ -47,9 +59,9 @@ const handelMatch = (value, match, key, type, operator) => {
         }
         return
     }
-
+    
     if (typeof value === 'string' && (value?.startsWith('!') || operator === '=!' || operator === '!=')) {
-        value ? match[key] = { $ne: value.split("!")[1] } : null
+        value ? match[key] = { $ne: value } : null
         return
     }
 

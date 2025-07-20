@@ -18,7 +18,4 @@ router.route("/:id")
     .patch(verifyToken(), imageUpload.single("avatar"), updateUserProfile)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), deleteUser)
 
-
-
-
 module.exports = router

@@ -18,11 +18,12 @@ router.use("/users", userRoutes)
 router.use("/codes", codeRoutes)
 router.use("/coupons", require("./couponRoutes"))
 router.use("/notifications", require('./notificationRoutes'))
+router.use("/tags", require('./tagRoutes')) 
 
 router.use("/content/units", unitRoutes)
 router.use("/content/courses", courseRoutes)
 router.use("/content/lectures", lecturesRoutes)
-router.use("/attempts", require('./attemptRoutes'))
+router.use("/content/exams", require("./examRoutes"))
 router.use('/video_statistics', require("./videoStatisticsRoutes"))
 router.use("/privacy", require('./privacyRoutes'))
 
@@ -31,6 +32,11 @@ router.use("/statistics", statisticsRoutes)
 router.use("/whatsapp", require('./whatsappRoutes'))
 router.use("/reports", require('./reportRoutes'))
 router.use("/reports_failed", require('./reportFailedRoutes'))
+
+router.use("/attempts", require('./attemptRoutes'))
+router.use("/questions", require('./questionRoutes'))
+router.use("/answers", require('./answerRoutes'))
+
 
 router.use("/groups", require("./groupRoutes"))
 

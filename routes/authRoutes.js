@@ -15,7 +15,7 @@ const verifyToken = require("../middleware/verifyToken");
 require("dotenv").config()
 
 router.post("/login", loginSchema(), expressValidate, login, makeLoginSession())
-router.post('/signup', imageUpload.single('fileConfirm'), signupSchema(), expressValidate, signup, makeLoginSession())
+router.post('/signup',  signupSchema(), expressValidate, signup, makeLoginSession()) //imageUpload.single('fileConfirm'),
 router.get('/logout', logout)
 
 router.get("/refresh", refreshTokenFc)

@@ -22,6 +22,7 @@ const VideoStatisticsModel = require("../models/VideoStatisticsModel");
 const CodeModel = require("../models/CodeModel");
 const codeConstants = require("../tools/constants/codeConstants");
 const { user_roles } = require("../tools/constants/rolesConstants");
+const handelExamAndAttempts = require("../tools/fcs/handelExamAndAttempts");
 
 dotenv.config()
 const lectureParams = (query) => {
@@ -56,6 +57,7 @@ const getGoogleDrivePreviewLink = (originalLink) => {
 
 
 const getLectures = getAll(LectureModel, 'lectures', lectureParams, false, 'video') //used bu users
+const insertLecture = insertOne(LectureModel, true)
 
 const getLecturesForAdmin = expressAsyncHandler(async (req, res, next) => {
     const courseId = req.query.course
@@ -114,7 +116,7 @@ const protectGetLectures = expressAsyncHandler(async (req, res, next) => {
 
 
     if (Object.keys(query).length < 1) return res.status(200).json({ status: SUCCESS, values: { lectures: [] } })
-    req.query = { ...query, select: req.query.select, populate: req.query.populate }
+    req.query = { ...query, grade: user.grade, select: req.query.select, populate: req.query.populate } //*_* grade
     next()
 })
 
@@ -124,7 +126,7 @@ const updateLecture = updateOne(LectureModel)
 const getLectureForCenter = expressAsyncHandler(async (req, res, next) => {
     const lectureId = req.params.id
     const user = req.user
-    const lecture = await LectureModel
+    let lecture = await LectureModel
         .findOne({ _id: lectureId, isActive: true })
         .lean().populate('exam video file link')
 
@@ -160,8 +162,7 @@ const getLectureForCenter = expressAsyncHandler(async (req, res, next) => {
     if (!isValid) return next(createError("يمكنك التواصل مع الدعم لشراء المحاضره", 401, FAILED))
 
     if (lecture.exam) {
-        const userAttempts = await AttemptModel.find({ exam: lecture.exam._id, user: user._id }).lean()
-        lecture.exam.attempts = userAttempts
+        lecture = await handelExamAndAttempts(lecture, user)
     }
     res.status(200).json({ values: lecture, status: SUCCESS })
 })
@@ -329,26 +330,6 @@ const deleteLecture = expressAsyncHandler(async (req, res, next) => {
     res.status(200).json({ message: 'تم الحذف بنجاح', status: SUCCESS })
 })
 
-// @route /content/courses/exams
-// @method POST
-const createExam = expressAsyncHandler(async (req, res, next) => {
-    let exam = req.body
-    const storedExam = await ExamModel.create(exam)
-    req.body.exam = storedExam._id
-    next()
-})
-
-// @route /content/courses/exams/:id
-// @method PUT
-const updateOneExam = expressAsyncHandler(async (req, res, next) => {
-    const lectureId = req.params.id
-    const exam = req.body
-
-    const lecture = await LectureModel.findByIdAndUpdate(lectureId, exam, { new: true })
-    const updatedExam = await ExamModel.findByIdAndUpdate(lecture.exam, exam, { new: true })
-    res.json({ message: 'تم تعديل الاختبار بنجاح', status: SUCCESS, values: { lecture, updatedExam } })
-})
-
 //@route /content/lectures/array
 //@method POST
 const addToLectures = expressAsyncHandler(async (req, res, next) => {
@@ -395,10 +376,11 @@ const removeFromLectures = expressAsyncHandler(async (req, res, next) => {
     res.status(200).json({ message: 'تم ازاله المحاضرات', status: SUCCESS })
 })
 module.exports = {
-    getLectures, protectGetLectures, getLecturesForAdmin,
+    getLectures, insertLecture,
+    protectGetLectures, getLecturesForAdmin,
     getOneLecture, getLectureForCenter,
     createLecture, updateLecture, handelUpdateLecture, deleteLecture,
-    createExam, updateOneExam, lectureParams,
+    lectureParams,
     removeFromLectures, addToLectures,
 }
 

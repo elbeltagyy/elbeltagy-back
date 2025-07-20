@@ -10,6 +10,11 @@ const GroupModel = require("./GroupModel")
 
 const governDefault = 4
 
+//Scoring
+// marks => all answers And no repeat
+// exam_marks => only exams
+// total Points ==> answers and exams
+
 const userSchema = new mongoose.Schema({
     grade: { type: Number, enum: gradeConstants.map(grade => grade.index) },
     name: { type: String },
@@ -41,7 +46,10 @@ const userSchema = new mongoose.Schema({
         resource_type: { type: String },
         format: { type: String }
     },
-    totalPoints: { type: Number, default: 0 },
+    totalPoints: { type: Number, default: 0 }, // total Points ==> answers and exams and all
+    exam_marks: { type: Number, default: 0 }, // exam_marks => only exams
+    marks: { type: Number, default: 0 }, // marks => all answers And no repeat
+
     ResetCode: String,
     ResetCodeAt: Date,
     ResetCodeVerified: Boolean,

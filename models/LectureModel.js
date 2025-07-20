@@ -39,5 +39,21 @@ const lectureSchema = new mongoose.Schema({
     versionKey: false
 })
 
+
+// Auto populate 'exam' and 'exam.questions'
+function autoPopulateExam(next) {
+    this.populate({
+        path: 'exam',
+        populate: {
+            path: 'questions', // inside exam, populate questions too
+        }
+    });
+    next();
+}
+
+lectureSchema.pre('find', autoPopulateExam);
+lectureSchema.pre('findOne', autoPopulateExam)
+
+
 const LectureModel = mongoose.model("lecture", lectureSchema)
 module.exports = LectureModel

@@ -15,6 +15,12 @@ const helmet = require("helmet")
 // get fc routes
 const { notFound, errorrHandler } = require("./middleware/errorsHandler")
 const testRoutes = require("./routes/testRoutes")
+const AnswerModel = require("./models/AnswerModel")
+const ExamModel = require("./models/ExamModel")
+const AttemptModel = require("./models/AttemptModel")
+const QuestionModel = require("./models/QuestionModel")
+const ms = require("ms")
+const UserModel = require("./models/UserModel")
 
 
 // config
@@ -70,7 +76,7 @@ app.use('/api/get-ip', (req, res, next) => {
 // 'http://localhost:3000', , 'https://www.mrelbeltagy.com' 'http://192.168.1.16:3000',
 
 const origin = ['https://elbeltagy-front.vercel.app', 'https://mrelbeltagy.com']
-process.env.NODE_ENV === 'development' && origin.push(...['http://192.168.1.16:3000', 'http://localhost:3000'])
+process.env.NODE_ENV === 'development' && origin.push(...['http://192.168.1.16:3000', 'http://localhost:3000', 'http://192.168.1.13:3000'])
 
 app.use(cors(
     {
@@ -79,6 +85,7 @@ app.use(cors(
         credentials: true
     }
 ))
+
 app.use(
     helmet({
         crossOriginResourcePolicy: { policy: "cross-origin" },
@@ -94,6 +101,18 @@ const DB_URI = process.env.MONGO_URI
 
 
 //routes config
+app.use((req, res, next) => {
+    const clientX = 'teacher'
+    const poweredByText = 'Menassty ,'
+
+    const client = req.headers['x-client'];
+    const poweredBy = req.headers['x-powered-by'];
+    if (clientX === client && poweredBy === poweredByText) {
+        return next();
+    } else {
+        return res.status(403).render('denied');
+    }
+});
 app.use('/api', require('./routes/APIS'))
 
 // for secure folders
@@ -109,8 +128,103 @@ app.use(errorrHandler)
 
 const connectDb = async () => {
     try {
+
+
+
         await mongoose.connect(DB_URI)
         console.log('connected')
+
+        // // Exams => save question to prevQuestions
+        // for (const exam of exams) {
+        // // change questions in model
+        //     exam.prevQuestions = exam.questions;
+        //     await exam.save();
+        // }     
+        // console.log('questions modified')
+
+        const exams = await ExamModel.find()
+
+        for (const exam of exams) {
+
+            delete exam.questions
+            exam.questions = []
+            for (question of exam.prevQuestions) {
+
+                const createdQuestion = await QuestionModel.create({
+                    prevId: question._id,
+                    grade: 1,
+                    title: question.title,
+                    hints: question.hints,
+                    points: question.points,
+
+                    options: question.options,
+                    rtOptionId: question.rtOptionId,
+
+                    isActive: true,
+                    image: question.image
+                })
+                exam.questions.push(createdQuestion._id)
+            }
+            await exam.save();
+        }
+        console.log('saved Exam with questions ids')
+        //take prevQuestion to create new question
+
+        await UserModel.updateMany({}, {
+            totalPoints: 0,
+            exam_marks: 0,
+            marks: 0
+        })
+        console.log('reset score to 0')
+
+        //create Answers from Exam
+        const attempts = await AttemptModel.find().populate('user exam')
+        for (const attempt of attempts) {
+            const user = attempt.user
+
+            attempt.answers = []
+            for (const chosenOption of attempt.chosenOptions) {
+
+                const itsQuestion = await QuestionModel.findOne({
+                    prevId: chosenOption.questionId
+                })
+                const mark = chosenOption.chosenOptionId === itsQuestion.rtOptionId ? itsQuestion.points : 0
+                //create Answer
+                const answer = await AnswerModel.create({
+                    user: user._id,
+                    question: itsQuestion._id,
+
+                    chosenOptionId: chosenOption.chosenOptionId,
+                    mark,
+
+                    isCorrect: chosenOption.chosenOptionId === itsQuestion.rtOptionId ? true : false,
+                })
+                attempt.answers.push(answer._id)
+            }
+
+            attempt.preservedTime = attempt.tokenTime
+            attempt.tokenTime = ms(attempt.exam.time) - attempt.tokenTime
+
+            await attempt.save()
+        }
+
+        console.log('saved Attempts')
+
+        const users = await UserModel.find()
+        for (const user of users) {
+            const attempts = await AttemptModel.find({ user: user._id })
+            console.log('before reduce')
+            const marks = attempts.reduce((prev, attempt) => prev += (attempt.mark || 0), 0)
+            console.log('after reduce')
+            
+            user.totalPoints = marks
+            user.marks = marks
+            user.exam_marks = marks
+            await user.save()
+        }
+        console.log('done attempts')
+
+        //embed Answer to Exam answers
     } catch (error) {
         console.log('failed to connect ==>', error)
     }
@@ -119,6 +233,6 @@ const connectDb = async () => {
 
 connectDb()
 
-app.listen(port, async () => {
+app.listen(port, '0.0.0.0', async () => {
     console.log(`the app is working on port: ${port}`)
 })

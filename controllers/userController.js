@@ -7,7 +7,7 @@ const createError = require("../tools/createError.js");
 
 const { addToCloud } = require("../middleware/upload/cloudinary");
 const { user_roles } = require("../tools/constants/rolesConstants.js");
-const { getAll } = require("./factoryHandler.js");
+const { getAll, analysisMonthly } = require("./factoryHandler.js");
 const { uploadFile, deleteFile } = require("../middleware/upload/uploadFiles.js");
 const UserCourseModel = require("../models/UserCourseModel.js");
 const AttemptModel = require("../models/AttemptModel.js");
@@ -16,6 +16,7 @@ const CouponModel = require("../models/CouponModel.js");
 const SessionModel = require("../models/SessionModel.js");
 const NotificationModel = require("../models/NotificationModel.js");
 const VideoStatisticsModel = require("../models/VideoStatisticsModel.js");
+const expressAsyncHandler = require("express-async-handler");
 
 
 const userParams = (query) => {
@@ -31,10 +32,14 @@ const userParams = (query) => {
         { key: "isActive", value: query.isActive, type: "boolean" },
         { key: "grade", value: query.grade, type: "number", },
         { key: "government", value: query.government, type: "number", },
+        { key: "totalPoints", value: query.totalPoints, type: "number", },
+        { key: "marks", value: query.marks, type: "number", },
+        { key: "exam_marks", value: query.exam_marks, type: "number", },
         { key: "groups", value: query.groups, type: 'array' },
         { key: "courses", value: query.courses, type: "array" },
         { key: "exams", value: query.exams, type: "array" },
         { key: "lectures", value: query.lectures, type: "array" },
+        { key: "createdAt", value: query.createdAt },
     ]
 } //modify it to be more frontend
 
@@ -42,7 +47,6 @@ const userParams = (query) => {
 // @route GET /users
 // @access Private
 const getUsers = getAll(UserModel, 'users', userParams)
-
 
 // @desc get one user
 // @route GET /users/:id

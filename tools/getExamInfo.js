@@ -29,4 +29,34 @@ const getExamMark = (exam) => {
 
     return total
 }
-module.exports = { attemptAllInfo, getExamMark }
+
+
+const markQuestions = (questions) => {
+    const total = questions.reduce((acc, question) => {
+        if (question?.rtOptionId === question?.chosenOptionId) {
+            question.isCorrect = true
+            return acc += question.points
+        } else {
+            return acc
+        }
+    }, 0)
+
+    return total
+}
+
+const markOneQuestion = (question) => {
+    let qInfo = {
+        isCorrect: false, mark: 0
+    }
+    if (question?.rtOptionId === question?.chosenOptionId) {
+        question.isCorrect = true
+        qInfo.isCorrect = true
+        qInfo.mark = question.points
+    } else {
+        question.isCorrect = false
+        qInfo.isCorrect = false
+        qInfo.mark = 0
+    }
+    return [qInfo, question]
+}
+module.exports = { attemptAllInfo, getExamMark, markQuestions, markOneQuestion }

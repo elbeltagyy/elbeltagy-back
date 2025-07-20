@@ -49,10 +49,10 @@ const signupSchema = () => {
 
         body('government', 'يجب اختيار  محافظه')
             .notEmpty().trim().escape().isLength({ max: 100 }).withMessage('يجب ان تكون اقل من او تساوى 100 عناصر'),
-        // body('code')
-        //     .trim()
-        //     .optional()  // Only validate if this field exists in the request
-        //     .matches(/^\d{11}$/).withMessage('الكود عباره عن 16 رقم'),
+        body('code')
+            .trim()
+            .optional()  // Only validate if this field exists in the request
+            .isLength({ max: 20 }).withMessage('يجب ان تكون اقل من او تساوى 15 عناصر'),
         body('password', 'كلمه السر غير صالحه')
             .notEmpty()
             .isLength({ min: 6, max: 100 }).withMessage('يجب ان تكون اكبر من او تساوى 6 عناصر')
