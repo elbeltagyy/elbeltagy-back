@@ -129,6 +129,7 @@ const connectDb = async () => {
     try {
         await mongoose.connect(DB_URI)
         console.log('connected')
+        
         //embed Answer to Exam answers
     } catch (error) {
         console.log('failed to connect ==>', error)

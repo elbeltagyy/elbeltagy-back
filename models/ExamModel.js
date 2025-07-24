@@ -10,7 +10,7 @@ const examSchema = new mongoose.Schema({
     method: { type: String, enum: examMethods.map(exam => exam.value), default: defaultMethod },
 
     time: { type: String, default: '15m' }, //seconds
-    isTime: { type: Boolean, default: false },
+    isTime: { type: Boolean, default: true },
     showAnswersDate: { type: Date },
 
     isShowAnswers: { type: Boolean, default: true },

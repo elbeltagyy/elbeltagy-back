@@ -224,7 +224,7 @@ const markAttempt = expressAsyncHandler(async (req, res, next) => {
                     ...question, chosenOptionId: answeredBefore.chosenOptionId, answer: answeredBefore, //prev
                 }
             }
-            console.log('from here ==>', question.title)
+            // console.log('from here ==>', question.title)
             // Mark Answer
             const [qInfo] = markOneQuestion({
                 ...question,
