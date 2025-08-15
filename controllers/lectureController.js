@@ -1,4 +1,4 @@
-const { getAll, getOne, insertOne, updateOne, deleteOne } = require("./factoryHandler");
+const { getAll, getOne, insertOne, updateOne, deleteOne, pushToModel } = require("./factoryHandler");
 const LectureModel = require("../models/LectureModel");
 const expressAsyncHandler = require("express-async-handler");
 const { addToCloud, deleteFromCloud } = require("../middleware/upload/cloudinary");
@@ -27,6 +27,7 @@ const handelExamAndAttempts = require("../tools/fcs/handelExamAndAttempts");
 dotenv.config()
 const lectureParams = (query) => {
     return [
+        { $filter: query.$filter },
         { key: "grade", value: query.grade, type: "number" },
         { key: "unit", value: query.unit, operator: "equal" },
         { key: "course", value: query.course, operator: "equal" },
@@ -39,6 +40,7 @@ const lectureParams = (query) => {
         { key: "isFree", value: query.isFree, type: 'boolean' },
         { key: "groups", value: query.groups, type: 'array' },
         { key: "codes", value: query.codes, type: 'array' },
+        { key: "isSalable", value: query.isSalable, type: 'boolean' },
     ]
 }
 
@@ -86,42 +88,64 @@ const getLecturesForAdmin = expressAsyncHandler(async (req, res, next) => {
 const protectGetLectures = expressAsyncHandler(async (req, res, next) => {
     //isFree, codes, groups
     const user = req.user
-    if (user.role === user_roles.ADMIN || user.role === user_roles.SUBADMIN) return next()
+    // Admins bypass filtering
+    if ([user_roles.ADMIN, user_roles.SUBADMIN].includes(user.role)) {
+        return next();
+    }
 
-    const isCenter = req.query.isCenter
-    const isFree = req.query.isFree
-    const codes = req.query.codes
-    const isGroups = req.query.isGroups
+    const { isCenter, isFree, codes, paid, isGroups, select, populate } = req.query;
+    const orConditions = [];
 
-    const query = {}
-
+    // Center condition
     if (isCenter && user.role === user_roles.STUDENT) {
-        query.isCenter = true
+        orConditions.push({ isCenter: true });
     }
-
+    // Free condition
     if (isFree) {
-        query.isFree = true
+        orConditions.push({ isFree: true });
     }
+
+    // Paid condition
+    if (paid && Array.isArray(user.lectures) && user.lectures.length > 0) {
+        orConditions.push({ _id: { $in: user.lectures } });
+    }
+
+    // Codes condition
     if (codes) {
-        const userCodes = await CodeModel.find({ usedBy: user._id, type: codeConstants.LECTURES }).select('_id').lean()
-        if (userCodes?.length < 1) return res.status(200).json({ status: SUCCESS, values: { lectures: [] } })
+        const userCodes = await CodeModel.find({
+            usedBy: user._id,
+            type: codeConstants.LECTURES
+        }).select('_id').lean();
 
-        const modifiedCodes = userCodes.map(c => c._id)
-        query.codes = modifiedCodes
+        if (userCodes.length > 0) {
+            const modifiedCodes = userCodes.map(c => c._id);
+            orConditions.push({ codes: { $in: modifiedCodes } });
+        }
     }
-    if (isGroups) {
-        if (user.groups?.length < 1) return res.status(200).json({ status: SUCCESS, values: { lectures: [] } })
-        query.groups = user.groups || []
+
+    // Groups condition
+    if (isGroups && Array.isArray(user.groups) && user.groups.length > 0) {
+        orConditions.push({ groups: { $in: user.groups } });
     }
 
-
-    if (Object.keys(query).length < 1) return res.status(200).json({ status: SUCCESS, values: { lectures: [] } })
-    req.query = { ...query, grade: user.grade, select: req.query.select, populate: req.query.populate } //*_* grade
+    // If no matching conditions → return empty result
+    if (orConditions.length === 0) {
+        return res.status(200).json({ status: SUCCESS, values: { lectures: [] } });
+    }
+    // Final query
+    req.query = {
+        $filter: { $or: orConditions },
+        grade: user.grade,
+        select,
+        populate,
+        isModernSort: true
+    };
     next()
 })
 
 const getOneLecture = getOne(LectureModel)
 const updateLecture = updateOne(LectureModel)
+const pushLectures = pushToModel(LectureModel)
 
 const getLectureForCenter = expressAsyncHandler(async (req, res, next) => {
     const lectureId = req.params.id
@@ -135,6 +159,10 @@ const getLectureForCenter = expressAsyncHandler(async (req, res, next) => {
     if (!lecture) return next(createError("المحاضره غير موجوده", 404, FAILED))
 
     if (lecture.isFree) {
+        isValid = true
+    }
+
+    if (user.lectures.includes(lecture._id)) {
         isValid = true
     }
     if (!isValid && lecture.isCenter && user.role === user_roles.STUDENT) {
@@ -381,7 +409,7 @@ module.exports = {
     getOneLecture, getLectureForCenter,
     createLecture, updateLecture, handelUpdateLecture, deleteLecture,
     lectureParams,
-    removeFromLectures, addToLectures,
+    removeFromLectures, addToLectures, pushLectures
 }
 
 

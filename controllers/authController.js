@@ -131,7 +131,7 @@ const logout = asyncHandler(async (req, res, next) => {
 const islogged = asyncHandler(async (req, res, next) => {
     const user = req.user
     if (user.role === user_roles.NOT_USER) {
-        return res.status(204)
+        return res.status(204).json()
     }
     res.status(200).json({ status: statusTexts.SUCCESS, values: user })
 })

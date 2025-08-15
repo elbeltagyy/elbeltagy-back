@@ -4,8 +4,8 @@ const VideoStatisticsModel = require("../models/VideoStatisticsModel.js");
 const UserModel = require("../models/UserModel.js");
 
 const convertToObjectIdBySchema = require("../tools/fcs/convertToObjectIdBySchema.js");
-const { makeMatch } = require("../tools/makeMatch.js");
 const { userParams } = require("./userController.js");
+const parseFilters = require("../tools/fcs/matchGPT.js");
 
 
 const viewParams = (query) => {
@@ -15,6 +15,7 @@ const viewParams = (query) => {
         { key: "lecture", value: query.lecture, operator: "equal" },
         // { key: "role", value: query.role },
         { key: "role", value: query.view_role },
+        // { key: "watches", value: query.watches }, //ovverride Users
         { key: "totalTime", value: query.totalTime, type: "number" },
         { key: "watchedTime", value: query.watchedTime, type: "number" },
     ]
@@ -32,10 +33,9 @@ const getByUserViews = expressAsyncHandler(async (req, res, next) => {
     const skip = (page - 1) * limit
 
     // search && filter
-    let matchView = makeMatch({}, viewParams(convertToObjectIdBySchema(req.query, VideoStatisticsModel)))
-    let matchUser = makeMatch({}, userParams(req.query))
-
-    // console.log(matchView)
+    let matchView = parseFilters(viewParams(convertToObjectIdBySchema(req.query, VideoStatisticsModel)))
+    let matchUser = parseFilters(userParams(req.query))
+    // console.log(watchMatch)
     //sort 
     let sort = { createdAt: -1 } //To Make it stable in Pagination
     query.sortkey ? sort[query.sortkey] = Number(query.sortValue) : null
@@ -43,7 +43,12 @@ const getByUserViews = expressAsyncHandler(async (req, res, next) => {
     query.sortkey === 'createdAt' ? sort.createdAt = Number(query.sortValue) : null
     query.sortkey === 'updatedAt' ? sort.updatedAt = Number(query.sortValue) : null
 
-
+    const watchMatch = parseFilters([
+        { key: 'watches', value: req.query.watches, type: 'number' },
+        { key: 'totalTime', value: req.query.totalTime, type: 'number' },
+        { key: 'watchedTime', value: req.query.watchedTime, type: 'number' },
+    ])
+    
     // Custom sorting logic
     if (query.sortkey) {
         // Clear default sorts if custom sort is applied
@@ -67,7 +72,14 @@ const getByUserViews = expressAsyncHandler(async (req, res, next) => {
                 createdAt: { $first: "$createdAt" }
 
             }
-        }, {
+        },
+        // { $match: watchMatch },
+        {
+            $match: {
+                ...watchMatch
+            }
+        },
+        {
             $lookup: {
                 from: UserModel.collection.name,
                 let: { userId: "$_id" },
@@ -87,7 +99,7 @@ const getByUserViews = expressAsyncHandler(async (req, res, next) => {
                             familyPhone: 1,
                             email: 1,
                             grade: 1,
-                            role: 1,
+                            watches: 1,
                             isActive: 1,
                             createdAt: 1
                         }
@@ -125,8 +137,8 @@ const getByUsersCount = expressAsyncHandler(async (req, res, next) => {
     const query = req.query
 
     // search && filter
-    let matchView = makeMatch({}, viewParams(convertToObjectIdBySchema(req.query, VideoStatisticsModel)))
-    let matchUser = makeMatch({}, userParams(req.query))
+    let matchView = parseFilters(viewParams(convertToObjectIdBySchema(req.query, VideoStatisticsModel)))
+    let matchUser = parseFilters(userParams(req.query))
 
     // console.log({ matchView, matchUser })
     // console.log(sort)

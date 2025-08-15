@@ -7,7 +7,7 @@ const createError = require("../tools/createError.js");
 
 const { addToCloud } = require("../middleware/upload/cloudinary");
 const { user_roles } = require("../tools/constants/rolesConstants.js");
-const { getAll, analysisMonthly } = require("./factoryHandler.js");
+const { getAll, analysisMonthly, pushToModel, deleteMany, deleteOne } = require("./factoryHandler.js");
 const { uploadFile, deleteFile } = require("../middleware/upload/uploadFiles.js");
 const UserCourseModel = require("../models/UserCourseModel.js");
 const AttemptModel = require("../models/AttemptModel.js");
@@ -17,9 +17,12 @@ const SessionModel = require("../models/SessionModel.js");
 const NotificationModel = require("../models/NotificationModel.js");
 const VideoStatisticsModel = require("../models/VideoStatisticsModel.js");
 const expressAsyncHandler = require("express-async-handler");
+const InvoiceModel = require("../models/InvoiceModel.js");
+const AnswerModel = require("../models/AnswerModel.js");
+const FeedBackModel = require("../models/FeedBackModel.js");
 
 
-const userParams = (query) => {
+const userParams = (query, addParams = []) => {
     return [
         { key: "role", value: query.role },
         { key: "name", value: query.name },
@@ -36,6 +39,7 @@ const userParams = (query) => {
         { key: "marks", value: query.marks, type: "number", },
         { key: "exam_marks", value: query.exam_marks, type: "number", },
         { key: "groups", value: query.groups, type: 'array' },
+        { key: "tags", value: query.tags },
         { key: "courses", value: query.courses, type: "array" },
         { key: "exams", value: query.exams, type: "array" },
         { key: "lectures", value: query.lectures, type: "array" },
@@ -43,10 +47,30 @@ const userParams = (query) => {
     ]
 } //modify it to be more frontend
 
+const userRefFields = [
+    { model: CodeModel, fields: ['usedBy'] },
+    { model: CouponModel, fields: ['usedBy'] },
+];
+
+const userDependentModels = [
+    { model: FeedBackModel, field: 'user' },
+    { model: UserCourseModel, field: 'user' },
+    { model: AttemptModel, field: 'user' },
+    { model: AnswerModel, field: 'user' },
+    { model: FeedBackModel, field: 'user' },
+    { model: VideoStatisticsModel, field: 'user' },
+    { model: SessionModel, field: 'user' },
+    { model: NotificationModel, field: 'user' },
+    { model: InvoiceModel, field: 'user', relatedFiles: ['file'] },
+];
+
+
 // @desc get all user
 // @route GET /users
 // @access Private
 const getUsers = getAll(UserModel, 'users', userParams)
+const deleteUser = deleteOne(UserModel, userRefFields, userDependentModels, ['avatar', 'fileConfirm'])
+const deleteManyUsers = deleteMany(UserModel, userParams, userRefFields, userDependentModels, ['avatar', 'fileConfirm'], { role: { $ne: user_roles.ADMIN } })
 
 // @desc get one user
 // @route GET /users/:id
@@ -162,7 +186,7 @@ const updateUser = asyncHandler(async (req, res, next) => {
 const updateUserProfile = asyncHandler(async (req, res, next) => {
 
     const id = req.params.id
-    const { userName, name, email, password, phone, familyPhone } = req.body
+    const { userName, name, email, password, phone, familyPhone, role, grade } = req.body
 
     //select
     const user = await UserModel.findById(id)
@@ -195,6 +219,7 @@ const updateUserProfile = asyncHandler(async (req, res, next) => {
     user.name = name || user.name
     user.email = email || user.email
     user.familyPhone = familyPhone || user.familyPhone
+    user.role = role ?? user.role
 
     if (password) {
         user.isResetPassword = false
@@ -208,7 +233,7 @@ const updateUserProfile = asyncHandler(async (req, res, next) => {
 // @desc update user // user profile 
 // @route POST /users
 // @access Private   ==> admin
-const deleteUser = asyncHandler(async (req, res, next) => {
+const checkDeleteUser = asyncHandler(async (req, res, next) => {
 
     const { id } = req.params
 
@@ -218,23 +243,13 @@ const deleteUser = asyncHandler(async (req, res, next) => {
         const error = createError("admin can`t be deleted", 400, statusTexts.FAILED)
         return next(error)
     }
-
-    await Promise.all([
-        UserModel.findByIdAndDelete(id),
-        UserCourseModel.deleteMany({ user: id }),
-        AttemptModel.deleteMany({ user: id }),
-        VideoStatisticsModel.deleteMany({ user: id }),
-
-        SessionModel.deleteMany({ user: id }),
-        NotificationModel.deleteMany({ user: id }), ,
-        CodeModel.updateMany({ usedBy: id }, { $pull: { usedBy: id } }),
-        CouponModel.updateMany({ usedBy: id }, { $pull: { usedBy: id } }),
-        deleteFile(user.avatar),
-        deleteFile(user.fileConfirm)
-    ]);
-
-    return res.status(200).json({ status: statusTexts.SUCCESS, message: "تم ازاله المستخدم بنجاح" })
+    return next()
 })
 
+const addToUsers = pushToModel(UserModel)
 
-module.exports = { getUsers, getByUserName, createUser, updateUserProfile, updateUser, deleteUser, userParams }
+module.exports = {
+    getUsers, getByUserName, createUser, updateUserProfile, updateUser, deleteUser, userParams,
+    addToUsers,
+    deleteManyUsers, checkDeleteUser
+}

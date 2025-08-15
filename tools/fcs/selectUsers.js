@@ -1,6 +1,6 @@
 const { userParams } = require("../../controllers/userController")
 const { user_roles } = require("../constants/rolesConstants")
-const { makeMatch } = require("../makeMatch")
+const parseFilters = require("./matchGPT")
 
 
 const selectUsers = (body) => {
@@ -8,9 +8,8 @@ const selectUsers = (body) => {
     const isExcluded = body.isExcluded
     const excludedUsers = body.excludedUsers || []
 
-    let match = {}
+    let match = parseFilters(userParams({ ...body, courses: body.course }))
     match.role = { $in: [user_roles.STUDENT, user_roles.ONLINE] }
-    makeMatch(match, userParams({ ...body, courses: body.course }))
 
     if (excludedUsers?.length > 0 && isExcluded) {
         match = { ...match, _id: { $nin: excludedUsers } }

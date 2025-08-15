@@ -102,6 +102,14 @@ const DB_URI = process.env.MONGO_URI
 app.use('/storage', express.static(path.join(__dirname, 'storage')))
 //routes config
 app.use((req, res, next) => {
+    // const excludedRoutes = ['/', '/payment/callback', '/payment/webhook'];
+    const excludedPrefixes = ['/api/invoices/webhook']
+
+    // If current route is excluded, skip the check
+    if (excludedPrefixes.some(prefix => req.path.startsWith(prefix))) {
+        return next();
+    }
+
     const clientX = 'teacher'
     const poweredByText = 'Menassty ,'
 
@@ -113,6 +121,7 @@ app.use((req, res, next) => {
         return res.status(403).render('denied');
     }
 });
+
 app.use('/api', require('./routes/APIS'))
 
 // for secure folders
@@ -129,7 +138,7 @@ const connectDb = async () => {
     try {
         await mongoose.connect(DB_URI)
         console.log('connected')
-        
+
         //embed Answer to Exam answers
     } catch (error) {
         console.log('failed to connect ==>', error)

@@ -8,7 +8,9 @@ const couponSchema = new mongoose.Schema({
     usedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: UserModel }],
     course: {
         type: mongoose.Schema.Types.ObjectId, ref: CourseModel,
-        // required: function () { return this.type === codeConstants.PRIVATE; },
+    },
+    tag: {
+        type: mongoose.Schema.Types.ObjectId, ref: 'tag',
     },
     coupon: { type: String, min: [6, 'اقل عدد للحروف هو 6 احرف'] },
     type: { type: String, enum: [codeConstants.PRIVATE, codeConstants.GLOBAL], default: codeConstants.PRIVATE },

@@ -38,7 +38,7 @@ const endOfDay = (date) => {
 
 
 
-const handelValueAndOperator = (value) => {
+const handelValueAndOperator = (value, type = null) => { //i use Type for watches in VIews (videoStatistics)
   let operator = null
   let isSkip = false
   const SKIP_VALUES = ['', null, undefined, 'null', 'undefined', 'All', 'all']; //'empty', 'emptyArray', '',
@@ -47,22 +47,32 @@ const handelValueAndOperator = (value) => {
   if (String(value).includes("_split_")) {
     [operator, value] = value.split("_split_")
   } else if (String(value).startsWith('!=')) {
-    [operator, value] = value.split("!=")
-
+    operator = "!=";
+    value = value.slice(2); // remove the '!=' from start
   } else if (String(value).startsWith('=!')) {
-    [operator, value] = value.split("=!")
-
+    operator = "=!";
+    value = value.slice(2);
   } else if (String(value).startsWith('!')) {
-    [operator, value] = value.split("!")
+    operator = "!";
+    value = value.slice(1);
+  } else if (String(value).startsWith('=')) {
+    operator = "=";
+    value = value.slice(1);
   }
   if (SKIP_VALUES.includes(value)) isSkip = true;
   if (value === '' && (operator === 'isEmpty' || operator === 'isNotEmpty')) isSkip = false;
+
+  if (type) {
+    if (type === 'number') {
+      value = Number(value)
+    }
+  }
 
   return [value, operator, isSkip]
 }
 
 const handelMatch = (match, key, preVal, type) => {
-  const [value, operator, isSkip] = handelValueAndOperator(preVal)
+  const [value, operator, isSkip] = handelValueAndOperator(preVal, type)
   if (isSkip) return match;
 
   if (type === 'array') {
@@ -167,7 +177,7 @@ const handelMatch = (match, key, preVal, type) => {
   return match
 }
 
-const handelAll = (match, key, value) => {
+const handelAll = (match, key, value, type) => {
   if (Array.isArray(value) || String(value)?.includes(',')) {
     if (!Array.isArray(value) && String(value)?.includes(',')) {
       value = value?.split(',') // Strings became Array
@@ -175,21 +185,26 @@ const handelAll = (match, key, value) => {
 
     //if Array
     value.forEach((val) => {
-      match = handelMatch(match, key, val, 'array')
+      match = handelMatch(match, key, val, 'array', type)
     })
     return match
   }
 
   //if Single
-  match = handelMatch(match, key, value)
+  match = handelMatch(match, key, value, type)
   return match
 }
 
 
 const parseFilters = (filters) => {
   let match = {};
+
   for (const filter of filters) {
-    const { key, value } = filter;
+    const { key, value, $filter, type } = filter;
+    if ($filter) {
+      match = { ...match, ...$filter }
+      continue
+    }
     if (!value) continue;
     const SKIP_VALUES = [null, undefined, 'null', 'undefined', 'All', 'all'];
     const returnEmpty = ['empty', 'emptyArray']
@@ -200,7 +215,7 @@ const parseFilters = (filters) => {
       continue
     };
 
-    match = handelAll(match, key, value)
+    match = handelAll(match, key, value, type)
   }
 
   return match;

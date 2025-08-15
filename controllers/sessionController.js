@@ -30,4 +30,4 @@ const sessionLogout = expressAsyncHandler(async (req, res, next) => {
 })
 
 
-module.exports = { getSessions, sessionLogout }
+module.exports = { getSessions, sessionLogout, sessionParams }

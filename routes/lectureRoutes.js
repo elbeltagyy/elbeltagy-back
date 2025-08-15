@@ -1,7 +1,7 @@
 const LectureModel = require("../models/LectureModel")
-const { insertOne } = require("../controllers/factoryHandler")
+const { insertOne, deleteFromBody } = require("../controllers/factoryHandler")
 const { upload } = require("../middleware/storage")
-const { getLectures, getOneLecture, createLecture, deleteLecture, updateLecture, createExam, updateOneExam, getLectureForCenter, handelUpdateLecture, getLecturesForAdmin, addToLectures, removeFromLectures, protectGetLectures } = require("../controllers/lectureController")
+const { getLectures, getOneLecture, createLecture, deleteLecture, updateLecture, createExam, updateOneExam, getLectureForCenter, handelUpdateLecture, getLecturesForAdmin, addToLectures, removeFromLectures, protectGetLectures, pushLectures } = require("../controllers/lectureController")
 
 const { user_roles } = require("../tools/constants/rolesConstants")
 const verifyToken = require("../middleware/verifyToken")
@@ -19,13 +19,16 @@ router.route("/")
 router.route("/center/:id")
     .get(verifyToken(), allowedTo(user_roles.STUDENT, user_roles.ONLINE), getLectureForCenter) //allowed to center
 
+router.route('/push')
+    .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), pushLectures)
+
 router.route('/array')
     .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), addToLectures)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), removeFromLectures)
 
 router.route("/:id")
     .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), getOneLecture)
-    .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), upload.single('video'), updateLecture)
+    .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), upload.single('video'), deleteFromBody(['course']), updateLecture)
     .patch(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), upload.single('video'), handelUpdateLecture)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), deleteLecture)
 

@@ -111,7 +111,7 @@ const getCourseLecturesAndCheckForUser = expressAsyncHandler(async (req, res, ne
 
     const userCourse = await UserCourseModel.findOne({ course: courseId, user: user?._id }).lean()
 
-    const [course, lectures] = await lockLectures(currentCourse, userCourse)
+    const [course, lectures] = await lockLectures(currentCourse, userCourse, user)
     return res.status(200).json({ status: SUCCESS, values: { course, lectures, currentIndex: userCourse?.currentIndex || 0 } })
 })
 

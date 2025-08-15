@@ -1,5 +1,4 @@
 const asyncHandler = require("express-async-handler");
-const { makeMatch } = require("../tools/makeMatch");
 const statusTexts = require("../tools/statusTexts");
 const SessionModel = require("../models/SessionModel");
 
@@ -15,16 +14,20 @@ const { uploadFile, deleteFile } = require("../middleware/upload/uploadFiles.js"
 
 const dotenv = require("dotenv");
 const parseFilters = require("../tools/fcs/matchGPT.js");
+const UserModel = require("../models/UserModel.js");
+const convertToObjectIdBySchema = require("../tools/fcs/convertToObjectIdBySchema.js");
 dotenv.config()
 
-exports.analysisMonthly = (Model) => asyncHandler(async (req, res, next) => {
+exports.analysisMonthly = (Model, params = null) => asyncHandler(async (req, res, next) => {
     const startYear = req.query.start ? Number(req.query.start) : null;
     const endYear = req.query.end ? Number(req.query.end) : null;
 
+    // const match = parseFilters(params((convertToObjectIdBySchema(req.query, VideoStatisticsModel))))
     /* ----------------------------------------------------------- *
      * 1. Aggregate counts per { year, month }                     *
      * ----------------------------------------------------------- */
-    const matchStage = {};
+    const matchStage = params ? parseFilters(params((convertToObjectIdBySchema(req.query, Model)))) : {}
+
     if (startYear || endYear) {
         matchStage.createdAt = {};
         if (startYear) {
@@ -82,23 +85,30 @@ exports.handelOneFile = ({ fileKey }) =>
         await uploadFile(file, { name: file?.originalname, secure: true }, { key: fileKey, parent: req.body })
         next()
     });
+exports.deleteFromBody = (keys = []) => {
+    return asyncHandler(async (req, res, next) => {
+        keys.map(key => {
+            delete req.body[key]
+        })
+        next()
+    })
+}
 
 exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '', embedFc = false) =>
     asyncHandler(async (req, res) => {
-
         const query = req.query
 
+        if (req.query.isModernSort) {
+            isModernSort = req.query.isModernSort === true || req.query.isModernSort === 'true' ? true : false
+        }
         //pagination
         const limit = query.limit || 10000
         const page = query.page || 1
         const skip = (page - 1) * limit
 
         // search && filter
-        let match = {}
-        if (params.length > 0) {
-            // makeMatch(match, params(query))
-            match = parseFilters(params(query))
-        }
+        let match = parseFilters(params(query))
+        
         // console.log(match)
         //find({course: {$in: [90, 80, 40]}})
         //sort 
@@ -185,6 +195,7 @@ exports.updateOne = (Model) =>
         return res.status(200).json({ status: statusTexts.SUCCESS, values: doc, message: 'تم التعديل بنجاح' })
     });
 
+
 exports.deleteOne = (Model, relatedDocs = [], relatedModels = [], relatedFile) =>
     asyncHandler(async (req, res, next) => {
         const { id } = req.params;
@@ -214,14 +225,75 @@ exports.deleteOne = (Model, relatedDocs = [], relatedModels = [], relatedFile) =
         return res.status(200).json({ status: statusTexts.SUCCESS, message })
     });
 
+exports.deleteMany = (Model, params = [], relatedDocs = [], relatedModels = [], relatedFiles, specificFilters = {}) =>
+    asyncHandler(async (req, res, next) => {
+        const { ids = [] } = req.body;
+        const query = req.query
+
+        let match = {}
+        if (Array.isArray(ids) && ids.length > 0) {
+            match = { _id: { $in: ids } }
+        } else if (params.length > 0) {
+            match = parseFilters(params(query))
+        } else {
+            return next(createError('حدث خطا', 400, statusTexts.FAILED))
+        }
+        if (Object.keys(match).length === 0) {
+            return next(createError('لا يمكن ازاله كل العناصر', 400, statusTexts.FAILED))
+        }
+
+        // Ensure relatedFiles is always an array
+        if (!Array.isArray(relatedFiles)) {
+            relatedFiles = [relatedFiles].filter(Boolean);
+        }
+
+        const BATCH_SIZE = 1000
+        let totalDeleted = 0
+        while (true) {
+            const docs = await Model.find({ ...match, ...specificFilters }).lean().limit(BATCH_SIZE);
+            if (docs.length === 0) break;
+            // totalDeleted = docs.length
+            // break
+            const batchIds = docs.map(doc => doc._id);
+
+            // Collect promises for parallel execution
+            const tasks = [];
+
+            if (relatedDocs.length > 0) {
+                tasks.push(deleteOtherDocs(relatedDocs, batchIds));
+            }
+            if (relatedModels.length > 0) {
+                tasks.push(deleteOtherModels(relatedModels, batchIds));
+            }
+
+            // Delete related files for each doc
+            if (relatedFiles.length > 0) {
+                docs.forEach(doc => {
+                    relatedFiles.forEach(field => {
+                        const filePath = doc[field];
+                        if (filePath) {
+                            tasks.push(deleteFile(filePath));
+                        }
+                    });
+                });
+            }
+            await Promise.all(tasks);
+            // Delete actual docs from Model
+            const result = await Model.deleteMany({ _id: { $in: batchIds } });
+            totalDeleted += result.deletedCount;
+        }
+
+        let message = 'تمت ازاله' + ' ' + totalDeleted + ' ' + 'بنجاح'
+        return res.status(200).json({ status: statusTexts.SUCCESS, message })
+    });
+
 exports.getDocCount = (Model, params = []) =>
     asyncHandler(async (req, res) => {
 
         const query = req.query
 
         // search && filter
-        const match = {}
-        makeMatch(match, params(query))
+        const match = parseFilters(params(query))
 
         const count = await Model.countDocuments(match)
         return res.status(200).json({ status: statusTexts.SUCCESS, values: { count } })
@@ -232,10 +304,8 @@ exports.filterById = (Model, params = [], idName) =>
     asyncHandler(async (req, res, next) => {
         const query = req.query
         // search && filter
-        const match = {}
-        if (params.length > 0) {
-            makeMatch(match, params(query))
-        }
+        const match = parseFilters(params(query))
+
         if (Object.entries(match).length > 0) {
             const filteredId = await Model.findOne(match).select('_id').lean()
             req.query[idName] = filteredId?._id || 'emptyArray'
@@ -370,14 +440,62 @@ exports.useCode = async (code = null, user) => {
     })
 }
 
+exports.pushToModel = (Model) => {
+    return asyncHandler(async (req, res, next) => {
+        const targetId = req.params.id
+
+        const { field, value, id, ids = [], action = 'push' } = req.body;
+
+        //U can check if req.body is Array
+        const targetIds = [];
+
+        if (!field || !value) {
+            return next(createError('Field and value are required', 400, statusTexts.FAILED));
+        }
+
+        // Normalize users input
+        if (id) targetIds.push(id);
+        if (targetId) targetIds.push(targetId);
+        if (Array.isArray(ids)) targetIds.push(...ids);
+
+        if (targetIds.length === 0) {
+            return next(createError('No Data provided', 400, statusTexts.FAILED));
+        }
+
+        // Create dynamic update object
+        const update = action === 'push' ? {
+            $addToSet: {
+                [field]: value
+            }
+        } : {
+            $pull: {
+                [field]: value
+            }
+        }
+        // field: 'tags', ids: chosenUsers, value: tag._id, action: 'pull'
+
+        await Model.updateMany(
+            { _id: { $in: targetIds } },
+            update
+        );
+
+        res.status(200).json({
+            message: `تم بنجاح` + ' ' + action === 'push' ? ' الايضافه' : ' الازاله',
+            status: statusTexts.SUCCESS
+        });
+    })
+}
+
 const deleteOtherDocs = async (relatedDocs, id) => {
-    //    { model: UserModel, fields: ['groups'] },
+    //    [{ model: UserModel, fields: ['groups'] },]
+    const ids = Array.isArray(id) ? id : [id];
+
     try {
         const updateTasks = relatedDocs.map(({ model, fields }) =>
             fields.map(field =>
                 model.updateMany(
-                    { [field]: id },
-                    { $pull: { [field]: id } }
+                    { [field]: { $in: ids } },
+                    { $pull: { [field]: { $in: ids } } }
                 )
             )
         ).flat();
@@ -388,15 +506,39 @@ const deleteOtherDocs = async (relatedDocs, id) => {
 }
 
 const deleteOtherModels = async (relatedModels, id) => {
-    //    { model: UserModel, field: 'group' },
+    //    { model: UserModel, field: 'group', relatedFiles: ['String] },
+    const ids = Array.isArray(id) ? id : [id];
     try {
-        const updateTasks = relatedModels.map(({ model, field }) =>
-            model.deleteMany({ [field]: id })
-        ).flat();
-        await Promise.all(updateTasks);
+
+        relatedModels.forEach(async ({ model, field, relatedFiles }) => {
+            if (!Array.isArray(relatedFiles)) {
+                relatedFiles = [relatedFiles].filter(Boolean);
+            }
+
+            const docs = await model.find({ [field]: { $in: ids } }).lean();
+
+            let fileTasks = []
+            if (relatedFiles.length > 0) {
+                docs.forEach(doc => {
+                    relatedFiles.forEach(fileField => {
+                        const filePath = doc[fileField];
+                        if (filePath) {
+                            fileTasks.push(deleteFile(filePath));
+                        }
+                    });
+                });
+            }
+
+            await Promise.all([
+                ...fileTasks,
+                model.deleteMany({ [field]: { $in: ids } })
+            ]);
+        });
+
     } catch (error) {
         console.log('error from deleteOtherModels ==>', deleteOtherModels)
     }
 }
+
 // in route('/', getAll) return as object so no middleware Fc
 // in route('/', getAll()) return from parent Fc

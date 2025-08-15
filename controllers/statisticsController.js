@@ -10,7 +10,6 @@ const { lectureParams } = require("./lectureController");
 const { unitParams } = require("./unitController");
 const { userParams } = require("./userController");
 const { userCoursesParams } = require("./userCourseController");
-const { makeMatch } = require("../tools/makeMatch");
 const { SUCCESS } = require("../tools/statusTexts");
 const NotificationModel = require("../models/NotificationModel");
 
@@ -23,6 +22,7 @@ const QuestionModel = require("../models/QuestionModel");
 const { questionParams } = require("./questionController");
 const AnswerModel = require("../models/AnswerModel");
 const { answerParams } = require("./answerController");
+const parseFilters = require("../tools/fcs/matchGPT");
 
 
 const getUsersCount = getDocCount(UserModel, userParams)
@@ -42,8 +42,8 @@ const getLecturesCount = expressAsyncHandler(async (req, res, next) => {
     const query = req.query
 
     // search && filter
-    const match = {}
-    makeMatch(match, lectureParams(query))
+    const match = parseFilters(lectureParams(query))
+    // console.log(match)
     if (course) {
         ids = [...course.linkedTo, course._id]
         match.course = { $in: ids }

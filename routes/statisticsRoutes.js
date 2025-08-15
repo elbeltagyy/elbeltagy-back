@@ -7,6 +7,7 @@ const verifyToken = require("../middleware/verifyToken")
 const { user_roles } = require("../tools/constants/rolesConstants")
 const UserModel = require("../models/UserModel.js")
 const UserCourseModel = require("../models/UserCourseModel.js")
+const { userCoursesParams } = require("../controllers/userCourseController.js")
 
 const router = require("express").Router()
 
@@ -27,9 +28,9 @@ router.route("/lectures")
 
 router.route("/subscriptions")
     .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), getSubscriptionsCount)
-    
+
 router.route("/subscriptions/analysis")
-    .get(analysisMonthly(UserCourseModel))
+    .get(analysisMonthly(UserCourseModel, userCoursesParams))
 
 
 router.route("/views")

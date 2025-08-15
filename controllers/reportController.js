@@ -50,7 +50,7 @@ const sendReports = expressAsyncHandler(async (req, res, next) => {
     let match = {}
     match.role = { $in: [user_roles.STUDENT, user_roles.ONLINE] }
 
-    makeMatch(match, userParams({ ...req.body, courses: req.body.course }))
+    makeMatch(match, userParams({ ...req.body, courses: req.body.course })) //*_*
 
     if (excludedUsers?.length > 0 && isExcluded) {
         match = { ...match, _id: { $nin: excludedUsers } }

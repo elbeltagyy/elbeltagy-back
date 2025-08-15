@@ -13,7 +13,8 @@ const GroupModel = require("./GroupModel")
 const lectureSchema = new mongoose.Schema({
     grade: { type: Number, enum: gradeConstants.map(grade => grade.index), required: true },
     course: { type: mongoose.Schema.Types.ObjectId, ref: CourseModel, required: true },
-
+    isSalable: Boolean,
+    
     name: { type: String, required: true },
     description: { type: String, required: true },
     isActive: { type: Boolean, required: true, default: true },
@@ -23,6 +24,7 @@ const lectureSchema = new mongoose.Schema({
     isMust: { type: Boolean, default: false },
     isCenter: { type: Boolean },
     isFree: { type: Boolean, },
+    price: Number,
 
     index: { type: Number, required: true },
     sectionType: { type: String, required: true, enum: [sectionConstants.VIDEO, sectionConstants.EXAM, sectionConstants.LINK, sectionConstants.FILE] },

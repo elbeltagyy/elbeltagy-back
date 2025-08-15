@@ -2,7 +2,7 @@ const LectureModel = require("../models/LectureModel");
 const sectionConstants = require("./constants/sectionConstants");
 
 
-const lockLectures = async (course, userCourse) => {
+const lockLectures = async (course, userCourse, user = null) => {
     const populate = [
         {
             path: 'video',
@@ -27,6 +27,12 @@ const lockLectures = async (course, userCourse) => {
 
         lectures.map((lecture, i) => {
             lecture.index = i + 1
+            //Is Paid
+            if (user) {
+                user.lectures = user.lectures || []
+                lecture.isPaid = user.lectures.includes(lecture._id)
+            }
+            //Delete Exam Questions
             if (lecture.sectionType === sectionConstants.EXAM) {
                 lecture.exam.questionsLength = lecture.exam.questions.length
                 delete lecture.exam.questions

@@ -6,6 +6,7 @@ const verifyToken = require("../middleware/verifyToken")
 
 const { user_roles } = require("../tools/constants/rolesConstants")
 const { reCorrectAnswersOnUpdateOneQuestion } = require("../controllers/answerController")
+const { validateUserTag } = require("../controllers/tagController")
 const router = require("express").Router()
 
 router.route("/")
@@ -19,7 +20,7 @@ router.route("/")
 
 router.route('/bank')
     .post(verifyToken(),
-        allowedTo(user_roles.STUDENT, user_roles.ONLINE), startQuestionsBank)
+        allowedTo(user_roles.STUDENT, user_roles.ONLINE), validateUserTag, startQuestionsBank)
 
 router.route("/:id")
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), reCorrectAnswersOnUpdateOneQuestion, updateQuestion)

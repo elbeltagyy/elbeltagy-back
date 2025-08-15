@@ -35,7 +35,8 @@ const uploadFile = (file, settings, meta = {}) => {
 const deleteFile = (file) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (process.env.host === 'server' && file.url?.startsWith(process.env.http)) {
+            if (process.env.host === 'server' && file?.url?.startsWith(process.env.http)) {
+                console.log(file)
                 const res = await deleteFromServer(file)
                 return resolve(res)
             } else {

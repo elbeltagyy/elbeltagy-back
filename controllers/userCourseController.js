@@ -4,7 +4,6 @@ const UserCourseModel = require("../models/UserCourseModel");
 const CourseModel = require("../models/CourseModel");
 const createError = require("../tools/createError.js");
 const { FAILED, SUCCESS } = require("../tools/statusTexts");
-const { makeMatch } = require("../tools/makeMatch.js");
 const UserModel = require("../models/UserModel.js");
 
 

@@ -39,7 +39,9 @@ const getQuestions = getAll(QuestionModel, 'questions', questionParams, true, ''
 
 const createQuestion = insertOne(QuestionModel)
 const updateQuestion = updateOne(QuestionModel)
-const deleteQuestion = deleteOne(QuestionModel, [], [], 'image')
+const deleteQuestion = deleteOne(QuestionModel, [], [
+    { model: AnswerModel, field: 'question' }
+], 'image')
 
 //=============linking ====#
 // @desc add tags to one Question

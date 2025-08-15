@@ -18,6 +18,7 @@ router.use("/users", userRoutes)
 router.use("/codes", codeRoutes)
 router.use("/coupons", require("./couponRoutes"))
 router.use("/notifications", require('./notificationRoutes'))
+router.use("/feedBacks", require('./feedBackRoutes'))
 router.use("/tags", require('./tagRoutes')) 
 
 router.use("/content/units", unitRoutes)
@@ -41,5 +42,7 @@ router.use("/answers", require('./answerRoutes'))
 router.use("/groups", require("./groupRoutes"))
 
 router.use('/files', require('./fileRoutes'))
+router.use('/payments', require('./paymentRoutes'))
+router.use('/invoices', require('./invoiceRoutes'))
 
 module.exports = router

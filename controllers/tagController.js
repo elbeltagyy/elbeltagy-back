@@ -2,14 +2,17 @@ const expressAsyncHandler = require("express-async-handler");
 const QuestionModel = require("../models/QuestionModel");
 const TagModel = require("../models/TagModel");
 const { getAll, insertOne, updateOne, deleteOne } = require("./factoryHandler");
-const { SUCCESS } = require("../tools/statusTexts");
+const { SUCCESS, FAILED } = require("../tools/statusTexts");
 const { default: mongoose } = require("mongoose");
+const createError = require("../tools/createError");
 
 
 const tagParams = (query) => {
     return [
         { key: "name", value: query.name },
         { key: "description", value: query.description },
+        { key: "number", value: query.number },
+        { key: "isFree", value: query.isFree },
         { key: "_id", value: query._id, operator: 'equal' },
         { key: "grade", value: query.grade, operator: 'equal' },
         { key: "isActive", value: query.isActive, type: 'boolean' },
@@ -19,14 +22,26 @@ const tagParams = (query) => {
 
 const addTagQsCount = async (req, values) => {
     try {
+        const user = req.user
         const userId = req.user._id
+
+        values.tags.forEach(tag => {
+            tag.access = false
+            if (user.tags?.includes(tag._id) || tag.isFree) {
+                tag.access = true
+            }
+            return tag
+        });
+
         if (req.query.counting) {
             values.tags = await Promise.all(
                 values.tags.map(async (tag) => {
-                    // const count = await QuestionModel.countDocuments({
-                    //     tags: tag._id, isActive: true
-                    // });
-                    // return { ...tag, count }
+                    // if (!tag.access) {
+                    //     const count = await QuestionModel.countDocuments({
+                    //         tags: tag._id, isActive: true
+                    //     });
+                    //     return { ...tag, count }
+                    // }
                     const tagId = new mongoose.Types.ObjectId(tag._id);
                     const userObjId = new mongoose.Types.ObjectId(userId);
 
@@ -89,6 +104,41 @@ const addTagQsCount = async (req, values) => {
     }
 }
 
+const validateUserTag = expressAsyncHandler(async (req, res, next) => {
+    const user = req.user
+    const tagsIds = req.body.tags // [_ids]
+
+    if (!tagsIds || tagsIds.length < 1) {
+        return next(createError('لا يوجد دروس', 404, FAILED))
+    }
+
+    // Convert to strings for comparison
+    const userTagSet = new Set(user.tags.map(t => t.toString()))
+
+    // Get missing tags (those not in user.tags)
+    const missingTagIds = tagsIds.filter(tagId => !userTagSet.has(tagId.toString()))
+
+    if (missingTagIds.length === 0) {
+        // User already has all tags
+        return next()
+    }
+
+    // Fetch only missing tags
+    const missingTags = await TagModel.find({ _id: { $in: missingTagIds } })
+        .lean()
+        .select('isFree')
+
+    // Check if any missing tag is not free
+    const hasRestricted = missingTags.some(tag => !tag.isFree)
+
+    if (hasRestricted) {
+        return next(createError('هذا الدرس غير متاح لك', 400, FAILED))
+    }
+
+    return next()
+})
+
+
 const getTags = getAll(TagModel, 'tags', tagParams, true, '', addTagQsCount)
 const createTag = insertOne(TagModel)
 
@@ -123,5 +173,7 @@ const unLinkTag = expressAsyncHandler(async (req, res, next) => {
 
 module.exports = {
     getTags, createTag, updateTag, deleteTag,
-    linkTag, unLinkTag, tagParams
+    linkTag, unLinkTag, tagParams,
+
+    validateUserTag
 }
