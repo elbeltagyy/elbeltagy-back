@@ -16,11 +16,11 @@ const attemptSchema = new mongoose.Schema({
 
 
     // Not Used
-    chosenOptions: [{ //Ref to Answer Model.
-        questionId: { type: String }, //Ref To Question Model
-        question: { type: mongoose.Schema.Types.ObjectId, ref: 'Question'},
-        chosenOptionId: { type: String },
-    },],
+    // chosenOptions: [{ //Ref to Answer Model.
+    //     questionId: { type: String }, //Ref To Question Model
+    //     question: { type: mongoose.Schema.Types.ObjectId, ref: 'Question'},
+    //     chosenOptionId: { type: String },
+    // },],
 }, {
     timestamps: true,
     versionKey: false

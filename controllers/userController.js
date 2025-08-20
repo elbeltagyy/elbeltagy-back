@@ -22,7 +22,7 @@ const AnswerModel = require("../models/AnswerModel.js");
 const FeedBackModel = require("../models/FeedBackModel.js");
 
 
-const userParams = (query, addParams = []) => {
+const userParams = (query) => {
     return [
         { key: "role", value: query.role },
         { key: "name", value: query.name },

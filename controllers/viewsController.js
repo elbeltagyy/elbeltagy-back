@@ -13,9 +13,7 @@ const viewParams = (query) => {
         { key: "user", value: query.user, operator: "equal" },
         { key: "course", value: query.course, operator: "equal" },
         { key: "lecture", value: query.lecture, operator: "equal" },
-        // { key: "role", value: query.role },
-        { key: "role", value: query.view_role },
-        // { key: "watches", value: query.watches }, //ovverride Users
+        { key: "role", value: query.role },
         { key: "totalTime", value: query.totalTime, type: "number" },
         { key: "watchedTime", value: query.watchedTime, type: "number" },
     ]
@@ -48,7 +46,7 @@ const getByUserViews = expressAsyncHandler(async (req, res, next) => {
         { key: 'totalTime', value: req.query.totalTime, type: 'number' },
         { key: 'watchedTime', value: req.query.watchedTime, type: 'number' },
     ])
-    
+
     // Custom sorting logic
     if (query.sortkey) {
         // Clear default sorts if custom sort is applied
@@ -95,6 +93,7 @@ const getByUserViews = expressAsyncHandler(async (req, res, next) => {
                             avatar: 1,
                             name: 1,
                             userName: 1,
+                            role: 1,
                             phone: 1,
                             familyPhone: 1,
                             email: 1,

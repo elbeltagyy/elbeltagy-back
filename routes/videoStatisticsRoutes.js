@@ -1,5 +1,4 @@
 const { filterById } = require("../controllers/factoryHandler")
-const { userParams } = require("../controllers/userController")
 const { countStatistics } = require("../controllers/videoController")
 const { getViews, updateView, removeView, viewParams, getByUserViews } = require("../controllers/viewsController")
 const allowedTo = require("../middleware/allowedTo")
@@ -25,6 +24,15 @@ const lectureParams = (query) => {
     ]
 }
 
+const userParams = (query) => {
+    return [
+        { key: 'name', value: query.name },
+        { key: 'userName', value: query.userName },
+        { key: 'phone', value: query.phone },
+        { key: 'familyPhone', value: query.familyPhone },
+        { key: 'name', value: query.name },
+    ]
+}
 router.route("/")
     .get(
         verifyToken(),

@@ -5,6 +5,7 @@ const invoiceSchema = new mongoose.Schema({
     name: String,
     description: String,
     note: String,
+    sendFrom: String,
     // index: Number,
     orderId: Number,
     trnxId: Number,

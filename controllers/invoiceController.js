@@ -21,6 +21,7 @@ const invoiceParams = (query) => {
         { key: "name", value: query.name },
         { key: "description", value: query.description },
         { key: "note", value: query.note },
+        { key: "sendFrom", value: query.sendFrom },
         { key: "orderId", value: query.orderId },
         { key: "trnxId", value: query.trnxId },
         { key: "price", value: query.price },
