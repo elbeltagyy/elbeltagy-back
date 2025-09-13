@@ -82,7 +82,7 @@ const getWhatsStatus = expressAsyncHandler(async (req, res, next) => {
 
 const sendWhatsMessage = expressAsyncHandler(async (req, res, next) => {
     const { to, message } = req.body
-
+    // console.log('to ==>', to, 'message ==>', message)
     const result = await whatsappService.sendMessage(whatsappId, to, message.toString());
     res.status(200).json({ message: 'send successfully', status: SUCCESS, values: result })
 })
