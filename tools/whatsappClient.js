@@ -1,6 +1,7 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
 const qrcodeTerminal = require("qrcode-terminal")
+const fs = require('fs')
 
 const createError = require('./createError');
 const { FAILED } = require('./statusTexts');
@@ -18,20 +19,21 @@ class WhatsappService {
         this.qrCodes = new Map();
         this.clients = new Map();
         this.clientStates = new Map();
+        this.SESSION_DIR = 'whatsapp-session'
 
-        // this.initializeSessionDirectory();
+        this.initializeSessionDirectory();
     }
 
-    // initializeSessionDirectory() {
-    //     try {
-    //         if (!fs.existsSync(this.SESSION_DIR)) {
-    //             fs.mkdirSync(this.SESSION_DIR, { recursive: true });
-    //         }
-    //     } catch (error) {
-    //         this.logger.error(`Failed to create session directory: ${error.message}`);
-    //         throw new Error('Service initialization failed');
-    //     }
-    // }
+    initializeSessionDirectory() {
+        try {
+            if (!fs.existsSync(this.SESSION_DIR)) {
+                fs.mkdirSync(this.SESSION_DIR, { recursive: true });
+            }
+        } catch (error) {
+            this.logger.error(`Failed to create session directory: ${error.message}`);
+            throw new Error('Service initialization failed');
+        }
+    }
 
     async initialize(userId) {
         if (!userId) {
@@ -58,7 +60,7 @@ class WhatsappService {
         return new Client({
             authStrategy: new LocalAuth({
                 clientId: userId,
-                // dataPath: this.SESSION_DIR,
+                dataPath: this.SESSION_DIR,
             }),
             puppeteer: {
                 args: ['--no-sandbox', '--disable-setuid-sandbox'],
