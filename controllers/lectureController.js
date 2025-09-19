@@ -39,7 +39,7 @@ const lectureParams = (query) => {
         { key: "isCenter", value: query.isCenter, type: 'boolean' },
         { key: "isFree", value: query.isFree, type: 'boolean' },
         { key: "groups", value: query.groups, type: 'array' },
-        { key: "codes", value: query.codes, type: 'array' },
+        { key: "codes", value: query.codes },
         { key: "isSalable", value: query.isSalable, type: 'boolean' },
     ]
 }
@@ -116,7 +116,6 @@ const protectGetLectures = expressAsyncHandler(async (req, res, next) => {
             usedBy: user._id,
             type: codeConstants.LECTURES
         }).select('_id').lean();
-
         if (userCodes.length > 0) {
             const modifiedCodes = userCodes.map(c => c._id);
             orConditions.push({ codes: { $in: modifiedCodes } });
@@ -135,7 +134,7 @@ const protectGetLectures = expressAsyncHandler(async (req, res, next) => {
     // Final query
     req.query = {
         $filter: { $or: orConditions },
-        grade: user.grade,
+        // grade: user.grade,
         select,
         populate,
         isModernSort: true

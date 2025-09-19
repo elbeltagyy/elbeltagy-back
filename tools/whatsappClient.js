@@ -147,16 +147,15 @@ class WhatsappService {
 
     async sendMessage(userId, to, message) {
         try {
-            const chatId = "2" + to // + '@c.us'
+            const chatId = "2" + to + '@c.us'
             const client = this.clients.get(userId)
-            const numberId = await client.getNumberId(chatId); // 'to' should be the phone number with country code
+            // const numberId = await client.getNumberId(chatId); // 'to' should be the phone number with country code
 
-            if (!numberId) {
-                throw new Error(`Number ${to} is not on WhatsApp`);
-            }
+            // if (!numberId) {
+            //     throw new Error(`Number ${to} is not on WhatsApp`);
+            // }
             // console.log(client)
-            const response = await client.sendMessage(numberId._serialized, message);
-
+            const response = await client.sendMessage(chatId, message);
             return { success: true, messageId: response.id.id };
         } catch (error) {
             this.logger.error(`Failed to send message: ${error.message}`);

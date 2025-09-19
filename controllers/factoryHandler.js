@@ -108,7 +108,7 @@ exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '
 
         // search && filter
         let match = parseFilters(params(query))
-        
+
         // console.log(match)
         //find({course: {$in: [90, 80, 40]}})
         //sort 
