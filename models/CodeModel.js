@@ -12,7 +12,7 @@ const codeSchema = new mongoose.Schema({
     },
     price: { type: Number, default: 0, min: [0, "القيمة الدنيا هي 0 جنيه"], max: [2000, "اقصى مبلغ هو 2000 جنيه"] },
     isActive: { type: Boolean, default: true },
-    numbers: { type: Number, default: 1, min: [0, 'القيمة الدنيا هي 0'], max: [200, 'اقصى عدد هو 200'] },
+    numbers: { type: Number, default: 1, min: [0, 'القيمة الدنيا هي 0'], max: [1000, 'اقصى عدد هو 1000'] },
 }, {
     timestamps: true,
     versionKey: false
