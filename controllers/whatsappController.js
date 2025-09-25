@@ -102,14 +102,15 @@ const sendWhatsMsgFc = (phone, message) => {
 const sendWhatsFileFc = async (phone, filePath, isBytes = false, fileName = 'report.pdf') => {
     return new Promise(async (resolve, reject) => {
         try {
-            let media
-            if (isBytes) {
-                const fileBase = filePath.toString('base64');
-                media = new MessageMedia('application/pdf', fileBase, fileName)
-            } else {
-                media = MessageMedia.fromFilePath(filePath);
-            }
-            const result = await whatsappService.sendMessage(whatsappId, phone, media);
+            // let media
+            // if (isBytes) {
+            //     const fileBase = filePath.toString('base64');
+            //     media = new MessageMedia('application/pdf', fileBase, fileName)
+            // } else {
+            //     media = MessageMedia.fromFilePath(filePath);
+            // }
+            // const result = await whatsappService.sendMessage(whatsappId, phone, media);
+            const result = await whatsappService.sendFile(whatsappId, phone, filePath,fileName );
             resolve(true)
         } catch (error) {
             console.log('error from sendWhatsFile', error)

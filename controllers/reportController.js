@@ -14,7 +14,6 @@ const { getDateWithTime, formatDuration, getFullDate } = require("../tools/dateF
 const getAttemptMark = require("../tools/getAttemptMark");
 const { attemptAllInfo, getExamMark } = require("../tools/getExamInfo");
 const { user_roles } = require("../tools/constants/rolesConstants");
-const { sendWhatsFileFc } = require("./whatsappController");
 const { makeMatch } = require("../tools/makeMatch");
 const { userParams } = require("./userController");
 const ReportModel = require("../models/ReportModel");
