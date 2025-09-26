@@ -14,7 +14,7 @@ router.route("/")
 
 
 router.route('/statistics/analysis')
-    .get(analysisMonthly(SessionModel, sessionParams))
+    .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), analysisMonthly(SessionModel, sessionParams))
 
 router.route("/:sessionId/logout")
     .post(verifyToken(), sessionLogout)

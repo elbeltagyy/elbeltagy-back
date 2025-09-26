@@ -480,7 +480,7 @@ exports.pushToModel = (Model) => {
         );
 
         res.status(200).json({
-            message: `تم بنجاح` + ' ' + action === 'push' ? ' الايضافه' : ' الازاله',
+            message: `تم بنجاح` + ' ' + (action === 'push' ? ' تمت الإضافه بنجاح' : ' تمت الإزاله بنجاح'),
             status: statusTexts.SUCCESS
         });
     })

@@ -17,7 +17,7 @@ router.route('/push')
     .patch(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), addToUsers)
 
 router.route("/analysis")
-    .get(analysisMonthly(UserModel, userParams))
+    .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), analysisMonthly(UserModel, userParams))
 
 router.route("/:userName")
     .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN, user_roles.MENTOR), getByUserName)
