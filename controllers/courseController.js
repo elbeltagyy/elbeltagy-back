@@ -32,6 +32,7 @@ const coursesParams = (query) => {
         { key: "isActive", value: query.isActive, type: "boolean" },
         { key: "unit", value: query.unit, operator: "equal" },
         { key: "index", value: query.index, operator: "equal" },
+        { key: "isFixed", value: query.isFixed },
     ]
 }
 const createCourse = insertOne(CourseModel, true)

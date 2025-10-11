@@ -120,7 +120,7 @@ exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '
 
         //select
         const select = query.select ? query.select : ""
-
+        sort._id = -1 // *_*
         // //populate
         populate = req.query.populate || populate
 

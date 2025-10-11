@@ -321,11 +321,11 @@ const deleteLecture = expressAsyncHandler(async (req, res, next) => {
     }
     if (lecture.exam) {
         const examId = lecture.exam._id
-        lecture.exam.questions.forEach(async question => {
-            if (question.image) {
-                await deleteFile(question.image)
-            }
-        })
+        // lecture.exam.questions.forEach(async question => {
+        //     if (question.image) {
+        //         await deleteFile(question.image)
+        //     }
+        // })
 
         await Promise.all([
             AttemptModel.deleteMany({ exam: examId }),
