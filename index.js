@@ -171,7 +171,7 @@ const appendDefaultChapters = async () => {
 }
 
 app.listen(port, '0.0.0.0', async () => {
-    await appendDefaultChapters()
+    // await appendDefaultChapters()
     console.log(`the app is working on port: ${port}`)
 })
 
