@@ -56,8 +56,9 @@ const userSchema = new mongoose.Schema({
 
     courses: [{ type: mongoose.Schema.Types.ObjectId, ref: CourseModel, select: false }],
     exams: [{ type: mongoose.Schema.Types.ObjectId, ref: ExamModel, select: false }], //for passing exams
-    accessLectures: [{ type: mongoose.Schema.Types.ObjectId, ref: 'lecture', select: false }],// for passing vids
-    lectures: [{ type: mongoose.Schema.Types.ObjectId, ref: LectureModel }],// for passing vids
+    lectures: [{ type: mongoose.Schema.Types.ObjectId, ref: LectureModel }],// for passing vids , select: false 
+
+    accessLectures: [{ type: mongoose.Schema.Types.ObjectId, ref: 'lecture' }],// for passing vids
     groups: [{ type: mongoose.Schema.Types.ObjectId, ref: GroupModel }],
     tags: [{ type: mongoose.Schema.Types.ObjectId, ref: 'tag' }],
 }, {

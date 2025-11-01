@@ -35,6 +35,7 @@ const coursesParams = (query) => {
         { key: "isFixed", value: query.isFixed },
     ]
 }
+
 const createCourse = insertOne(CourseModel, true)
 const getCourses = getAll(CourseModel, 'courses', coursesParams, true) //user admin
 const getOneCourse = getOne(CourseModel, 'linkedTo', [
@@ -62,6 +63,7 @@ const checkDeleteCourse = expressAsyncHandler(async (req, res, next) => {
     }
     next()
 })
+
 // @desc push course
 // @route POST /content/courses/:id/link
 // @access Private   ==> admin/subAdmin
@@ -190,7 +192,7 @@ const getLectureAndCheck = expressAsyncHandler(async (req, res, next) => {
     }
 
     let lecture = await LectureModel.findOne({ _id: lectureId, isActive: true }).lean().populate('exam video file link') //'exam video file link'
-
+    if(!lecture) return next(createError("هذه المحاضره غير موجوده", 404, FAILED))
     if (lecture.exam) {
         lecture = await handelExamAndAttempts(lecture, user)
     }

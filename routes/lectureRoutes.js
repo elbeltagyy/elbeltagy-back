@@ -1,7 +1,7 @@
 const LectureModel = require("../models/LectureModel")
 const { insertOne, deleteFromBody } = require("../controllers/factoryHandler")
 const { upload } = require("../middleware/storage")
-const { getLectures, getOneLecture, createLecture, deleteLecture, updateLecture, createExam, updateOneExam, getLectureForCenter, handelUpdateLecture, getLecturesForAdmin, addToLectures, removeFromLectures, protectGetLectures, pushLectures } = require("../controllers/lectureController")
+const { getLectures, getOneLecture, createLecture, deleteLecture, updateLecture, createExam, updateOneExam, getLectureForCenter, handelUpdateLecture, getLecturesForAdmin, addToLectures, removeFromLectures, protectGetLectures, pushLectures, changeLectureIndex } = require("../controllers/lectureController")
 
 const { user_roles } = require("../tools/constants/rolesConstants")
 const verifyToken = require("../middleware/verifyToken")
@@ -32,6 +32,7 @@ router.route("/:id")
     .patch(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), upload.single('video'), handelUpdateLecture)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), deleteLecture)
 
-
+router.route("/:id/reorder")
+    .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), changeLectureIndex)
 
 module.exports = router

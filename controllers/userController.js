@@ -43,6 +43,7 @@ const userParams = (query) => {
         { key: "courses", value: query.courses, type: "array" },
         { key: "exams", value: query.exams, type: "array" },
         { key: "lectures", value: query.lectures, type: "array" },
+        { key: "accessLectures", value: query.accessLectures },
         { key: "createdAt", value: query.createdAt },
     ]
 } //modify it to be more frontend

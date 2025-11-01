@@ -72,7 +72,7 @@ const validatePreInvoice = expressAsyncHandler(async (req, res, next) => {
         {
             key: 'lecture',
             model: LectureModel,
-            userCheck: async () => user.lectures.includes(invoice.lecture),
+            userCheck: async () => user.accessLectures?.includes(invoice.lecture),
             // isAsync: true,
         },
     ];
@@ -299,7 +299,7 @@ const applySubscription = async (invoice, user, meta = {}) => {
         responseValues = {
             course,
             lectures,
-            currentIndex: userCourse.currentIndex,
+            currentIndex: userCourse.currentIndex || 1,
             wallet: user.wallet
         };
     } else if (invoice.tag) {
@@ -318,7 +318,7 @@ const applySubscription = async (invoice, user, meta = {}) => {
         await UserModel.updateOne(
             { _id: user._id },
             {
-                $push: { lectures: invoice.lecture },
+                $push: { accessLectures: invoice.lecture },
             }
         )
 
@@ -380,7 +380,7 @@ const revokeSubscription = async (invoice, user) => {
         await UserModel.updateOne(
             { _id: user._id },
             {
-                $pull: { lectures: invoice.lecture }
+                $pull: { accessLectures: invoice.lecture }
             }
         );
 

@@ -24,12 +24,11 @@ const removeSubscription = expressAsyncHandler(async (req, res, next) => {
     const subscriptionId = req.params.id
 
     const userCourse = await UserCourseModel.findById(subscriptionId)
-
+    // console.log(userCourse)
     await Promise.all([
         UserModel.findByIdAndUpdate(
             userCourse.user,
             { $pull: { courses: userCourse.course } },
-            { new: true }
         ),
         userCourse.deleteOne()
     ])

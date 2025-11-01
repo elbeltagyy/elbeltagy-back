@@ -23,6 +23,7 @@ const CodeModel = require("../models/CodeModel");
 const codeConstants = require("../tools/constants/codeConstants");
 const { user_roles } = require("../tools/constants/rolesConstants");
 const handelExamAndAttempts = require("../tools/fcs/handelExamAndAttempts");
+const ChapterModel = require("../models/ChapterModel");
 
 dotenv.config()
 const lectureParams = (query) => {
@@ -64,7 +65,6 @@ const insertLecture = insertOne(LectureModel, true)
 const getLecturesForAdmin = expressAsyncHandler(async (req, res, next) => {
     const courseId = req.query.course
 
-
     const course = await CourseModel.findById(courseId).lean().select('linkedTo _id')
     if (!course) return next(createError('Course Not Found', 404, FAILED))
 
@@ -74,12 +74,51 @@ const getLecturesForAdmin = expressAsyncHandler(async (req, res, next) => {
             select: 'name',
         }
     ];
+    const coursesIds = [course._id, ...(course.linkedTo || [])]
+    const [chapters, lectures] = await Promise.all([
+        ChapterModel.find({ courses: { $in: coursesIds } }).lean().sort({ index: 1 }),
+        LectureModel.find({ course: { $in: coursesIds } }).populate(populate).lean().sort({ index: 1 })
+    ])
 
-    let lectures = await LectureModel.find(
-        { course: { $in: [...course.linkedTo, course._id] } }
-    ).lean().populate(populate)
+    const lessons = chapters.map(chapter => {
 
-    res.json({ status: SUCCESS, values: { lectures } })
+        return { ...chapter, lectures: lectures.filter(lec => String(lec.chapter) === String(chapter._id)) }
+    })
+
+    res.json({ status: SUCCESS, values: { lessons, lectures } }) //lectures,
+})
+
+//route content/lectures/:id/reorder
+const changeLectureIndex = expressAsyncHandler(async (req, res, next) => {
+    const { targetId } = req.body
+    //movedIndex => currentIndex || targetIndex = newIndex
+    const lectureId = req.params.id
+
+    const targetIndex = await LectureModel.findById(targetId).select('index')
+        .lean().then(doc => doc?.index)
+    const lecture = await LectureModel.findById(lectureId)
+    const movedIndex = lecture.index
+
+
+    const isMovingUp = Number(movedIndex) > Number(targetIndex) // 5
+
+    if (isMovingUp) {
+        await LectureModel.updateMany({
+            index: { $gte: targetIndex, $lt: movedIndex } // >= 5 <8
+        }, {
+            $inc: { index: 1 }
+        })
+    } else {
+        await LectureModel.updateMany({
+            index: { $gt: movedIndex, $lte: targetIndex } // >= 5 <8
+        }, {
+            $inc: { index: -1 }
+        })
+    }
+
+    lecture.index = targetIndex
+    await lecture.save()
+    res.status(204).json({})
 })
 
 //ProtectLecture MiddleWare
@@ -106,8 +145,8 @@ const protectGetLectures = expressAsyncHandler(async (req, res, next) => {
     }
 
     // Paid condition
-    if (paid && Array.isArray(user.lectures) && user.lectures.length > 0) {
-        orConditions.push({ _id: { $in: user.lectures } });
+    if (paid && Array.isArray(user.accessLectures) && user.accessLectures?.length > 0) {
+        orConditions.push({ _id: { $in: user.accessLectures } });
     }
 
     // Codes condition
@@ -122,10 +161,10 @@ const protectGetLectures = expressAsyncHandler(async (req, res, next) => {
         }
     }
 
-    // Groups condition
-    if (isGroups && Array.isArray(user.groups) && user.groups.length > 0) {
-        orConditions.push({ groups: { $in: user.groups } });
-    }
+    // // Groups condition
+    // if (isGroups && Array.isArray(user.groups) && user.groups.length > 0) {
+    //     orConditions.push({ groups: { $in: user.groups } });
+    // }
 
     // If no matching conditions → return empty result
     if (orConditions.length === 0) {
@@ -161,9 +200,10 @@ const getLectureForCenter = expressAsyncHandler(async (req, res, next) => {
         isValid = true
     }
 
-    if (user.lectures.includes(lecture._id)) {
+    if (user.accessLectures.includes(lecture._id)) {
         isValid = true
     }
+
     if (!isValid && lecture.isCenter && user.role === user_roles.STUDENT) {
         isValid = true
     }
@@ -307,39 +347,41 @@ const handelUpdateLecture = expressAsyncHandler(async (req, res, next) => {
 
     res.json({ values: { lecture: savedLecture }, message: 'تم تعديل المحاضره بنجاح', status: SUCCESS })
 })
-//route content/lectures/:id
-//method DELETE
-const deleteLecture = expressAsyncHandler(async (req, res, next) => {
-    const lectureId = req.params.id
 
-    const lecture = await LectureModel.findById(lectureId).populate("exam video link file").lean()
+const handleLectureDelete = async (lectureId) => {
+    const lecture = await LectureModel.findById(lectureId)
+        .populate('exam video link file')
+        .lean();
+
+    if (!lecture) return;
+
+    // Delete attached file
     if (lecture.file) {
         await Promise.all([
             deleteFile(lecture.file),
-            FileModel.findByIdAndDelete(lecture.file._id)
-        ])
+            FileModel.findByIdAndDelete(lecture.file._id),
+        ]);
     }
-    if (lecture.exam) {
-        const examId = lecture.exam._id
-        // lecture.exam.questions.forEach(async question => {
-        //     if (question.image) {
-        //         await deleteFile(question.image)
-        //     }
-        // })
 
+    // Delete attached exam
+    if (lecture.exam) {
+        const examId = lecture.exam._id;
         await Promise.all([
             AttemptModel.deleteMany({ exam: examId }),
-            ExamModel.findByIdAndDelete(lecture.exam._id),
+            ExamModel.findByIdAndDelete(examId),
             UserModel.updateMany(
-                { exams: lecture.exam._id },
-                { $pull: { exams: lecture.exam._id } }
-            )])
+                { exams: examId },
+                { $pull: { exams: examId } }
+            ),
+        ]);
     }
 
+    // Delete attached link
     if (lecture.link) {
-        await LinkModel.findByIdAndDelete(lecture.link._id)
+        await LinkModel.findByIdAndDelete(lecture.link._id);
     }
 
+    // Delete attached video
     if (lecture.video) {
         await Promise.all([
             VideoModel.findByIdAndDelete(lecture.video._id),
@@ -347,13 +389,21 @@ const deleteLecture = expressAsyncHandler(async (req, res, next) => {
                 { lectures: lecture._id },
                 { $pull: { lectures: lecture._id } }
             ),
-            VideoStatisticsModel.deleteMany({
-                lecture: lecture._id
-            }),
-        ])
+            VideoStatisticsModel.deleteMany({ lecture: lecture._id }),
+        ]);
     }
+    await Promise.all([
+        UserModel.updateMany({ accessLectures: lecture._id }, { $pull: { accessLectures: lecture._id } }),
+        LectureModel.findByIdAndDelete(lectureId)
+    ])
+}
 
-    await LectureModel.findByIdAndDelete(lectureId)
+
+//route content/lectures/:id
+//method DELETE
+const deleteLecture = expressAsyncHandler(async (req, res, next) => {
+    const lectureId = req.params.id
+    await handleLectureDelete(lectureId)
     res.status(200).json({ message: 'تم الحذف بنجاح', status: SUCCESS })
 })
 
@@ -408,7 +458,8 @@ module.exports = {
     getOneLecture, getLectureForCenter,
     createLecture, updateLecture, handelUpdateLecture, deleteLecture,
     lectureParams,
-    removeFromLectures, addToLectures, pushLectures
+    removeFromLectures, addToLectures, pushLectures,
+    changeLectureIndex, handleLectureDelete
 }
 
 

@@ -21,6 +21,7 @@ router.use("/notifications", require('./notificationRoutes'))
 router.use("/feedBacks", require('./feedBackRoutes'))
 router.use("/tags", require('./tagRoutes')) 
 
+router.use("/chapters", require('./chapterRoutes'))
 router.use("/content/units", unitRoutes)
 router.use("/content/courses", courseRoutes)
 router.use("/content/lectures", lecturesRoutes)

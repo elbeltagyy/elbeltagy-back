@@ -21,6 +21,9 @@ const AttemptModel = require("./models/AttemptModel")
 const QuestionModel = require("./models/QuestionModel")
 const ms = require("ms")
 const UserModel = require("./models/UserModel")
+const CourseModel = require("./models/CourseModel")
+const LectureModel = require("./models/LectureModel")
+const ChapterModel = require("./models/ChapterModel")
 
 
 // config
@@ -146,6 +149,30 @@ const connectDb = async () => {
 }
 connectDb()
 
+const appendDefaultChapters = async () => {
+    const courses = await CourseModel.find().lean()
+    let newCourses = []
+    console.log('start creating chaptering')
+
+    for (const course of courses) {
+        const courseLectures = await LectureModel.find({ course: course._id }).lean()
+        const newCourse = { ...course, lectures: courseLectures }
+        newCourses.push(newCourse)
+    }
+    let index = 1
+    for (const course of newCourses) {
+        const chapter = await ChapterModel.insertOne({
+            name: course.name, courses: [course._id], description: '', grade: course.grade, index: index++
+        })
+        await LectureModel.updateMany({ _id: course.lectures.map(l => l._id) }, { chapter: chapter._id })
+    }
+    console.log('done creating chaptering')
+
+}
+
 app.listen(port, '0.0.0.0', async () => {
+    await appendDefaultChapters()
     console.log(`the app is working on port: ${port}`)
 })
+
+//1 - modify data
