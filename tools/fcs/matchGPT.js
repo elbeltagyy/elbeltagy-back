@@ -90,6 +90,9 @@ const handelMatch = (match, key, preVal, type) => {
   }
 
   switch (operator) {
+    case 'size':
+      match[key] = { $size: value };
+      break;
     case 'contains':
       match[key] = { $regex: value, $options: 'i' };
       break;
@@ -150,6 +153,10 @@ const handelMatch = (match, key, preVal, type) => {
     case 'isNot':
     case 'doesNotEqual':
       const isValidD = isValidDate(value)
+      if (value === '[]') {
+        match[key] = { $ne: [] };
+        break;
+      }
       if (isValidD) {
         match[key] = {
           $not: makeDayRange(value)

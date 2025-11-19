@@ -40,7 +40,7 @@ const userParams = (query) => {
         { key: "exam_marks", value: query.exam_marks, type: "number", },
         { key: "groups", value: query.groups, type: 'array' },
         { key: "tags", value: query.tags },
-        { key: "courses", value: query.courses, type: "array" },
+        { key: "courses", value: query.courses},
         { key: "exams", value: query.exams, type: "array" },
         { key: "lectures", value: query.lectures, type: "array" },
         { key: "accessLectures", value: query.accessLectures },
