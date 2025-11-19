@@ -46,7 +46,7 @@ const lockLectures = async (course, userCourse, user = null) => {
             (acc[key] ||= []).push(lec);
             return acc;
         }, {});
-
+        
         let globalIndex = 1
         const lessons = chapters.map(chapter => {
             return {

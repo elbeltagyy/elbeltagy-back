@@ -2,6 +2,44 @@ const axios = require('axios');
 const dotenv = require("dotenv");
 dotenv.config()
 
+async function makeNewPaymob({ price, items, billingData }) { //1st step for create token for user
+    try {
+        var raw = {
+            amount: price,
+            // redirection_url: 'https://google.com', ref to Course
+            currency: "EGP",
+            payment_methods: [
+                Number(process.env.PAYMOB_INTEGRATION_ID),
+                Number(process.env.PAYMOB_INTEGRATION_WALLET),
+            ],
+            items: items,
+            billing_data: billingData,
+            customer: billingData,
+            // "extras": {
+            //     "ee": 22
+            // }
+        }
+
+        const response = await axios.post('https://accept.paymob.com/v1/intention/', raw, {
+            headers: {
+                Authorization: "Token " + process.env.PAYMOB_SECRET_KEY,
+                "Content-Type": "application/json",
+            },
+        });
+        console.log('intention_order_id ==>', response.data.intention_order_id)
+        console.log('response ==>', response.data)
+        return {
+            orderId: response.data.intention_order_id, url: 'https://accept.paymob.com/unifiedcheckout/?publicKey=' + process.env.PAYMOB_PUBLIC_KEY +
+                '&clientSecret=' + response.data.client_secret
+        }
+    } catch (error) {
+        console.log('error from new==>', error)
+        throw error
+    }
+}
+
+
+
 
 async function getAuthToken() { //1st step for create token for user
     const response = await axios.post('https://accept.paymob.com/api/auth/tokens', {
@@ -86,7 +124,7 @@ function verifyHmac(data, receivedHmac) {
 }
 
 module.exports = {
-    getAuthToken, createOrder, generatePaymentKey, iframeURL
+    getAuthToken, createOrder, generatePaymentKey, iframeURL, makeNewPaymob
 }
 
 

@@ -170,10 +170,11 @@ const protectGetLectures = expressAsyncHandler(async (req, res, next) => {
     if (orConditions.length === 0) {
         return res.status(200).json({ status: SUCCESS, values: { lectures: [] } });
     }
+
     // Final query
     req.query = {
         $filter: { $or: orConditions },
-        // grade: user.grade,
+        grade: req.query.grade ?? 'all',
         select,
         populate,
         isModernSort: true
