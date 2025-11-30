@@ -10,7 +10,7 @@ const makeRandom = require("../tools/makeRandom");
 
 const codeParams = (query) => {
     return [
-        { key: "grade", value: query.grade, type: 'number' },
+        { key: "grade", value: query.grade },
         { key: "code", value: query.code },
         { key: "type", value: query.type },
         { key: "price", value: query.price, type: 'number' },

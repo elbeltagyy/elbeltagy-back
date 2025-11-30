@@ -1,12 +1,11 @@
 const mongoose = require('mongoose');
 const filePlayers = require('../tools/constants/filePlayers');
-const gradeConstants = require('../tools/constants/gradeConstants');
 
 const questionSchema = new mongoose.Schema({
     // questionId: String,
     //For Idea should Ref To => grade ;or; Tags
     prevId: String,
-    grade: { type: Number, enum: gradeConstants.map(grade => grade.index), required: true },
+    grade: { type: Number, required: true },
     tags: [{ type: mongoose.Schema.Types.ObjectId, ref: 'tag' }],
 
     title: String,
@@ -32,6 +31,8 @@ const questionSchema = new mongoose.Schema({
     versionKey: false
 
 });
+
+questionSchema.index({ isActive: 1, tags: 1, grade: 1 });
 
 const QuestionModel = mongoose.model('Question', questionSchema);
 module.exports = QuestionModel

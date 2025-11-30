@@ -1,8 +1,7 @@
 const mongoose = require("mongoose")
-const gradeConstants = require("../tools/constants/gradeConstants")
 
 const groupSchema = new mongoose.Schema({
-    grade: { type: Number, enum: gradeConstants.map(grade => grade.index), required: true },
+    grade: { type: Number, required: true },
     name: { type: String, required: true },
     days: [{
         time: { type: String },

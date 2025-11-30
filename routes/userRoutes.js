@@ -1,4 +1,4 @@
-const { analysisMonthly } = require("../controllers/factoryHandler")
+const { analysisMonthly, analysisByKeys } = require("../controllers/factoryHandler")
 const { getUsers, createUser, updateUser, updateUserProfile, deleteUser, getByUserName, addToUsers, userParams, deleteManyUsers, checkDeleteUser } = require("../controllers/userController")
 const allowedTo = require("../middleware/allowedTo")
 const { imageUpload } = require("../middleware/storage")
@@ -18,6 +18,9 @@ router.route('/push')
 
 router.route("/analysis")
     .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), analysisMonthly(UserModel, userParams))
+router.route("/analysisKeys")
+    .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), analysisByKeys(UserModel, userParams))
+
 
 router.route("/:userName")
     .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN, user_roles.MENTOR), getByUserName)

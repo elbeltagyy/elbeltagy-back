@@ -33,7 +33,7 @@ const userParams = (query) => {
         { key: "devicesAllowed", value: query.devicesAllowed, type: 'number' },
         { key: "wallet", value: query.wallet, type: 'number' },
         { key: "isActive", value: query.isActive, type: "boolean" },
-        { key: "grade", value: query.grade, type: "number", },
+        { key: "grade", value: query.grade },
         { key: "government", value: query.government, type: "number", },
         { key: "totalPoints", value: query.totalPoints, type: "number", },
         { key: "marks", value: query.marks, type: "number", },

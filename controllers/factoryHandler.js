@@ -18,6 +18,28 @@ const UserModel = require("../models/UserModel.js");
 const convertToObjectIdBySchema = require("../tools/fcs/convertToObjectIdBySchema.js");
 dotenv.config()
 
+const getMonthRange = (value) => {
+    const date = new Date(value)
+    const year = date.getFullYear();
+    const month = date.getMonth();
+
+    const start = new Date(year, month, 1);          // Month start
+    const end = new Date(year, month + 1, 1);        // Next month start
+
+    return { $gte: start, $lt: end };
+}
+
+exports.analysisByKeys = (Model, params) => asyncHandler(async (req, res, next) => {
+    const matchStage = params ? parseFilters(params((convertToObjectIdBySchema(req.query, Model)))) : {}
+    const filterByTime = req.query.filterByTime || null
+    filterByTime ? matchStage.createdAt = getMonthRange(filterByTime) : ''
+
+    const counts = await Model.countDocuments(matchStage)
+    const total = await Model.estimatedDocumentCount()
+    const series = [(total - counts), counts]
+    return res.status(200).json({ values: { series } })
+})
+
 exports.analysisMonthly = (Model, params = null) => asyncHandler(async (req, res, next) => {
     const startYear = req.query.start ? Number(req.query.start) : null;
     const endYear = req.query.end ? Number(req.query.end) : null;
@@ -79,12 +101,18 @@ exports.analysisMonthly = (Model, params = null) => asyncHandler(async (req, res
 })
 
 //analysisUsers ==> matching - anaMethod (strict - monthly - yearly) - by (default - roles)
-exports.handelOneFile = ({ fileKey }) =>
+exports.handelOneFile = (fileKey) =>
     asyncHandler(async (req, res, next) => {
         const file = req.file || null;
-        await uploadFile(file, { name: file?.originalname, secure: true }, { key: fileKey, parent: req.body })
+        if (file) {
+            const fileData = await uploadFile(file, { name: file?.originalname, secure: true }) //req.body?.name || 
+            req.body[fileKey] = fileData
+        } else {
+            delete req.body[fileKey]
+        }
         next()
     });
+
 exports.deleteFromBody = (keys = []) => {
     return asyncHandler(async (req, res, next) => {
         keys.map(key => {

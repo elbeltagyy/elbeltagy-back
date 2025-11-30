@@ -115,8 +115,8 @@ const validatePreInvoice = expressAsyncHandler(async (req, res, next) => {
 
     req.product = product
     req.payment = payment
-    if ((product.price === 0 || product.isFree) && payment.type !== paymentInteg.WALLET) {
-        return next(createError('هذا المنتج مجانى, يمكنك تفعيله عن طريق وسيله الدفع المحفظه فقط'), 404, FAILED)
+    if ((product.price === 0 || product.isFree) && payment.type !== paymentInteg.WALLET) { //*_* Not Applied WithCoupons
+        return next(createError('هذا المنتج مجانى, يمكنك تفعيله عن طريق وسيله الدفع المحفظه فقط'), 400, FAILED)
     }
     next()
 })

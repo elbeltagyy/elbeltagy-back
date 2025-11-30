@@ -1,10 +1,9 @@
 const mongoose = require("mongoose")
 const UnitModel = require("./UnitModel")
-const gradeConstants = require("../tools/constants/gradeConstants")
 
 
 const courseSchema = new mongoose.Schema({
-    grade: { type: Number, enum: gradeConstants.map(grade => grade.index), required: true },
+    grade: { type: Number, required: true },
     unit: { type: mongoose.Schema.Types.ObjectId, ref: UnitModel, required: true },
     index: { type: Number, required: true, unique: true },
 

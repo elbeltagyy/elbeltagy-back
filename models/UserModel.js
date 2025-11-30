@@ -1,6 +1,5 @@
 const mongoose = require("mongoose")
 const { user_roles } = require("../tools/constants/rolesConstants")
-const gradeConstants = require("../tools/constants/gradeConstants")
 
 const governments = require("../tools/constants/governments")
 const CourseModel = require("./CourseModel")
@@ -16,7 +15,7 @@ const governDefault = 4
 // total Points ==> answers and exams
 
 const userSchema = new mongoose.Schema({
-    grade: { type: Number, enum: gradeConstants.map(grade => grade.index) },
+    grade: { type: Number },
     name: { type: String },
     avatar: {
         url: { type: String },

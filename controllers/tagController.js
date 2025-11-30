@@ -5,6 +5,7 @@ const { getAll, insertOne, updateOne, deleteOne } = require("./factoryHandler");
 const { SUCCESS, FAILED } = require("../tools/statusTexts");
 const { default: mongoose } = require("mongoose");
 const createError = require("../tools/createError");
+const AnswerModel = require("../models/AnswerModel");
 
 
 const tagParams = (query) => {
@@ -14,7 +15,7 @@ const tagParams = (query) => {
         { key: "number", value: query.number },
         { key: "isFree", value: query.isFree },
         { key: "_id", value: query._id, operator: 'equal' },
-        { key: "grade", value: query.grade, operator: 'equal' },
+        { key: "grade", value: query.grade },
         { key: "isActive", value: query.isActive, type: 'boolean' },
         { key: "createdAt", value: query.createdAt },
     ]
@@ -25,27 +26,27 @@ const addTagQsCount = async (req, values) => {
         const user = req.user
         const userId = req.user._id
 
+        // Set access per tag
         values.tags.forEach(tag => {
-            tag.access = false
-            if (user.tags?.includes(tag._id) || tag.isFree) {
-                tag.access = true
-            }
-            return tag
+            tag.access = user.tags?.includes(tag._id) || (tag.isFree ?? false);
         });
 
         if (req.query.counting) {
+            // -------- 1) Get ALL answered questions once ----------
+            const userAnswers = await AnswerModel.find(
+                { user: userId },
+                { question: 1 }
+            ).lean();
+
+            const answeredIds = userAnswers.map(a => new mongoose.Types.ObjectId(a.question));
+
+            // -------- 2) Process tags ----------
             values.tags = await Promise.all(
                 values.tags.map(async (tag) => {
-                    // if (!tag.access) {
-                    //     const count = await QuestionModel.countDocuments({
-                    //         tags: tag._id, isActive: true
-                    //     });
-                    //     return { ...tag, count }
-                    // }
+                    //Need TOtal QUestions, user rest questions (unAnswered)
                     const tagId = new mongoose.Types.ObjectId(tag._id);
-                    const userObjId = new mongoose.Types.ObjectId(userId);
 
-                    const result = await QuestionModel.aggregate([
+                    const stats = await QuestionModel.aggregate([
                         {
                             $match: {
                                 tags: tagId,
@@ -53,56 +54,37 @@ const addTagQsCount = async (req, values) => {
                             }
                         },
                         {
-                            $facet: {
-                                totalCount: [{ $count: 'count' }],
-                                unansweredCount: [
-                                    {
-                                        $lookup: {
-                                            from: 'answers',
-                                            let: { questionId: '$_id' },
-                                            pipeline: [
-                                                {
-                                                    $match: {
-                                                        $expr: {
-                                                            $and: [
-                                                                { $eq: ['$question', '$$questionId'] },
-                                                                { $eq: ['$user', userObjId] }
-                                                            ]
-                                                        }
-                                                    }
-                                                }
-                                            ],
-                                            as: 'userAnswers'
-                                        }
-                                    },
-                                    {
-                                        $match: {
-                                            userAnswers: { $size: 0 }
-                                        }
-                                    },
-                                    { $count: 'count' }
-                                ]
+                            $group: {
+                                _id: null,
+                                totalCount: { $sum: 1 },
+                                unansweredCount: {
+                                    $sum: {
+                                        $cond: [
+                                            { $in: ["$_id", answeredIds] },
+                                            0,
+                                            1
+                                        ]
+                                    }
+                                }
                             }
                         }
                     ]);
 
-                    const totalCount = result[0]?.totalCount[0]?.count || 0;
-                    const unansweredCount = result[0]?.unansweredCount[0]?.count || 0;
-
                     return {
                         ...tag,
-                        count: totalCount,
-                        unansweredCount
+                        count: stats[0]?.totalCount || 0,
+                        unansweredCount: stats[0]?.unansweredCount || 0
                     };
                 })
             );
         }
-        return values
+
+        return values;
     } catch (error) {
-        console.log('error from add tags', error)
-        return values
+        console.log('error from add tags', error);
+        return values;
     }
-}
+};
 
 const validateUserTag = expressAsyncHandler(async (req, res, next) => {
     const user = req.user

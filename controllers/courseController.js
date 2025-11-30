@@ -24,7 +24,7 @@ const handelExamAndAttempts = require("../tools/fcs/handelExamAndAttempts");
 
 const coursesParams = (query) => {
     return [
-        { key: "grade", value: query.grade, type: "number" },
+        { key: "grade", value: query.grade },
         { key: "name", value: query.name },
         { key: "description", value: query.description },
         { key: "price", value: query.price },

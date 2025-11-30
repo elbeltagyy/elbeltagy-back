@@ -16,5 +16,7 @@ const answerSchema = new mongoose.Schema({
     versionKey: false
 })
 
+answerSchema.index({ user: 1, question: 1 });
+
 const AnswerModel = mongoose.model("Answer", answerSchema)
 module.exports = AnswerModel

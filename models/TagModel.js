@@ -1,9 +1,8 @@
 const { default: mongoose } = require("mongoose");
-const gradeConstants = require("../tools/constants/gradeConstants");
 
 //Tag payments => UserQuestionBank, getTags in controller, price in model
 const tagSchema = new mongoose.Schema({
-    grade: { type: Number, enum: gradeConstants.map(grade => grade.index), required: true },
+    grade: { type: Number, required: true },
     name: { type: String },
     isActive: { type: Boolean, default: true },
     description: String,

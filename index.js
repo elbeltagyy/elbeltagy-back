@@ -24,6 +24,8 @@ const UserModel = require("./models/UserModel")
 const CourseModel = require("./models/CourseModel")
 const LectureModel = require("./models/LectureModel")
 const ChapterModel = require("./models/ChapterModel")
+const GradeModel = require("./models/GradeModel")
+const gradeConstants = require("./tools/constants/gradeConstants")
 
 
 // config
@@ -137,10 +139,17 @@ app.use('/api', require('./routes/APIS'))
 app.use(notFound)
 app.use(errorrHandler)
 
+const fixGrades = async () => {
+    const grades = await GradeModel.insertMany(gradeConstants)
+    console.log('done ==', grades)
+}
+ 
+
 const connectDb = async () => {
     try {
         await mongoose.connect(DB_URI)
         console.log('connected')
+        // fixGrades()
         //embed Answer to Exam answers
     } catch (error) {
         console.log('failed to connect ==>', error)
@@ -148,27 +157,9 @@ const connectDb = async () => {
 
 }
 connectDb()
-
-const appendDefaultChapters = async () => {
-    const courses = await CourseModel.find().lean()
-    let newCourses = []
-    console.log('start creating chaptering')
-
-    for (const course of courses) {
-        const courseLectures = await LectureModel.find({ course: course._id }).lean()
-        const newCourse = { ...course, lectures: courseLectures }
-        newCourses.push(newCourse)
-    }
-    let index = 1
-    for (const course of newCourses) {
-        const chapter = await ChapterModel.insertOne({
-            name: course.name, courses: [course._id], description: '', grade: course.grade, index: index++
-        })
-        await LectureModel.updateMany({ _id: course.lectures.map(l => l._id) }, { chapter: chapter._id })
-    }
-    console.log('done creating chaptering')
-
-}
+  
+//index
+//Chapter, question => ref to Number
 
 app.listen(port, '0.0.0.0', async () => {
     // await appendDefaultChapters()

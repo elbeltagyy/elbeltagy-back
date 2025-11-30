@@ -10,7 +10,7 @@ const LectureModel = require("../models/LectureModel")
 const groupParams = (query) => {
     return [
         { key: "_id", value: query._id, operator: 'equal' },
-        { key: "grade", value: query.grade, type: 'number' },
+        { key: "grade", value: query.grade },
         { key: "name", value: query.name },
     ]
 }

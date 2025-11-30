@@ -17,7 +17,7 @@ const questionParams = (query) => {
         { key: "hints", value: query.hints },
         { key: "points", value: query.points, type: 'number' },
         { key: "_id", value: query._id, operator: 'equal' },
-        { key: "grade", value: query.grade, operator: 'equal' },
+        { key: "grade", value: query.grade },
         { key: "tags", value: query.tags, operator: 'equal' },
         { key: "isActive", value: query.isActive },
         { key: "createdAt", value: query.createdAt },
@@ -76,6 +76,9 @@ const createManyQuestions = expressAsyncHandler(async (req, res, next) => {
         if (q.isShuffle) {
             const options = shuffleArray(q.options)
             q.options = options
+        }
+        if (!q.tags) {
+            delete q.tags
         }
         return q
     });

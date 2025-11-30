@@ -11,7 +11,6 @@ const lecturesRoutes = require("./lectureRoutes")
 const userCourseRoutes = require("./userCourseRoutes")
 const statisticsRoutes = require("./statisticsRoutes")
 
-
 router.use("/sessions", require("./sessionRoutes"))
 router.use("/auth", authRoutes)
 router.use("/users", userRoutes)
@@ -21,6 +20,7 @@ router.use("/notifications", require('./notificationRoutes'))
 router.use("/feedBacks", require('./feedBackRoutes'))
 router.use("/tags", require('./tagRoutes')) 
 
+router.use("/grades", require('./gradeRoutes'))
 router.use("/chapters", require('./chapterRoutes'))
 router.use("/content/units", unitRoutes)
 router.use("/content/courses", courseRoutes)
