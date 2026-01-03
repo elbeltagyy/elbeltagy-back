@@ -20,6 +20,7 @@ const CouponModel = require("../models/CouponModel");
 const codeConstants = require("../tools/constants/codeConstants");
 const VideoStatisticsModel = require("../models/VideoStatisticsModel");
 const handelExamAndAttempts = require("../tools/fcs/handelExamAndAttempts");
+const { convertToMs } = require("../tools/dateFc");
 
 
 const coursesParams = (query) => {
@@ -192,7 +193,7 @@ const getLectureAndCheck = expressAsyncHandler(async (req, res, next) => {
     }
 
     let lecture = await LectureModel.findOne({ _id: lectureId, isActive: true }).lean().populate('exam video file link') //'exam video file link'
-    if(!lecture) return next(createError("هذه المحاضره غير موجوده", 404, FAILED))
+    if (!lecture) return next(createError("هذه المحاضره غير موجوده", 404, FAILED))
     if (lecture.exam) {
         lecture = await handelExamAndAttempts(lecture, user)
     }
@@ -206,10 +207,20 @@ const getLectureAndCheck = expressAsyncHandler(async (req, res, next) => {
 const lecturePassed = expressAsyncHandler(async (req, res, next) => {
     let courseId = req.params.id
     const nextLectureIndex = req.body.nextLectureIndex
+    const lectureId = req.body.lectureId
+
     let user = req.user._id
 
     const userCourse = await UserCourseModel.findOne({ user, course: courseId })
     if (!userCourse) return next(createError('انت غير مشترك', 400, FAILED))
+
+    const lecture = await LectureModel.findById(lectureId).populate('video')
+    if (!lecture) return next(createError('هذه المحاضره غير موجوده', 404, FAILED))
+
+    if (lecture?.video) {
+        const { canPass, watchedPercentage } = await canPassVideo(lecture.video, req.user)
+        if (!canPass) return next(createError('عليك انهاء ' + lecture?.video?.minDuration + '% ' + 'على الاقل لتجاوز المحاضره!' + '(' + 'لقد شاهدت' + " " + watchedPercentage + "%" + ")", 400, FAILED))
+    }
 
     userCourse.currentIndex = nextLectureIndex
     await userCourse.save()
@@ -270,6 +281,55 @@ const createAttempt = expressAsyncHandler(async (req, res, next) => {
     //elevate user current index in course
     res.status(201).json({ status: SUCCESS, values: updatedUser.totalPoints, message: "تم الانتهاء من الاختبار بنجاح" })
 })
+
+
+const canPassVideo = async (video, user) => {
+    try {
+        if (!video.minDuration) return { canPass: true }
+
+        const videoDuration = convertToMs(video.duration) / 1000; // modified
+        const minPercentage = video.minDuration; // e.g. 20     
+
+        //  Required seconds
+        const requiredSeconds = videoDuration * (minPercentage / 100);
+
+        //  Sum watched time (multiple sessions)
+        const stats = await VideoStatisticsModel.aggregate([
+            {
+                $match: {
+                    user: new mongoose.Types.ObjectId(user._id),
+                    video: new mongoose.Types.ObjectId(video._id),
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalWatched: { $sum: '$watchedTime' },
+                },
+            },
+        ]);
+
+        const watchedSeconds = stats[0]?.totalWatched || 0;
+        //  Cap watched time to video duration (VERY IMPORTANT)
+        const cappedWatchedSeconds = Math.min(
+            watchedSeconds,
+            videoDuration
+        ); // Max Value is videoDuration
+
+        const watchedPercentage = (cappedWatchedSeconds / videoDuration) * 100;
+        // watchedPercentage: Number(watchedPercentage.toFixed(2)),
+
+        // console.log('total Watched ==>', watchedSeconds,
+        //     'video Duration ==>', videoDuration,
+        //     'can Pass ==>', cappedWatchedSeconds >= requiredSeconds,
+        //     'should watch ==>', requiredSeconds, minPercentage)
+        // // 5️⃣ Result
+        return { canPass: cappedWatchedSeconds >= requiredSeconds, watchedPercentage: Number(watchedPercentage.toFixed(2)) }
+    } catch (error) {
+        console.log('error from handelExamAndAttempts ==>', error)
+        throw createError('الفيديو غير موجود', 404, FAILED);
+    }
+}
 
 module.exports = {
     getCourses, getOneCourse, uploadCourseImg, createCourse, updateCourse, checkDeleteCourse, deleteCourse, coursesParams,

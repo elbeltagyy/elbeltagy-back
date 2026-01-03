@@ -15,13 +15,14 @@ const videoStatisticsSchema = new mongoose.Schema({
     role: { type: String },
 
     totalTime: Number,
-    watchedTime: Number,
+    watchedTime: Number, //Seconds
 
     mainEvents: [Object],
     // events: [Object],
 }, {
     timestamps: true
 })
+videoStatisticsSchema.index({ user: 1, lecture: 1 });
 
 const mainEvent = {
     date: '',

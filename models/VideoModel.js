@@ -9,6 +9,8 @@ const videoSchema = new mongoose.Schema({
     duration: { type: String }, //ms params
     size: { type: Number }, //bytes
     resource_type: { type: String },
+    minDuration: Number,
+
 }, {
     timestamps: true,
     versionKey: false

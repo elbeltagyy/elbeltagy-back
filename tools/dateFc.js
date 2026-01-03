@@ -1,3 +1,5 @@
+const ms = require("ms")
+
 const DAYES = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
 
 const dateOptions = {
@@ -23,9 +25,8 @@ const getDateWithTime = (date) => {
 
 const convertToMs = (duration) => {
     let milliSeconds = 0
-    // if (!durationRegex.test(duration)) {
-    //     return 0
-    // }
+    if (typeof duration === 'number') return duration
+
     let durArr = duration.split(' ')
 
     if (Array.isArray(durArr)) {
@@ -69,4 +70,4 @@ const formatDuration = (ms, isSeconds = false, separated) => {
 }
 
 
-module.exports = { getDateWithTime, getFullDate, formatDuration }
+module.exports = { getDateWithTime, getFullDate, formatDuration, convertToMs }
