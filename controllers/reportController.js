@@ -14,13 +14,14 @@ const { getDateWithTime, formatDuration, getFullDate } = require("../tools/dateF
 const getAttemptMark = require("../tools/getAttemptMark");
 const { attemptAllInfo, getExamMark } = require("../tools/getExamInfo");
 const { user_roles } = require("../tools/constants/rolesConstants");
-const { makeMatch } = require("../tools/makeMatch");
+ 
 const { userParams } = require("./userController");
 const ReportModel = require("../models/ReportModel");
 const ReportFailedModel = require("../models/ReportFailedModel");
 const { getAll, deleteOne, updateOne } = require("./factoryHandler");
 const createPdfFromHtml = require("../tools/pdf/htmlPdf");
 const sendUserReport = require("../tools/sendUserReport");
+const parseFilters = require("../tools/fcs/matchGPT");
 
 // Use dynamic import() to load p-limit
 const pLimit = async () => {
@@ -29,12 +30,12 @@ const pLimit = async () => {
 };
 
 const sendReports = expressAsyncHandler(async (req, res, next) => {
-    const limit = (await pLimit())(5); // Limit to 5 concurrent operations
+    const limit = (await pLimit())(10); // Limit to 5 concurrent operations
 
     const startDate = req.body.startDate || false
     const endDate = req.body.endDate || false
 
-    const isExcluded = req.body.isExcluded
+    const isExcluded = req.body.isExcluded ?? true
     const excludedUsers = req.body.excludedUsers || []
 
 
@@ -46,22 +47,19 @@ const sendReports = expressAsyncHandler(async (req, res, next) => {
     if (startDate) lectureQuery.createdAt = { ...lectureQuery.createdAt, $gte: new Date(startDate) };
     if (endDate) lectureQuery.createdAt = { ...lectureQuery.createdAt, $lt: new Date(endDate) }
 
-    let match = {}
+    let match = parseFilters(userParams({ ...req.body, courses: req.body.course })) 
     match.role = { $in: [user_roles.STUDENT, user_roles.ONLINE] }
 
-    makeMatch(match, userParams({ ...req.body, courses: req.body.course })) //*_*
-
-    if (excludedUsers?.length > 0 && isExcluded) {
+    if (isExcluded && excludedUsers?.length > 0 ) {
         match = { ...match, _id: { $nin: excludedUsers } }
     }
 
     if (!isExcluded) {
         match = { _id: { $in: excludedUsers } } //...match,
     }
-
     // Fetch users
     const users = await UserModel.find(match).lean();
-
+  
     let failedReport = {
         users: [],
         reportErrors: []

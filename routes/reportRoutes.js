@@ -7,7 +7,7 @@ const { user_roles } = require("../tools/constants/rolesConstants")
 const router = require("express").Router()
 
 router.route("/")
-    .post(whatsStatusMiddleware, sendReports)
+    .post( sendReports) //whatsStatusMiddleware,
     .get(getReports)
 router.route("/:id")
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), updateReport)

@@ -14,13 +14,6 @@ const attemptSchema = new mongoose.Schema({
     preservedTime: { type: Number }, //seconds
     answers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Answer' }],
 
-
-    // Not Used
-    // chosenOptions: [{ //Ref to Answer Model.
-    //     questionId: { type: String }, //Ref To Question Model
-    //     question: { type: mongoose.Schema.Types.ObjectId, ref: 'Question'},
-    //     chosenOptionId: { type: String },
-    // },],
 }, {
     timestamps: true,
     versionKey: false

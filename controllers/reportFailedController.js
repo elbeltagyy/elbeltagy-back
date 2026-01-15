@@ -14,11 +14,11 @@ const { getDateWithTime, formatDuration } = require("../tools/dateFc");
 const getAttemptMark = require("../tools/getAttemptMark");
 const { attemptAllInfo, getExamMark } = require("../tools/getExamInfo");
 const { user_roles } = require("../tools/constants/rolesConstants");
-const { makeMatch } = require("../tools/makeMatch");
 const { userParams } = require("./userController");
 const ReportModel = require("../models/ReportModel");
 const ReportFailedModel = require("../models/ReportFailedModel");
 const { getAll, deleteOne, updateOne } = require("./factoryHandler");
+const parseFilters = require("../tools/fcs/matchGPT");
 
 
 const getFailedReportUsers = expressAsyncHandler(async (req, res, next) => {
@@ -30,11 +30,7 @@ const getFailedReportUsers = expressAsyncHandler(async (req, res, next) => {
 
     const { id } = req.params;
     //Matching
-    const match = {}
-    if (userParams.length > 0) {
-        makeMatch(match, userParams(query))
-    }
-
+    const match =  parseFilters(userParams(query))
     
     const reportFailed = await ReportFailedModel.findOne({ report: id })
         .populate({

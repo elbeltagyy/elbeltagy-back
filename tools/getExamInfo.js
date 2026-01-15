@@ -1,6 +1,6 @@
-const attemptAllInfo = (exam, chosenOptions) => {
+const attemptAllInfo = (exam, chosenOptions = []) => {
     const userMark = exam.questions.reduce((acc, question, i,) => {
-        const AnsweredQuestion = chosenOptions.filter(({ questionId }) => questionId === question._id.toString())[0]
+        const AnsweredQuestion = chosenOptions?.filter(({ question: questionId }) => questionId.toString() === question._id.toString())[0]
 
         if (question?.rtOptionId === AnsweredQuestion?.chosenOptionId) {
             return acc += question.points
