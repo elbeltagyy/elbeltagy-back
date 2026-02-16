@@ -8,7 +8,7 @@ const allowedTo = require("../middleware/allowedTo")
 const verifyToken = require("../middleware/verifyToken")
 
 const CouponModel = require("../models/CouponModel")
-const { getCoupons, createCoupon, updateCoupon, deleteCoupon, verifyCoupon } = require("../controllers/couponController")
+const { getCoupons, createCoupon, updateCoupon, deleteCoupon, verifyCoupon, addToCoupons } = require("../controllers/couponController")
 
 const CourseModel = require("../models/CourseModel")
 const { filterById } = require("../controllers/factoryHandler")
@@ -52,6 +52,8 @@ router.route("/")
 
 router.route('/verify')
     .post(verifyToken(), allowedTo(user_roles.STUDENT, user_roles.ONLINE), verifyCoupon)
+router.route('/push')
+    .patch(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), addToCoupons)
 
 router.route("/:id")
     // .get(verifyToken(), getOneCode)

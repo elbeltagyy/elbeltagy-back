@@ -491,24 +491,30 @@ exports.pushToModel = (Model) => {
         }
 
         // Create dynamic update object
-        const update = action === 'push' ? {
-            $addToSet: {
-                [field]: value
-            }
-        } : {
-            $pull: {
-                [field]: value
-            }
+        const update = action === 'push' ? 
+        { $addToSet: {
+            [field]: Array.isArray(value)
+                ? { $each: value }
+                : value
+        }} :  action === 'save' ? 
+            { $set: {
+                [field]: Array.isArray(value) ? value : [value]
+            }}
+        : { $pull: {
+          [field]: Array.isArray(value)
+            ? { $in: value }
+            : value
+        }
         }
         // field: 'tags', ids: chosenUsers, value: tag._id, action: 'pull'
-
+        // console.log(update, targetIds)
         await Model.updateMany(
             { _id: { $in: targetIds } },
             update
         );
 
         res.status(200).json({
-            message: `تم بنجاح` + ' ' + (action === 'push' ? ' تمت الإضافه بنجاح' : ' تمت الإزاله بنجاح'),
+            message: (action === 'push' ? ' تمت الإضافه بنجاح' : action === 'save' ? 'تم حفظ العناصر المختاره فقط' : ' تمت الإزاله بنجاح'),
             status: statusTexts.SUCCESS
         });
     })

@@ -3,8 +3,11 @@ const codeConstants = {
     CENTER: 'سنتر', // ==> grade
     ACTIVATE: 'تفعيل',
     LECTURES: 'محاضرات',
+
     GLOBAL: 'عام',
-    PRIVATE: "خاص"
+    PRIVATE: "خاص",
+    DEFINED: 'محدود'
+
 }
 
 module.exports = codeConstants

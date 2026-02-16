@@ -1,6 +1,6 @@
 const expressAsyncHandler = require("express-async-handler");
 const CouponModel = require("../models/CouponModel");
-const { getAll, insertOne, updateOne, deleteOne } = require("./factoryHandler");
+const { getAll, insertOne, updateOne, deleteOne, pushToModel } = require("./factoryHandler");
 const createError = require("../tools/createError");
 const { FAILED } = require("../tools/statusTexts");
 const CourseModel = require("../models/CourseModel");
@@ -25,6 +25,8 @@ const couponParams = (query) => {
 
 const getCoupons = getAll(CouponModel, 'coupons', couponParams)
 const createCoupon = insertOne(CouponModel)
+
+const addToCoupons = pushToModel(CouponModel)
 
 const updateCoupon = updateOne(CouponModel)
 const deleteCoupon = deleteOne(CouponModel)
@@ -102,12 +104,28 @@ const checkCouponAndPrice = async (couponName, user, product) => {
                 } else if (coupon.tag) {
                     const tag = new mongoose.Types.ObjectId(product._id);
                     isValid = coupon.tag.equals(tag)
+                }else {
+                    isValid = false
                 }
 
                 if (!isValid) {
                     return reject(createError("هذا الكوبون غير صالح", 400, FAILED))
                 }
             }
+
+            //DEFINED
+            if(coupon.type === codeConstants.DEFINED){
+                let isValid = true
+                if(coupon?.courses?.length){
+                    isValid= coupon.courses.includes(product._id)
+                }else {
+                    isValid = false
+                }
+         
+                if (!isValid) {
+                    return reject(createError("هذا الكوبون غير صالح", 400, FAILED))
+                }
+        }
 
             const couponDiscount = coupon.discount
             const price = product.price
@@ -122,6 +140,6 @@ const checkCouponAndPrice = async (couponName, user, product) => {
 
 // const validateCoupon = ()=> new Promise()
 module.exports = {
-    getCoupons, verifyCoupon, createCoupon, updateCoupon, deleteCoupon,
+    getCoupons, verifyCoupon, createCoupon, updateCoupon, deleteCoupon,addToCoupons,
     useCoupon
 }

@@ -9,11 +9,14 @@ const couponSchema = new mongoose.Schema({
     course: {
         type: mongoose.Schema.Types.ObjectId, ref: CourseModel,
     },
+    courses: [{
+        type: mongoose.Schema.Types.ObjectId, ref: CourseModel,
+    }],
     tag: {
         type: mongoose.Schema.Types.ObjectId, ref: 'tag',
     },
     coupon: { type: String, min: [6, 'اقل عدد للحروف هو 6 احرف'] },
-    type: { type: String, enum: [codeConstants.PRIVATE, codeConstants.GLOBAL], default: codeConstants.PRIVATE },
+    type: { type: String, enum: [codeConstants.PRIVATE, codeConstants.GLOBAL,codeConstants.DEFINED], default: codeConstants.PRIVATE },
     discount: {
         type: Number, default: 0, max: [100, "اقصى خصم هو 100 %"], min: [0, "القيمة الدنيا هي 0 %"],
     },
