@@ -1,5 +1,5 @@
 const { countStatistics } = require("../controllers/videoController")
-const { getQuestions, createQuestion, deleteQuestion, updateQuestion, createManyQuestions, linkQuestionToTags, unLinkQuestionToTags, startQuestionsBank } = require("../controllers/questionController")
+const { getQuestions, createQuestion, deleteQuestion, updateQuestion, createManyQuestions, linkQuestionToTags, unLinkQuestionToTags, startQuestionsBank, formatAI, validateText } = require("../controllers/questionController")
 const allowedTo = require("../middleware/allowedTo")
 const verifyToken = require("../middleware/verifyToken")
 
@@ -21,6 +21,9 @@ router.route("/")
 router.route('/bank')
     .post(verifyToken(),
         allowedTo(user_roles.STUDENT, user_roles.ONLINE), validateUserTag, startQuestionsBank)
+router.route("/format/ai")
+    .post(verifyToken(),
+        allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), validateText, formatAI)
 
 router.route("/:id")
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), reCorrectAnswersOnUpdateOneQuestion, updateQuestion)
