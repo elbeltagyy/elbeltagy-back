@@ -112,11 +112,11 @@ const checkCouponAndPrice = async (couponName, user, product) => {
                     return reject(createError("هذا الكوبون غير صالح", 400, FAILED))
                 }
             }
-
+            
             //DEFINED
             if(coupon.type === codeConstants.DEFINED){
                 let isValid = true
-                if(coupon?.courses?.length){
+                if(coupon?.courses?.length && product?._id){
                     isValid= coupon.courses.includes(product._id)
                 }else {
                     isValid = false
@@ -125,8 +125,10 @@ const checkCouponAndPrice = async (couponName, user, product) => {
                 if (!isValid) {
                     return reject(createError("هذا الكوبون غير صالح", 400, FAILED))
                 }
-        }
-
+            }
+            if(!product?._id){
+                    return reject(createError("هذا الكوبون غير صالح", 400, FAILED))
+            }
             const couponDiscount = coupon.discount
             const price = product.price
             const priceAfterDiscount = (price - ((couponDiscount / 100) * price))

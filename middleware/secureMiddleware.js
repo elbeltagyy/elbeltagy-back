@@ -1,10 +1,10 @@
 const asyncHandler = require("express-async-handler")
 const { user_roles } = require("../tools/constants/rolesConstants")
 
-const secureGetAll = (query = null, skipArr = []) => asyncHandler(async (req, res, next) => {
+const secureGetAll = (query = null, skipArr = [user_roles.ADMIN, user_roles.SUBADMIN]) => asyncHandler(async (req, res, next) => {
     const user = req.user
 
-    if (skipArr.length && skipArr.includes(user.role)) {
+    if (skipArr?.length && skipArr.includes(user.role)) {
         return next()
     }
 

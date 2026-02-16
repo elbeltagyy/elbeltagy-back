@@ -166,6 +166,7 @@ exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '
         if (embedFc) {
             values = await embedFc(req, values)
         }
+        // console.log(values)
         return res.status(200).json({ status: statusTexts.SUCCESS, values })
 
     });
