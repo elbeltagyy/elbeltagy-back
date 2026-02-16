@@ -19,6 +19,7 @@ const { uploadFile } = require("../middleware/upload/uploadFiles.js")
 const senderConstants = require("../tools/constants/sendersConstants.js");
 const sendEmail = require("../tools/sendEmail.js");
 const { sendWhatsMsgFc } = require("./whatsappController.js");
+const { arLang } = require("../tools/constants/arLang.js");
 
 // @desc user login
 // @route POST /login
@@ -199,10 +200,10 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
     
     If you did not make this request, please ignore this message.
     
-    If you have any questions or concerns, please contact our support team at  Mr Elbeltagy platform.
+    If you have any questions or concerns, please contact our support team at ${arLang.LOGO_EN} platform.
     
     Thank you,
-    Mr elbeltagy platform`;
+    ${arLang.LOGO_EN} platform`;
 
     const forgetMethod = req.body.method || senderConstants.EMAIL
     try {

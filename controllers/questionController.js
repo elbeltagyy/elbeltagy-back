@@ -120,7 +120,7 @@ const startQuestionsBank = expressAsyncHandler(async (req, res, next) => {
     if (flattened.length === 0) return res.status(404).json({ message: 'لا يوجد اسئله, لقد قمت بالايجابه على جميع الاسئله' })
     const { questions } = secureRtOption(req, { questions: flattened })
 
-    res.status(200).json({ values: questions, message: 'تم الحصول على عدد ' + questions?.length + ' اسئله' })
+    res.status(200).json({ values: questions}) //, message: 'تم الحصول على عدد ' + questions?.length + ' اسئله' 
 })
 
 const validateText = expressAsyncHandler(async(req, res, next)=> {

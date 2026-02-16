@@ -10,11 +10,11 @@ const router = require('express').Router()
 
 router.route("/")
     .get(verifyToken(true), secureGetAll({ key: "isActive", value: true }, [user_roles.SUBADMIN, user_roles.ADMIN]), getGrades)
-    .post(verifyToken(), allowedTo(user_roles.ADMIN), upload.single('image'), handelOneFile('image'), createGrade)
+    .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), upload.single('image'), handelOneFile('image'), createGrade)
 
 router.route("/:id")
     .get(getOneGrade)
-    .put(verifyToken(), allowedTo(user_roles.ADMIN), upload.single('image'), handelOneFile('image'), updateGrade)
-    .delete(verifyToken(), allowedTo(user_roles.ADMIN), deleteGrade)
+    .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), upload.single('image'), handelOneFile('image'), updateGrade)
+    .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), deleteGrade)
 module.exports = router
 
