@@ -174,8 +174,8 @@ class WhatsappService {
     }
 
     async cleanup(userId, isLogout) {
-        const sock = this.clients.get(userId);
-        if (!sock) throw createError('الواتساب غير فعال بالفعل', 400, FAILED)
+        // const sock = this.clients.get(userId);
+        // if (!sock) throw createError('الواتساب غير فعال بالفعل', 400, FAILED)
         this.clients.delete(userId);
         this.authStates.delete(userId);
         this.qrCodes.delete(userId);

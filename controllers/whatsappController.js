@@ -41,11 +41,11 @@ const closeWhatsapp = expressAsyncHandler(async (req, res, next) => {
     const { isLogout: isLogoutQuery } = req.query
     const isLogout = isLogoutQuery === 'true'
 
-    const status = await whatsappService.getClientStatus(whatsappId)
+    // const status = await whatsappService.getClientStatus(whatsappId)
 
-    if (!status) {
-        return next(createError('الواتس غير فعال بالفعل', 404, FAILED))
-    }
+    // if (!status) {
+    //     return next(createError('الواتس غير فعال بالفعل', 404, FAILED))
+    // }
     await whatsappService.cleanup(whatsappId, isLogout)
     res.status(200).json({ status: SUCCESS, message: isLogout ? 'تم تسجيل الخروج من واتس اب و اصبح غير فعال' : "واتس اب غير فعال" })
 })
