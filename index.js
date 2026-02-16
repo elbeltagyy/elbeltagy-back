@@ -25,7 +25,6 @@ const CourseModel = require("./models/CourseModel");
 const LectureModel = require("./models/LectureModel");
 const ChapterModel = require("./models/ChapterModel");
 const GradeModel = require("./models/GradeModel");
-const gradeConstants = require("./tools/constants/gradeConstants");
 
 // config
 // app.set('trust proxy', 'loopback');
