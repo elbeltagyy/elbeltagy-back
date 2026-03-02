@@ -46,4 +46,6 @@ router.use('/files', require('./fileRoutes'))
 router.use('/payments', require('./paymentRoutes'))
 router.use('/invoices', require('./invoiceRoutes'))
 
+router.use('/errors', require('./errorRoutes'))
+
 module.exports = router

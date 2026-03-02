@@ -3,6 +3,7 @@ const dotenv = require("dotenv")
 
 const statusTexts = require("../tools/statusTexts")
 const { validationResult } = require('express-validator');
+const ErrorModel = require("../models/ErrorModel");
 
 // config
 dotenv.config()
@@ -15,10 +16,21 @@ const notFound = ((req, res, next) => {
 
 const errorrHandler = ((err, req, res, next) => {
     const statusCode = err?.statusCode || err?.error?.statusCode || 500
+
     let message = err.message || err.error?.message || "connection confused"
     if (err.message?.startsWith('Cast to') && process.env.NODE_ENV === 'production') {
         message = 'Invalid Values'
     }
+
+    // Save to DB
+    ErrorModel.create({
+        message: err.message || err.error?.message || "connection confused",
+        stack: err.stack,
+        url: req.originalUrl,
+        method: req.method,
+        error: err,
+        isOperational: err.generated ?? false
+    });
 
     if (err.generated) {
         delete err.generated
