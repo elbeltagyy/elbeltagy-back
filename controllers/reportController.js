@@ -1,27 +1,17 @@
 const expressAsyncHandler = require("express-async-handler");
-const createPdf = require("../tools/pdf/createPdf");
-const pdfMake = require("../tools/pdf/pdfMake");
-const puppeteerPdf = require("../tools/pdf/pupetteerPdf");
+// const createPdf = require("../tools/pdf/createPdf");
+// const pdfMake = require("../tools/pdf/pdfMake");
+// const puppeteerPdf = require("../tools/pdf/pupetteerPdf");
+// const createPdfFromHtml = require("../tools/pdf/htmlPdf");
+
 const UserModel = require("../models/UserModel");
-const UserCourseModel = require("../models/UserCourseModel");
-const LectureModel = require("../models/LectureModel");
-const VideoStatisticsModel = require("../models/VideoStatisticsModel");
-const AttemptModel = require("../models/AttemptModel");
-const fs = require('fs');
-const path = require("path");
-const ejs = require('ejs');
-const { getDateWithTime, formatDuration, getFullDate } = require("../tools/dateFc");
-const getAttemptMark = require("../tools/getAttemptMark");
-const { attemptAllInfo, getExamMark } = require("../tools/getExamInfo");
-const { user_roles } = require("../tools/constants/rolesConstants");
- 
-const { userParams } = require("./userController");
+
 const ReportModel = require("../models/ReportModel");
 const ReportFailedModel = require("../models/ReportFailedModel");
 const { getAll, deleteOne, updateOne } = require("./factoryHandler");
-const createPdfFromHtml = require("../tools/pdf/htmlPdf");
-const sendUserReport = require("../tools/sendUserReport");
-const parseFilters = require("../tools/fcs/matchGPT");
+const selectUsers = require("../tools/fcs/selectUsers");
+const senderByMethod = require("../tools/fcs/senderByMethod");
+const { senderConstants } = require("../tools/constants/sendersConstants");
 
 // Use dynamic import() to load p-limit
 const pLimit = async () => {
@@ -34,10 +24,7 @@ const sendReports = expressAsyncHandler(async (req, res, next) => {
 
     const startDate = req.body.startDate || false
     const endDate = req.body.endDate || false
-
-    const isExcluded = req.body.isExcluded ?? true
-    const excludedUsers = req.body.excludedUsers || []
-
+    const method = req.body.method || senderConstants.REPORT_FAMILY_WHATSAPP
 
     const isNotCreateNewReport = req.body.isNotCreateNewReport || false
     const prevReport = req.body.report
@@ -47,27 +34,27 @@ const sendReports = expressAsyncHandler(async (req, res, next) => {
     if (startDate) lectureQuery.createdAt = { ...lectureQuery.createdAt, $gte: new Date(startDate) };
     if (endDate) lectureQuery.createdAt = { ...lectureQuery.createdAt, $lt: new Date(endDate) }
 
-    let match = parseFilters(userParams({ ...req.body, courses: req.body.course })) 
-    match.role = { $in: [user_roles.STUDENT, user_roles.ONLINE] }
-
-    if (isExcluded && excludedUsers?.length > 0 ) {
-        match = { ...match, _id: { $nin: excludedUsers } }
-    }
-
-    if (!isExcluded) {
-        match = { _id: { $in: excludedUsers } } //...match,
-    }
+    // let match = parseFilters(userParams({ ...req.body, courses: req.body.course })) 
+    let match = selectUsers(req.body)
+    // console.log('match ==>', match)
     // Fetch users
     const users = await UserModel.find(match).lean();
-  
+
     let failedReport = {
         users: [],
         reportErrors: []
     }
+    // res.json({ message: 'تم ارسال عدد' + " " + (users.length - failedReport.users.length) + ' و فشل ' + failedReport.users.length })
+    // return 
     // Process each user in parallel
     await Promise.all(users.map(user => limit(async () => {
         try {
-            await sendUserReport({ user, lectureQuery, course: req.body.course, startDate, endDate })
+            const subject = req.body.title
+            const message = req.body.description
+            // const caption = `*${subject}*\n${message}`
+
+            // await sendUserReport({ user, lectureQuery, course: req.body.course, startDate, endDate, caption })
+            await senderByMethod({ user, method, subject, message, lectureQuery, course: req.body.course, startDate, endDate, })
         } catch (error) {
             failedReport.users.push(user._id)
             failedReport.reportErrors.push(error?.message || 'unknown')

@@ -16,7 +16,7 @@ const clearTokens = require("../tools/clearTokens.js")
 const jwt = require('jsonwebtoken');
 const { useCode } = require("./factoryHandler.js")
 const { uploadFile } = require("../middleware/upload/uploadFiles.js")
-const senderConstants = require("../tools/constants/sendersConstants.js");
+const { senderConstants } = require("../tools/constants/sendersConstants.js");
 const sendEmail = require("../tools/sendEmail.js");
 const { sendWhatsMsgFc } = require("./whatsappController.js");
 const { arLang } = require("../tools/constants/arLang.js");
@@ -31,6 +31,7 @@ const login = asyncHandler(async (req, res, next) => {
     const user = await UserModel.findOne({ userName }).select(select)
 
     if (!user) return next(createError("هناك خطا فى البيانات المدخله", 404, statusTexts.FAILED))
+    req.user = user
     if (user?.role === user_roles?.INREVIEW) return next(createError("حسابك تحت المراجعه, سيتم تفعيله فى اقل من 24 ساعه", 401, statusTexts.FAILED))
 
     const isTruePass = await bcrypt.compare(password, user.password)
@@ -40,8 +41,6 @@ const login = asyncHandler(async (req, res, next) => {
         const error = createError("عذرًا, حسابك غير مفعل", 401, statusTexts.FAILED)
         return next(error)
     }
-
-    req.user = user
     next()
 })
 

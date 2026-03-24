@@ -59,6 +59,8 @@ const handelValueAndOperator = (value, type = null) => { //i use Type for watche
     operator = "=";
     value = value.slice(1);
   }
+
+  // if (!operator && value) operator = 'contains' // *_* rev
   if (SKIP_VALUES.includes(value)) isSkip = true;
   if (value === '' && (operator === 'isEmpty' || operator === 'isNotEmpty')) isSkip = false;
 

@@ -6,10 +6,12 @@ const errorLogSchema = new mongoose.Schema({
   url: String,
   method: String,
   isOperational: Boolean,
-  error: mongoose.Schema.Types.Mixed
+  error: mongoose.Schema.Types.Mixed,
+  statusCode: Number,
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
 }, {
-    timestamps: true,
-    versionKey: false
+  timestamps: true,
+  versionKey: false
 });
 
 const ErrorModel = mongoose.model("errorlog", errorLogSchema);

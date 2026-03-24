@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
 const UserModel = require("./UserModel")
-const senderConstants = require("../tools/constants/sendersConstants")
+const { senderConstants } = require("../tools/constants/sendersConstants")
 
 const notificationSchema = new mongoose.Schema({
     message: { type: String, required: true },

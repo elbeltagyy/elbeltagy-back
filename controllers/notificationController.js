@@ -1,7 +1,7 @@
 const expressAsyncHandler = require("express-async-handler");
 const NotificationModel = require("../models/NotificationModel");
 const { getAll, insertOne, updateOne, deleteOne } = require("./factoryHandler");
-const senderConstants = require("../tools/constants/sendersConstants");
+const { senderConstants, notificationMethods } = require("../tools/constants/sendersConstants");
 const UserModel = require("../models/UserModel");
 const sendEmail = require("../tools/sendEmail");
 const { sendWhatsMsgFc } = require("./whatsappController");
@@ -44,34 +44,14 @@ const handelNotification = expressAsyncHandler(async (req, res, next) => {
     const method = req.body.method
     const userId = req.body.user
     const message = req.body.message
+    const subject = req.body.subject
+
     const user = await UserModel.findById(userId).lean()
     if (!user) return next(createError("المستخدم غير موجود", 404, FAILED))
 
-    let isSkip = req.body.isSkip || false
-    switch (method) {
-        case senderConstants.CONTACT:
-            isSkip = false
-            break;
-        case senderConstants.EMAIL:
-            const email = user.email
-            await sendEmail({ email, subject: req.body.subject, html: message })
-            break;
-        case senderConstants.WHATSAPP:
-            await sendWhatsMsgFc(user.phone, message)
-            break;
-        case senderConstants.REPORT_USER_WHATSAPP:
-            await sendUserReport({ user, phoneToSend: user.phone })
-            break;
-        case senderConstants.FAMILY_WHATSAPP:
-            await sendWhatsMsgFc(user.familyPhone, message)
-            break;
-        case senderConstants.REPORT_FAMILY_WHATSAPP:
-            await sendUserReport({ user })
-            break;
-    }
-    if (isSkip) {
-        return res.status(200).json({ message: 'تم ارسال : ' + method, status: SUCCESS })
-    }
+    await senderByMethod({ method, user, subject, message })
+    req.successMsg = 'تم ارسال : ' + notificationMethods.find(n => n.value === method).label
+
     next()
 })
 
@@ -80,22 +60,24 @@ const sendNotificationsToMany = expressAsyncHandler(async (req, res, next) => {
     //grb routes
     const method = req.body.method
     const message = req.body.message
+    const subject = req.body.subject
 
+    //Who receive
     const match = selectUsers(req.body)
     const users = await UserModel.find(match).lean();
 
-    const failedNums = 0
+    let failedNums = 0
     // Process each user in parallel
     await Promise.all(users.map(user => limit(async () => {
         try {
-            await senderByMethod({ method, user, message, subject: 'Defaults' })
+            await senderByMethod({ method, user, message, subject })
         } catch (error) {
             failedNums += 1
             console.log('failed to send in sendNotificationByWhats ==>', error)
         }
     })));
 
-    const messageToSend = 'تم ارسال : ' + method + ' ' + 'العدد = ' + (users.length - failedNums)
+    const messageToSend = 'تم ارسال : ' + (notificationMethods.find(n => n.value === method).label) + ' ' + 'العدد = ' + (users.length - failedNums)
     return res.status(200).json({ status: SUCCESS, values: '', message: messageToSend })
 })
 module.exports = { getNotifications, handelNotification, createNotification, sendNotificationsToMany, updateNotification, deleteNotification, notificationParams, makeSeen }

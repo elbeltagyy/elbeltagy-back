@@ -145,21 +145,22 @@ class WhatsappService {
     if (!sock) throw createError("الواتساب غير فعال", 400, FAILED);
 
     const jid = 2 + `${to}@s.whatsapp.net`;
-    const res = await sock.sendMessage(jid, { text: messageText });
+    await sock.sendMessage(jid, { text: messageText });
     // console.log('res from send Msg ==>', res)
     return { success: true };
   }
 
-  async sendFile(userId, to, fileBuffer, fileName) {
+  async sendFile(userId, to, fileBuffer, fileName, others) {
     const sock = await this.clients.get(userId);
     if (!sock) throw createError("الواتساب غير فعال", 400, FAILED);
 
     const jid = 2 + `${to}@s.whatsapp.net`;
+    const caption = others?.caption || fileName
     // Send file using Baileys
     await sock.sendMessage(jid, {
       document: fileBuffer,
       mimetype: "application/pdf",
-      fileName,
+      fileName, caption
     });
 
     // يمكنك تحديد النوع (image, video, document...) بناء على الامتداد

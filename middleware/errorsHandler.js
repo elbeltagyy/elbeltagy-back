@@ -29,7 +29,7 @@ const errorrHandler = ((err, req, res, next) => {
         url: req.originalUrl,
         method: req.method,
         error: err,
-        isOperational: err.generated ?? false
+        isOperational: err.generated ?? false, statusCode, user: req?.user?._id
     });
 
     if (err.generated) {

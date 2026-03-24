@@ -99,7 +99,7 @@ const sendWhatsMsgFc = (phone, message) => {
     })
 }
 
-const sendWhatsFileFc = async (phone, filePath, isBytes = false, fileName = 'report.pdf') => {
+const sendWhatsFileFc = async (phone, filePath, isBytes = false, fileName = 'report.pdf', whatsVar) => {
     return new Promise(async (resolve, reject) => {
         try {
             // let media
@@ -110,7 +110,7 @@ const sendWhatsFileFc = async (phone, filePath, isBytes = false, fileName = 'rep
             //     media = MessageMedia.fromFilePath(filePath);
             // }
             // const result = await whatsappService.sendMessage(whatsappId, phone, media);
-            const result = await whatsappService.sendFile(whatsappId, phone, filePath,fileName );
+            const result = await whatsappService.sendFile(whatsappId, phone, filePath, fileName, whatsVar);
             resolve(true)
         } catch (error) {
             console.log('error from sendWhatsFile', error)

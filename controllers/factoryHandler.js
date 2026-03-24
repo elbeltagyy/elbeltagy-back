@@ -207,7 +207,8 @@ exports.insertOne = (Model, withIndex = false, populate = '') =>
         if (populate) {
             await doc.populate(populate)
         }
-        return res.status(201).json({ status: statusTexts.SUCCESS, values: doc, message: 'تم الانشاء بنجاح' })
+        const successMsg = req.successMsg ?? 'تم الانشاء بنجاح'
+        return res.status(201).json({ status: statusTexts.SUCCESS, values: doc, message: successMsg})
     });
 
 exports.updateOne = (Model) =>
