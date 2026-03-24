@@ -15,7 +15,8 @@ const viewParams = (query) => {
         { key: "lecture", value: query.lecture, operator: "equal" },
         { key: "role", value: query.role },
         { key: "totalTime", value: query.totalTime, type: "number" },
-        { key: "watchedTime", value: query.watchedTime, type: "number" },
+        { key: "createdAt", value: query.createdAt },
+        { key: "updatedAt", value: query.updatedAt },
     ]
 }
 
