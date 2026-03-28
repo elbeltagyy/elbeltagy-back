@@ -139,18 +139,21 @@ const islogged = asyncHandler(async (req, res, next) => {
 const refreshTokenFc = asyncHandler(async (req, res, next) => {
     const refreshToken = req.cookies?.refreshToken //signedCookies
 
+    if (!refreshToken) {
+        return next(createError('Bad Credentials', 400, statusTexts.FAILED, true))
+    }
     const { sessionId } = jwt.verify(refreshToken.split(" ")[1], process.env.REFRESH_TOKEN_SECRET)
 
     const currentSession = await SessionModel.findById(sessionId)
 
     if (!currentSession) {
         await clearTokens(req, res)
-        return next(createError('Bad Credentials', 400, FAILED, true))
+        return next(createError('Bad Credentials', 400, statusTexts.FAILED, true))
     }
 
     if (currentSession.logout) {
         await clearTokens(req, res)
-        return next(createError('Session ended, please login again', 400, FAILED, true))
+        return next(createError('Session ended, please login again', 400, statusTexts.FAILED, true))
     }
 
     const accessToken = generateAccessToken({ sessionId: currentSession._id })
@@ -233,6 +236,10 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
 })
 
 const verifyResetPassword = asyncHandler(async (req, res, next) => {
+    if (!req.body.resetCode) return next(createError("الرجاء ادخال كود التحقق", 400, statusTexts.FAILED));
+    if (!req.body.password) return next(createError("الرجاء ادخال الباسورد الجديد", 400, statusTexts.FAILED));
+    if(!req.body.userName) return next(createError("الرجاء ادخال اسم المستخدم", 400, statusTexts.FAILED));
+    
     const hashedResetCode = crypto
         .createHash("sha256")
         .update(req.body.resetCode) // convert resetCode to string
