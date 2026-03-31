@@ -92,7 +92,7 @@ async function createFawaterkTransaction(invoice, payment) {
         };
     } catch (error) {
         console.error("Error creating transaction", error.response?.data || error.message);
-        throw error;
+        throw createError('Error creating transaction: ' + (error.response?.data?.message || error.message), 400, FAILED);
     }
 }
 
