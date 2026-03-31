@@ -1,18 +1,51 @@
 const axios = require('axios');
 const dotenv = require("dotenv");
+const crypto = require('crypto')
 dotenv.config()
 
-async function makeNewPaymob({ price, items, billingData }) { //1st step for create token for user
+// const userInfo = {
+//     first_name: user.name.split(' ')[0],
+//     last_name: user.name.split(' ')[2],
+//     email: user.email,
+//     phone: user.phone,
+//     state: governments.find(i => i.id === user.government)?.governorate_name_ar || 'المنصوره',
+//     items: [item]
+// }
+
+
+async function makeNewPaymob({ price, userInfo, successUrl }, payment) { //1st step for create token for user
     try {
+        const billingData = {
+            apartment: 'Na',
+            email: userInfo.email,
+            first_name: userInfo.first_name,
+            last_name: userInfo.last_name,
+
+            phone_number: userInfo.phone,
+            floor: "NA",
+            street: "NA",
+            building: "NA",
+            shipping_method: "NA",
+            postal_code: "NA",
+            city: userInfo.state,
+            country: "EG",
+            state: userInfo.state,
+        }
+
         var raw = {
             amount: price,
-            // redirection_url: 'https://google.com', ref to Course
+            redirection_url: successUrl, //ref to Course
             currency: "EGP",
-            payment_methods: [
+            payment_methods: payment.paymobIntegrationIds || [
                 Number(process.env.PAYMOB_INTEGRATION_ID),
                 Number(process.env.PAYMOB_INTEGRATION_WALLET),
+                // Number(process.env.PAYMOB_INTEGRATION_KIOSK),
             ],
-            items: items,
+            items: (userInfo.items?.length > 0) ? userInfo.items.map(i => ({
+                name: i.name,
+                amount: i.amount * 100,
+                quantity: i.quantity || 1
+            })) : [],
             billing_data: billingData,
             customer: billingData,
             // "extras": {
@@ -26,56 +59,17 @@ async function makeNewPaymob({ price, items, billingData }) { //1st step for cre
                 "Content-Type": "application/json",
             },
         });
-        console.log('intention_order_id ==>', response.data.intention_order_id)
-        console.log('response ==>', response.data)
+        // console.log('intention_order_id ==>', response.data.intention_order_id)
+        // console.log('response ==>', response.data)
         return {
             orderId: response.data.intention_order_id, url: 'https://accept.paymob.com/unifiedcheckout/?publicKey=' + process.env.PAYMOB_PUBLIC_KEY +
                 '&clientSecret=' + response.data.client_secret
         }
     } catch (error) {
-        console.log('error from new==>', error)
+        console.log(error.response.data);
+        console.log('error from new==>', error.message)
         throw error
     }
-}
-
-
-
-
-async function getAuthToken() { //1st step for create token for user
-    const response = await axios.post('https://accept.paymob.com/api/auth/tokens', {
-        api_key: process.env.PAYMOB_API_KEY
-    });
-    return response.data.token;
-}
-
-
-async function createOrder(token, amountCents, items = [], data = {}) {
-    const response = await axios.post('https://accept.paymob.com/api/ecommerce/orders', {
-        auth_token: token,
-        delivery_needed: false,
-        amount_cents: amountCents, // e.g. 1000 = 10.00 EGP
-        currency: "EGP",
-        items, data
-    });
-    return response.data.id;
-}
-
-async function generatePaymentKey(token, amountCents, orderId, billingData) {
-    const response = await axios.post('https://accept.paymob.com/api/acceptance/payment_keys', {
-        auth_token: token,
-        amount_cents: amountCents,
-        integration_id: parseInt(process.env.PAYMOB_INTEGRATION_ID), // Card, Wallet, etc.
-
-        expiration: 3600,
-        order_id: orderId,
-        billing_data: billingData,
-        currency: "EGP",
-        lock_order_when_paid: true
-    });
-    return response.data.token;
-}
-const iframeURL = (paymentToken) => {
-    return `https://accept.paymob.com/api/acceptance/iframes/${process.env.PAYMOB_IFRAME_ID}?payment_token=${paymentToken}`;//
 }
 
 // Utility to verify HMAC
@@ -116,7 +110,7 @@ function verifyHmac(data, receivedHmac) {
 
     const joined = flattened.join('');
     const hmac = crypto
-        .createHmac('sha512', PAYMOB_HMAC_SECRET)
+        .createHmac('sha512', process.env.PAYMOB_HMAC_SECRET)
         .update(joined)
         .digest('hex');
 
@@ -124,22 +118,5 @@ function verifyHmac(data, receivedHmac) {
 }
 
 module.exports = {
-    getAuthToken, createOrder, generatePaymentKey, iframeURL, makeNewPaymob
+    makeNewPaymob, verifyHmac
 }
-
-
-const billingData = {
-    apartment: "NA",
-    email: "customer@example.com",
-    floor: "NA",
-    first_name: "Mahmoud",
-    street: "NA",
-    building: "NA",
-    phone_number: "+201234567890",
-    shipping_method: "NA",
-    postal_code: "NA",
-    city: "Cairo",
-    country: "EG",
-    last_name: "Elawady",
-    state: "Cairo"
-};

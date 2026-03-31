@@ -1,5 +1,5 @@
 const { filterById } = require('../controllers/factoryHandler')
-const { getInvoices, createInvoice, removeInvoice, updateInvoice, validatePreInvoice, makeInvoice, webHookSubscription, webhookPaymob, deleteManyInvoices } = require('../controllers/invoiceController')
+const { getInvoices, createInvoice, removeInvoice, updateInvoice, validatePreInvoice, makeInvoice, webHookSubscription, webhookPaymob, deleteManyInvoices, webhookFawaterk, webhookFawaterkCancelled, webhookFawaterkFailed } = require('../controllers/invoiceController')
 const { handelPaymentFile } = require('../controllers/paymentController')
 const allowedTo = require('../middleware/allowedTo')
 const { secureGetAll } = require('../middleware/secureMiddleware')
@@ -28,6 +28,14 @@ router.route("/:id")
 
 router.route("/webhook/paymob")
     .post(webhookPaymob)
+
+router.route("/webhook/fawaterk")
+    .post(webhookFawaterk)
+
+router.route("/webhook/fawaterk/cancelled")
+    .post(webhookFawaterkCancelled)
+router.route("/webhook/fawaterk/failed")
+    .post(webhookFawaterkFailed)
 
 router.route("/:id/webhook")
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), webHookSubscription)

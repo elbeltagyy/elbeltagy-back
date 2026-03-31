@@ -104,7 +104,7 @@ const checkCouponAndPrice = async (couponName, user, product) => {
                 } else if (coupon.tag) {
                     const tag = new mongoose.Types.ObjectId(product._id);
                     isValid = coupon.tag.equals(tag)
-                }else {
+                } else {
                     isValid = false
                 }
 
@@ -112,27 +112,30 @@ const checkCouponAndPrice = async (couponName, user, product) => {
                     return reject(createError("هذا الكوبون غير صالح", 400, FAILED))
                 }
             }
-            
+
             //DEFINED
-            if(coupon.type === codeConstants.DEFINED){
+            if (coupon.type === codeConstants.DEFINED) {
                 let isValid = true
-                if(coupon?.courses?.length && product?._id){
-                    isValid= coupon.courses.includes(product._id)
-                }else {
+                if (coupon?.courses?.length && product?._id) {
+                    isValid = coupon.courses.includes(product._id)
+                } else {
                     isValid = false
                 }
-         
+
                 if (!isValid) {
                     return reject(createError("هذا الكوبون غير صالح", 400, FAILED))
                 }
             }
-            if(!product?._id){
-                    return reject(createError("هذا الكوبون غير صالح", 400, FAILED))
+            if (!product?._id) {
+                return reject(createError("هذا الكوبون غير صالح", 400, FAILED))
             }
             const couponDiscount = coupon.discount
             const price = product.price
             const priceAfterDiscount = (price - ((couponDiscount / 100) * price))
 
+            if (priceAfterDiscount < 0) {
+                return reject(createError("هذا الكوبون غير صالح", 400, FAILED))
+            }
             return resolve({ priceAfterDiscount, originalPrice: price, coupon })
         } catch (error) {
             return reject(createError(error.message, 400, FAILED))
@@ -142,6 +145,6 @@ const checkCouponAndPrice = async (couponName, user, product) => {
 
 // const validateCoupon = ()=> new Promise()
 module.exports = {
-    getCoupons, verifyCoupon, createCoupon, updateCoupon, deleteCoupon,addToCoupons,
+    getCoupons, verifyCoupon, createCoupon, updateCoupon, deleteCoupon, addToCoupons,
     useCoupon
 }

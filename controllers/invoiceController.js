@@ -3,18 +3,40 @@ const InvoiceModel = require("../models/InvoiceModel");
 const { getAll, insertOne, deleteOne, updateOne, deleteMany } = require("./factoryHandler");
 const PaymentModel = require("../models/PaymentModel");
 const createError = require("../tools/createError");
-const { FAILED, SUCCESS, PENDING, PAID, REJECTED } = require("../tools/statusTexts");
+const { FAILED, SUCCESS, PENDING, PAID, REJECTED, CANCELLED } = require("../tools/statusTexts");
 const paymentInteg = require("../tools/constants/paymentInteg");
-const CouponModel = require("../models/CouponModel");
+
 const { useCoupon } = require("./couponController");
 const CourseModel = require("../models/CourseModel");
 const LectureModel = require("../models/LectureModel");
 const UserCourseModel = require("../models/UserCourseModel");
 const UserModel = require("../models/UserModel");
 const lockLectures = require("../tools/lockLectures");
-const { getAuthToken, createOrder, iframeURL, generatePaymentKey, makeNewPaymob } = require("../tools/payments/paymob");
+const { makeNewPaymob } = require("../tools/payments/paymob");
 const governments = require("../tools/constants/governments");
 const TagModel = require("../models/TagModel");
+const { createFawaterkTransaction } = require("../tools/payments/fawaterk");
+const crypto = require('crypto');
+ 
+const createInvoiceInstructions = (invoice) => invoice.fawryCode ? `يرجي استخدام كود فوري ${invoice.fawryCode} لدفع الفاتوره قبل ${new Date(invoice.expireDate).toLocaleString("ar-EG")}`
+    : invoice.meezaQrCode ? 'افتح تطبيق (فودافون كاش - اتصالات كاش - اورنج موني) وامسح رمز الاستجابة السريعة - ثم قم باعاده تحميل الصفحه بعد الدفع لتأكيد العملية' :
+        invoice.redirectUrl && ' يرجى الضغط على الرابط التالي لإتمام عملية الدفع:'
+
+
+function generateHashKey(secretKey, queryParams) {
+    const hash = crypto.createHmac('sha256', secretKey)
+        .update(queryParams)
+        .digest('hex');
+    return hash;
+}
+
+const cancelOtherInvoices = async (user, key, value) => {
+    await InvoiceModel.updateMany({
+        user, [key]: value, status: PENDING,
+    }, {
+        status: CANCELLED, message: 'تم رفض هذا الطلب لوجود طلب اخر لنفس المنتج تحت المراجعه'
+    })
+}
 
 const invoiceParams = (query) => {
     return [
@@ -41,17 +63,19 @@ const updateInvoice = updateOne(InvoiceModel)
 
 const deleteManyInvoices = deleteMany(InvoiceModel, invoiceParams, [], [], 'file')
 const removeInvoice = deleteOne(InvoiceModel, [], [], 'file')
+const alreadySubscribedError = createError('انت بالفعل مشترك', 400, FAILED)
 
 const validatePreInvoice = expressAsyncHandler(async (req, res, next) => {
     const user = req.user
     const invoice = req.body
+    const couponBody = req.body.coupon
+    const coupon = (couponBody === 'undefined' || couponBody === 'null') ? null : couponBody
 
     const payment = await PaymentModel.findById(invoice.payment).lean()
-    if (!payment) return next(createError('Not Found', 404, FAILED))
+    if (!payment) return next(createError('Payment Not Found', 404, FAILED))
     if (!payment.isActive) return next(createError('This method is not available now', 400, FAILED))
-    //validate startDate , endDate *_*
 
-    const alreadySubscribedError = createError('انت بالفعل مشترك', 400, FAILED)
+    //validate startDate , endDate *_*
     let product = {};
 
     //define product => course, tag, lecture
@@ -72,51 +96,56 @@ const validatePreInvoice = expressAsyncHandler(async (req, res, next) => {
         {
             key: 'lecture',
             model: LectureModel,
-            userCheck: async () => user.accessLectures?.includes(invoice.lecture),
+            userCheck: async () => user.accessLectures.includes(invoice.lecture),
             // isAsync: true,
         },
     ];
 
+    //i want to Reject ==> manually repeated
     if (invoice.wallet) {
         const PAIDBefore = await InvoiceModel.findOne({
-            user: user._id, wallet: invoice.wallet, status: PENDING
+            user: user._id, wallet: invoice.wallet, status: PENDING,
+            paymentType: 'manual'
         }).lean().select('_id')
-        if (PAIDBefore) {
-            return next(createError('هناك طلب شحن بنفس المبلغ, يرجى الانتظار لحين قبول هذا الطلب او شحن المحفظه بمبلغ اخر', 404, FAILED))
-        }
+
+        if (PAIDBefore) return next(createError('هناك طلب شحن بنفس المبلغ, يرجى الانتظار لحين قبول هذا الطلب او شحن المحفظه بمبلغ اخر', 400, FAILED))
+        if (coupon) return next(createError('لا يمكن استعمال كوبون مع المحفظه', 400, FAILED))
 
         const price = Number(invoice.wallet)
         if (user.wallet + price > 2000) return next(createError('اقصى مبلغ للمحفظه هو 2000', 400, FAILED))
+
         product.price = price
     } else {
         for (const item of productChecks) {
             if (invoice[item.key]) {
-                const PAIDBefore = await InvoiceModel.findOne({
-                    user: user._id,
-                    [item.key]: invoice[item.key],
-                    status: { $ne: FAILED }
-                }).select('_id').lean();
+                // const PAIDBefore = await InvoiceModel.findOne({
+                //     user: user._id,
+                //     [item.key]: invoice[item.key],
+                //     // status: { $ne: FAILED },
+                //     paymentType: 'manual'
+                // }).select('_id').lean();
 
-                if (PAIDBefore) return next(createError('لقد تم طلب دفع مسبقا', 400, FAILED));
-
-                // const isAlreadySubscribed = item.isAsync
-                //     ? item.userCheck()
-                //     : await item.userCheck();
+                // if (PAIDBefore) return next(createError('لقد تم طلب دفع مسبقا', 400, FAILED));
                 const isAlreadySubscribed = await item.userCheck();
-
                 if (isAlreadySubscribed) return next(alreadySubscribedError);
 
                 product = await item.model.findById(invoice[item.key]).lean();
+                product.key = item.key
                 break;
             }
         }
     }
     if (!product) return next(createError('Product Not Found', 404, FAILED))
-
+    product.successUrl = req.body.successUrl
     req.product = product
     req.payment = payment
-    if ((product.price === 0 || product.isFree) && payment.type !== paymentInteg.WALLET) { //*_* Not Applied WithCoupons
-        return next(createError('هذا المنتج مجانى, يمكنك تفعيله عن طريق وسيله الدفع المحفظه فقط'), 400, FAILED)
+
+    if (coupon) {
+        product.price = await useCoupon(coupon, user, product, { isWallet: payment.type === paymentInteg.WALLET, isSave: false })
+    }
+
+    if (product.price === 0 || product.isFree) {
+        payment.type = paymentInteg.WALLET
     }
     next()
 })
@@ -126,22 +155,34 @@ const makeInvoice = expressAsyncHandler(async (req, res, next) => {
     const invoiceData = req.body
     const product = req.product
     const payment = req.payment
+    const coupon = invoiceData.coupon
 
     //new Payment
     //Continue Payment
     let hasPAIDSuccessfully = false
-    //Apply coupon
-
     invoiceData.price = product.price;
-    if (invoiceData.coupon && !(invoiceData.coupon === 'undefined' || invoiceData.coupon === 'null')) {
-        invoiceData.price = await useCoupon(invoiceData.coupon, user, product, { isWallet: true, isSave: true })
+
+    const item = {
+        name: invoiceData.description,
+        amount: invoiceData.price, //amount for paymob - price => fawaterk
+        quantity: '1'
     }
 
+    const userInfo = {
+        first_name: user.name.split(' ')[0],
+        last_name: user.name.split(' ')[2],
+        email: user.email,
+        phone: user.phone,
+        state: governments.find(i => i.id === user.government)?.governorate_name_ar || 'المنصوره',
+        items: [item]
+    }
+
+    const expiresAt = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000); //after 5 days
     const invoice = new InvoiceModel({
         ...invoiceData,
         user: user._id,
-        status: PENDING,
-        price: invoiceData.price
+        status: PENDING, paymentType: payment.type || 'manual',
+        price: invoiceData.price, userInfo, expireDate: expiresAt
     });
     await invoice.validate(); // throws if invalid
 
@@ -154,42 +195,44 @@ const makeInvoice = expressAsyncHandler(async (req, res, next) => {
             }
             user.wallet = user.wallet - invoice.price
             hasPAIDSuccessfully = true
+
+            if (invoice[product.key]) { await cancelOtherInvoices(user._id, product.key, invoice[product.key]) }
             await user.save()
+            if (coupon) await useCoupon(coupon, user, product, { isSave: true })
             break;
+
         case paymentInteg.PAYMOB:
 
-            const billingData = {
-                apartment: 'Na',
-                email: user.email,
-                first_name: user.name.split(' ')[0],
-                last_name: user.name.split(' ')[2],
-
-                phone_number: user.phone,
-                floor: "NA",
-                street: "NA",
-                building: "NA",
-                shipping_method: "NA",
-                postal_code: "NA",
-                city: governments.find(i => i.id === user.government)?.governorate_name_ar || 'المنصوره',
-                country: "EG",
-                state: governments.find(i => i.id === user.government)?.governorate_name_ar || 'المنصوره',
-            }
-
-            //######Start New settings
-            const { orderId, url } = await makeNewPaymob({ price: invoice.price * 100, items: [], billingData })
+            const { orderId, url } = await makeNewPaymob({ price: invoice.price * 100, userInfo, successUrl: product.successUrl }, payment)
             invoice.orderId = orderId
+            if (invoice[product.key]) { await cancelOtherInvoices(user._id, product.key, invoice[product.key]) }
             await invoice.save()
+            if (coupon) useCoupon(coupon, user, product, { isSave: true })
             return res.status(201).json({ values: { redirectUrl: url }, message: 'سيتم تحويلك الي بوابه الدفع', status: SUCCESS })
-            // ########  End
 
-            // const token = await getAuthToken();
-            // const orderId = await createOrder(token, invoice.price * 100); // 100 EGP
+        case paymentInteg.FAWATERK:
 
-            // const paymentToken = await generatePaymentKey(token, invoice.price * 100, orderId, billingData);
-            // invoice.orderId = orderId
-            // await invoice.save()
-            // const redirectUrl = iframeURL(paymentToken)
-            // return res.status(201).json({ values: { redirectUrl }, message: 'سيتم تحويلك الي بوابه الدفع', status: SUCCESS })
+            invoice.fawaterkPaymentId = payment.fawaterkPaymentId
+            const fawResp = await createFawaterkTransaction({ price: invoice.price, successUrl: product.successUrl, userInfo }, payment)
+
+            invoice.redirectUrl = fawResp.url
+            invoice.orderId = fawResp.orderId
+            invoice.trnxId = fawResp.invoice_key
+            invoice.fawryCode = fawResp.fawryCode
+            invoice.expireDate = fawResp.expireDate
+            invoice.meezaQrCode = fawResp.meezaQrCode
+            invoice.meezaReference = fawResp.meezaReference
+            invoice.instructions = createInvoiceInstructions(invoice)
+
+            if (invoice[product.key]) { await cancelOtherInvoices(user._id, product.key, invoice[product.key]) }
+            await invoice.save()
+            if (coupon) useCoupon(coupon, user, product, { isSave: true })
+
+            //complete Payment
+            return res.status(201).json({
+                values: { invoice, redirectUrl: invoice.redirectUrl },
+                message: invoice.instructions, status: SUCCESS
+            })
         default:
             // Normal as Cashes pending
             await invoice.save()
@@ -208,7 +251,7 @@ const makeInvoice = expressAsyncHandler(async (req, res, next) => {
     await invoice.save()
 
     response.values.invoice = invoice
-    response.values.wallet = user.wallet
+    response.values = { ...response.values, user: { wallet: user.wallet } }
     res.status(200).json({ status: SUCCESS, values: response.values, message: response.message })
 })
 
@@ -250,16 +293,17 @@ const webhookPaymob = expressAsyncHandler(async (req, res, next) => {
     const orderId = data.order?.id
 
     // const isValid = verifyHmac(data, hmac);
-    // console.log('hmac ==>', hmac)
-    // console.log('orderId ===>', orderId)
+    // console.log('from hmac ==>', isValid)
 
     // if (!isValid) {
     //   console.log('❌ Invalid HMAC!');
     //   return res.sendStatus(403);
     // }
-    if (!orderId || !data) return res.status(400).json({ status: FAILED, message: 'Some thing went wrongs' })
+    if (!orderId || !data) return res.status(400).json({ status: FAILED, message: 'Some thing went wrong' })
     if (data?.success) {
         const invoice = await InvoiceModel.findOne({ orderId }).populate('user')
+        if (invoice.status === PAID) throw createError('Duplicate Apply Subscription ' + invoice._id, 400, FAILED)
+
         await applySubscription(invoice, invoice.user, { notModifyRes: true })
         invoice.status = PAID
         invoice.trnxId = data.id
@@ -277,6 +321,65 @@ const webhookPaymob = expressAsyncHandler(async (req, res, next) => {
 
 })
 
+const webhookFawaterk = expressAsyncHandler(async (req, res, next) => {
+    const response = req.body
+    const orderId = response?.invoice_id
+    const status = response?.invoice_status
+    const hashKey = response.hashKey
+
+    const queryParam = `InvoiceId=${response.invoice_id}&InvoiceKey=${response.invoice_key}&PaymentMethod=${response.payment_method}`;
+    const generatedHashKey = generateHashKey(process.env.FAWATERK_TOKEN, queryParam);
+    if (hashKey !== generatedHashKey) return next(createError('Invalid hash key', 400, FAILED, true))
+    if (status !== 'paid') return next(createError('Invoice not paid status ==>', status, 400, FAILED))
+
+    const invoice = await InvoiceModel.findOne({ orderId }).populate('user')
+    if (!invoice) return next(createError('Invoice not found', 404, FAILED))
+    if (invoice.status === PAID) throw createError('Duplicate Apply Subscription ' + invoice._id, 400, FAILED)
+
+    invoice.status = PAID
+    await Promise.all([
+        applySubscription(invoice, invoice.user, { notModifyRes: true }),
+        invoice.save()
+    ])
+
+    return res.status(204).json({ status: SUCCESS })
+})
+
+const webhookFawaterkCancelled = expressAsyncHandler(async (req, res, next) => {
+    const data = req.body
+    const orderId = data?.transactionId
+    const hashKey = data.hashKey
+    const errorMessage = data?.errorMessage || 'Expired Invoice'
+
+    const queryParam = `referenceId=${data.referenceId}&PaymentMethod=${data.paymentMethod}`;
+    const generatedHashKey = generateHashKey(process.env.FAWATERK_TOKEN, queryParam);
+    if (hashKey !== generatedHashKey) return next(createError('Invalid hash key', 400, FAILED, true))
+
+    await Promise.all([
+        InvoiceModel.updateOne({ orderId }, { status: CANCELLED, message: errorMessage })
+    ])
+
+    return res.status(204).json({ status: SUCCESS })
+})
+
+const webhookFawaterkFailed = expressAsyncHandler(async (req, res, next) => {
+    const data = req.body
+    const orderId = data?.invoice_id
+    const hashKey = data.hashKey
+    const errorMessage = data?.errorMessage
+
+    const queryParam = `InvoiceId=${data.invoice_id}&InvoiceKey=${data.invoice_key}&PaymentMethod=${data.payment_method}`;
+    const generatedHashKey = generateHashKey(process.env.FAWATERK_TOKEN, queryParam);
+    if (hashKey !== generatedHashKey) return next(createError('Invalid hash key', 400, FAILED, true))
+
+    await Promise.all([
+        InvoiceModel.updateOne({ orderId }, { status: FAILED, message: errorMessage })
+    ])
+
+    return res.status(204).json({ status: SUCCESS })
+})
+
+
 const applySubscription = async (invoice, user, meta = {}) => {
     let response = {};
     let responseValues = {}
@@ -284,6 +387,9 @@ const applySubscription = async (invoice, user, meta = {}) => {
     const notModifyRes = meta.notModifyRes || false
 
     if (invoice.course) {
+        const isSubscribedBefore = await UserCourseModel.findOne({ user: user._id, course: invoice.course }).select('_id').lean()
+        if (isSubscribedBefore) throw createError('الطالب مشترك بالفعل', 400, FAILED)
+
         const [userCourse, foundCourse] = await Promise.all([
             UserCourseModel.create({
                 user: user._id,
@@ -324,6 +430,7 @@ const applySubscription = async (invoice, user, meta = {}) => {
         // handle tag
     } else if (invoice.lecture) {
         // handle lecture
+        if (user.accessLectures?.includes(invoice.lecture)) throw createError('الطالب مشترك بالفعل', 400, FAILED)
         await UserModel.updateOne(
             { _id: user._id },
             {
@@ -379,7 +486,11 @@ const revokeSubscription = async (invoice, user) => {
         await UserModel.updateOne(
             { _id: user._id },
             {
-                $pull: { tags: invoice.tag }
+                $pull: {
+                    tags: Array.isArray(invoice.tag)
+                        ? { $in: invoice.tag }
+                        : invoice.tag
+                }
             }
         );
 
@@ -389,7 +500,11 @@ const revokeSubscription = async (invoice, user) => {
         await UserModel.updateOne(
             { _id: user._id },
             {
-                $pull: { accessLectures: invoice.lecture }
+                $pull: {
+                    accessLectures: Array.isArray(invoice.lecture)
+                        ? { $in: invoice.lecture }
+                        : invoice.lecture
+                }
             }
         );
 
@@ -412,5 +527,6 @@ const revokeSubscription = async (invoice, user) => {
 
 module.exports = {
     getInvoices, updateInvoice, createInvoice, removeInvoice, deleteManyInvoices,
-    validatePreInvoice, makeInvoice, webHookSubscription, webhookPaymob
+    validatePreInvoice, makeInvoice,
+    webHookSubscription, webhookPaymob, webhookFawaterk, webhookFawaterkCancelled, webhookFawaterkFailed
 }
