@@ -11,11 +11,6 @@ const senderByMethod = async ({ method, user, subject, message, ...others }) => 
         const handledMsgWhatsapp = `*${subject}*\n${message}`
 
         switch (method) {
-            case senderConstants.CONTACT:
-                await NotificationModel.insertOne({
-                    user: user._id, subject, message, method,
-                })
-                break;
             case senderConstants.EMAIL:
                 const email = user.email
                 await sendEmail({ email, subject: subject, html: message })
@@ -33,6 +28,9 @@ const senderByMethod = async ({ method, user, subject, message, ...others }) => 
                 await sendUserReport({ user, caption: handledMsgWhatsapp, ...others })
                 break;
         }
+        await NotificationModel.insertOne({
+            user: user._id, subject, message, method,
+        })
         return true
     } catch (error) {
         console.log('error from senderByMethod')
