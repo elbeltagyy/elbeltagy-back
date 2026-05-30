@@ -3,7 +3,7 @@ const UnitModel = require("./UnitModel")
 
 
 const courseSchema = new mongoose.Schema({
-    grade: { type: Number,required: true },
+    grade: { type: Number, required: true },
     unit: { type: mongoose.Schema.Types.ObjectId, ref: UnitModel, required: true },
     index: { type: Number, required: true, unique: true },
 
@@ -16,9 +16,10 @@ const courseSchema = new mongoose.Schema({
     isActive: { type: Boolean, required: true, default: true },
     isFixed: Boolean,
 
-    isSalable: {type: Boolean, default: true},
-    isLecturesSalable: {type: Boolean, default: true},
-
+    isSalable: { type: Boolean, default: true },
+    isLecturesSalable: { type: Boolean, default: true },
+    estimatedVideos: Number,
+    estimatedFiles: Number, estimatedExams: Number,
 
     dateStart: { type: Date },
     dateEnd: { type: Date },

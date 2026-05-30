@@ -34,6 +34,9 @@ const coursesParams = (query) => {
         { key: "isFixed", value: query.isFixed },
         { key: "unit", value: query.unit, operator: "equal" },
         { key: "index", value: query.index, operator: "equal" },
+        { key: "estimatedVideos", value: query.estimatedVideos },
+        { key: "estimatedFiles", value: query.estimatedFiles },
+        { key: "estimatedExams", value: query.estimatedExams },
         { key: "_id", value: query._id },
     ]
 }
