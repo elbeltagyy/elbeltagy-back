@@ -4,7 +4,7 @@ const filePlayers = require("../tools/constants/filePlayers")
 const videoSchema = new mongoose.Schema({
     name: { type: String },
     url: { type: String },
-    player: { type: String, enum: [filePlayers.SERVER, filePlayers.YOUTUBE, filePlayers.BUNNY, filePlayers.BUNNY_UPLOAD] },
+    player: { type: String, enum: [filePlayers.SERVER, filePlayers.YOUTUBE, filePlayers.BUNNY, filePlayers.BUNNY_UPLOAD, filePlayers.GOOGLE_DRIVE] },
     isButton: { type: Boolean, default: false },
     duration: { type: String }, //ms params
     size: { type: Number }, //bytes

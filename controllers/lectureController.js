@@ -29,7 +29,7 @@ dotenv.config()
 const lectureParams = (query) => {
     return [
         { $filter: query.$filter },
-        { key: "grade", value: query.grade},
+        { key: "grade", value: query.grade },
         { key: "unit", value: query.unit, operator: "equal" },
         { key: "course", value: query.course, operator: "equal" },
         { key: "name", value: query.name },
@@ -256,6 +256,9 @@ const createLecture = expressAsyncHandler(async (req, res, next) => {
                 break;
             case filePlayers.BUNNY:
                 video.url = lecture.url // ### modify video
+                break;
+            case filePlayers.GOOGLE_DRIVE:
+                video.url = getGoogleDrivePreviewLink(lecture.url) // ### modify video
                 break;
 
             case filePlayers.BUNNY_UPLOAD: //done
