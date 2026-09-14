@@ -19,10 +19,11 @@ const pLimit = async () => {
 
 const notificationParams = (query) => {
     return [
-        { key: "user", value: query.user, operator: 'equal' },
+        { key: "user", value: query.user },
         { key: "message", value: query.message },
         { key: "subject", value: query.subject },
-        { key: "isSeen", value: query.isSeen, type: 'boolean' },
+        { key: "isSeen", value: query.isSeen },
+        { key: "phone", value: query.phone },
     ]
 } //modify it to be more frontend
 

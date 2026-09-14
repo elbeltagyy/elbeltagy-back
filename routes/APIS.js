@@ -18,7 +18,7 @@ router.use("/codes", codeRoutes)
 router.use("/coupons", require("./couponRoutes"))
 router.use("/notifications", require('./notificationRoutes'))
 router.use("/feedBacks", require('./feedBackRoutes'))
-router.use("/tags", require('./tagRoutes')) 
+router.use("/tags", require('./tagRoutes'))
 
 router.use("/grades", require('./gradeRoutes'))
 router.use("/chapters", require('./chapterRoutes'))
@@ -45,6 +45,18 @@ router.use("/groups", require("./groupRoutes"))
 router.use('/files', require('./fileRoutes'))
 router.use('/payments', require('./paymentRoutes'))
 router.use('/invoices', require('./invoiceRoutes'))
+
+router.use('/facebook', require('./socials/facebookRoutes'))
+router.use('/messenger', require('./socials/messengerRoutes'))
+router.use('/conversations', require('./socials/conversationsRoutes'))
+
+router.use('/plans', require('./planRoutes'))
+router.use('/tasks', require('./planTaskRoutes'))
+router.use('/templates', require('./templateRoutes'))
+
+router.use('/books', require('./bookRoutes'))
+router.use('/booksOrders', require('./bookOrderRoutes'))
+router.use('/applications', require('./applicationRoutes'))
 
 router.use('/errors', require('./errorRoutes'))
 

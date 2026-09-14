@@ -1,8 +1,20 @@
 const multer = require("multer");
 const fileTypes = require("../tools/constants/fileTypes");
+const fs = require("fs");
+const path = require("path");
+
+const tempDir = path.join(process.cwd(), "storage", "temp");
 
 const fileFilter = (req, file, cb) => {
-    const allowedFiles = [fileTypes.JPEG, fileTypes.PDF, fileTypes.PNG, fileTypes.WebP] //fileTypes.MP4,
+    const allowedFiles = [fileTypes.JPEG, fileTypes.PDF, fileTypes.PNG, fileTypes.WebP,      // Audio
+        'audio/mpeg',     // .mp3
+        'audio/wav',      // .wav
+        'audio/x-wav',    // .wav (some browsers)
+        'audio/webm',     // .webm audio
+        'audio/ogg',      // .ogg
+        'audio/mp4',      // .m4a
+        'audio/aac',      // .aac
+    ] //fileTypes.MP4,
 
     if (allowedFiles.includes(file.mimetype)) {
         cb(null, true); // Accept the file
@@ -11,14 +23,22 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
+const destination = process.env.host === 'server' && ((req, file, cb) => {
+    if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+    }
+    cb(null, tempDir);
+})
 
 // const storage = multer.memoryStorage(); // Store files in memory
 const storage = multer.diskStorage({
     filename: (req, file, cb) => {
         const fileName = `${Date.now()}_${file.originalname.replace(" ", "-")}`
         cb(null, fileName)
-    }
+    }, ...(destination && { destination }),
 })
+
+
 const secureStorage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, "storage/secure"); // or wherever you want to store

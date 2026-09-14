@@ -6,7 +6,7 @@ const { user_roles } = require("../tools/constants/rolesConstants")
 const router = require("express").Router()
 
 router.route("/userId/init")
-    .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), initializeWhatsApp)
+    .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), initializeWhatsApp)
 
 router.route("/userId/close")
     .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), closeWhatsapp)

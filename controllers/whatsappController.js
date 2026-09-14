@@ -5,18 +5,20 @@ const { FAILED, SUCCESS } = require("../tools/statusTexts");
 const WhatsappService = require("../tools/whatsappClient"); // now w small
 const { MessageMedia } = require("whatsapp-web.js");
 
+
 const whatsappService = new WhatsappService();
 const whatsappId = 'test-whatsapp'
 
 const initializeWhatsApp = expressAsyncHandler(async (req, res, next) => {
 
+    const recordMessages = req.body.recordMessages ?? false
     const status = await whatsappService.getClientStatus(whatsappId)
 
-    if (status) {
+    if (status.isActive) {
         return next(createError('الواتس فعال بالفعل', 404, FAILED))
     }
 
-    const result = await whatsappService.initialize(whatsappId);
+    const result = await whatsappService.initialize(whatsappId, { recordMessages });
     console.log('end Iniltializing ==>')
 
     const qrCode = await whatsappService.getQrCode(whatsappId);
@@ -41,11 +43,6 @@ const closeWhatsapp = expressAsyncHandler(async (req, res, next) => {
     const { isLogout: isLogoutQuery } = req.query
     const isLogout = isLogoutQuery === 'true'
 
-    // const status = await whatsappService.getClientStatus(whatsappId)
-
-    // if (!status) {
-    //     return next(createError('الواتس غير فعال بالفعل', 404, FAILED))
-    // }
     await whatsappService.cleanup(whatsappId, isLogout)
     res.status(200).json({ status: SUCCESS, message: isLogout ? 'تم تسجيل الخروج من واتس اب و اصبح غير فعال' : "واتس اب غير فعال" })
 })
@@ -65,7 +62,7 @@ const activateByQr = expressAsyncHandler(async (req, res, next) => {
 const whatsStatusMiddleware = expressAsyncHandler(async (req, res, next) => {
     const status = await whatsappService.getClientStatus(whatsappId);
 
-    if (!status) {
+    if (!status.isActive) {
         return next(createError("الواتس غير فعال", 400, FAILED))
     }
     next()
@@ -74,10 +71,10 @@ const whatsStatusMiddleware = expressAsyncHandler(async (req, res, next) => {
 const getWhatsStatus = expressAsyncHandler(async (req, res, next) => {
     const status = await whatsappService.getClientStatus(whatsappId);
 
-    if (!status) {
-        return res.status(200).json({ status: SUCCESS, values: { isValid: false } });
+    if (!status.isActive) {
+        return res.status(200).json({ status: SUCCESS, values: status });
     }
-    res.status(200).json({ status: SUCCESS, values: { isValid: true, status } });
+    res.status(200).json({ status: SUCCESS, values: status });
 })
 
 const sendWhatsMessage = expressAsyncHandler(async (req, res, next) => {
@@ -102,15 +99,7 @@ const sendWhatsMsgFc = (phone, message) => {
 const sendWhatsFileFc = async (phone, filePath, isBytes = false, fileName = 'report.pdf', whatsVar) => {
     return new Promise(async (resolve, reject) => {
         try {
-            // let media
-            // if (isBytes) {
-            //     const fileBase = filePath.toString('base64');
-            //     media = new MessageMedia('application/pdf', fileBase, fileName)
-            // } else {
-            //     media = MessageMedia.fromFilePath(filePath);
-            // }
-            // const result = await whatsappService.sendMessage(whatsappId, phone, media);
-            const result = await whatsappService.sendFile(whatsappId, phone, filePath, fileName, whatsVar);
+            const result = await whatsappService.sendMedia(whatsappId, phone, filePath, fileName, whatsVar);
             resolve(true)
         } catch (error) {
             console.log('error from sendWhatsFile', error)
@@ -120,7 +109,18 @@ const sendWhatsFileFc = async (phone, filePath, isBytes = false, fileName = 'rep
     })
 }
 
+
 module.exports = {
     initializeWhatsApp, closeWhatsapp, activateByQr, getWhatsStatus, whatsStatusMiddleware, sendWhatsMessage,
-    sendWhatsMsgFc, sendWhatsFileFc
-} 
+    sendWhatsMsgFc, sendWhatsFileFc,
+}
+
+
+// let media
+// if (isBytes) {
+//     const fileBase = filePath.toString('base64');
+//     media = new MessageMedia('application/pdf', fileBase, fileName)
+// } else {
+//     media = MessageMedia.fromFilePath(filePath);
+// }
+// const result = await whatsappService.sendMessage(whatsappId, phone, media);

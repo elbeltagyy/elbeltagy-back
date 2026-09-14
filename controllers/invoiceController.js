@@ -17,7 +17,10 @@ const governments = require("../tools/constants/governments");
 const TagModel = require("../models/TagModel");
 const { createFawaterkTransaction } = require("../tools/payments/fawaterk");
 const crypto = require('crypto');
- 
+const BookModel = require("../models/BookModel");
+const BookOrderModel = require("../models/BookOrderModel");
+const { addBookToUser, removeBookFromUser } = require("./bookController");
+
 const createInvoiceInstructions = (invoice) => invoice.fawryCode ? `يرجي استخدام كود فوري ${invoice.fawryCode} لدفع الفاتوره قبل ${new Date(invoice.expireDate).toLocaleString("ar-EG")}`
     : invoice.meezaQrCode ? 'افتح تطبيق (فودافون كاش - اتصالات كاش - اورنج موني) وامسح رمز الاستجابة السريعة - ثم قم باعاده تحميل الصفحه بعد الدفع لتأكيد العملية' :
         invoice.redirectUrl && ' يرجى الضغط على الرابط التالي لإتمام عملية الدفع:'
@@ -98,7 +101,12 @@ const validatePreInvoice = expressAsyncHandler(async (req, res, next) => {
             model: LectureModel,
             userCheck: async () => user.accessLectures.includes(invoice.lecture),
             // isAsync: true,
-        },
+        }, {
+            key: 'book',
+            model: BookModel,
+            userCheck: async () => BookOrderModel.findOne({ user: user._id, book: invoice.book }).select('_id').lean(),
+            productCheck: async (book) => book.copies <= book.numbers
+        }
     ];
 
     //i want to Reject ==> manually repeated
@@ -130,6 +138,10 @@ const validatePreInvoice = expressAsyncHandler(async (req, res, next) => {
                 if (isAlreadySubscribed) return next(alreadySubscribedError);
 
                 product = await item.model.findById(invoice[item.key]).lean();
+                if (!!item.productCheck) {
+                    const notAllowed = await item.productCheck(product);
+                    if (notAllowed) return next(createError('هذا المنتج غير متاح', 400, FAILED));
+                }
                 product.key = item.key
                 break;
             }
@@ -235,6 +247,7 @@ const makeInvoice = expressAsyncHandler(async (req, res, next) => {
             })
         default:
             // Normal as Cashes pending
+            if (invoice[product.key]) { await cancelOtherInvoices(user._id, product.key, invoice[product.key]) }
             await invoice.save()
             return res.status(201).json({ values: { invoice }, message: 'لقد تم ارسال طلب الدفع, واصبح تحت المراجعه', status: SUCCESS })
     }
@@ -449,6 +462,10 @@ const applySubscription = async (invoice, user, meta = {}) => {
             }
         )
         response.message = 'تم قبول الطلب وتم شحن المحفظه بمبلغ ' + invoice.price;
+    } else if (invoice.book) {
+        const bookOrder = await addBookToUser(invoice.book, user._id, invoice.price, 'book')
+        responseValues = { bookOrder }
+        response.message = 'تم شراء الكتاب بنجاح'
     }
 
     if (notModifyRes) {
@@ -519,6 +536,9 @@ const revokeSubscription = async (invoice, user) => {
         );
 
         response.message = `تم خصم ${invoice.price} من المحفظة بنجاح`;
+    } else if (invoice.book) {
+        await removeBookFromUser(invoice.book, user._id)
+        response.message = "تم ازاله الكتاب من الطالب بنجاح";
     } else {
         response.error = 'نوع الاشتراك غير معروف ولا يمكن إلغاءه';
     }

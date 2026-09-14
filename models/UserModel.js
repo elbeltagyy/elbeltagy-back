@@ -6,6 +6,7 @@ const CourseModel = require("./CourseModel")
 const ExamModel = require("./ExamModel")
 const LectureModel = require("./LectureModel")
 const GroupModel = require("./GroupModel")
+const BookModel = require("./BookModel")
 
 const governDefault = 4
 
@@ -54,6 +55,7 @@ const userSchema = new mongoose.Schema({
     ResetCodeVerified: Boolean,
 
     courses: [{ type: mongoose.Schema.Types.ObjectId, ref: CourseModel, select: false }],
+    books: [{ type: mongoose.Schema.Types.ObjectId, ref: BookModel, select: false }],
     exams: [{ type: mongoose.Schema.Types.ObjectId, ref: ExamModel, select: false }], //for passing exams
     lectures: [{ type: mongoose.Schema.Types.ObjectId, ref: LectureModel }],// for passing vids , select: false 
 

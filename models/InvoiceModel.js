@@ -32,6 +32,7 @@ const invoiceSchema = new mongoose.Schema({
     course: { type: mongoose.Schema.Types.ObjectId, ref: 'course' },
     tag: { type: mongoose.Schema.Types.ObjectId, ref: 'tag' },
     lecture: { type: mongoose.Schema.Types.ObjectId, ref: 'lecture' },
+    book: { type: mongoose.Schema.Types.ObjectId, ref: 'book' },
     userInfo: Object,
 }, {
     timestamps: true,

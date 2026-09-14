@@ -16,6 +16,7 @@ const dotenv = require("dotenv");
 const parseFilters = require("../tools/fcs/matchGPT.js");
 const UserModel = require("../models/UserModel.js");
 const convertToObjectIdBySchema = require("../tools/fcs/convertToObjectIdBySchema.js");
+const { buildPopulate } = require("../tools/fcs/buildPopulate.js");
 dotenv.config()
 
 const getMonthRange = (value) => {
@@ -112,7 +113,31 @@ exports.handelOneFile = (fileKey) =>
         }
         next()
     });
+//handelMultipleFiles(['thumbnail', 'file'])
+//handelMultipleFiles({ thumbnail: 'single', file: 'multiple' })
+exports.handelMultipleFiles = (fileKeys) =>
+    asyncHandler(async (req, res, next) => {
+        const entries = Array.isArray(fileKeys)
+            ? fileKeys.map((key) => [key, 'single'])
+            : Object.entries(fileKeys);
 
+        await Promise.all(
+            entries.map(async ([fileKey, mode]) => {
+                const files = req.files?.[fileKey] || [];
+                if (files.length) {
+                    const uploaded = await Promise.all(
+                        files.map((file) =>
+                            uploadFile(file, { name: file?.originalname, secure: true })
+                        )
+                    );
+                    req.body[fileKey] = mode === 'single' ? uploaded[0] : uploaded;
+                } else {
+                    delete req.body[fileKey];
+                }
+            })
+        );
+        next();
+    });
 exports.deleteFromBody = (keys = []) => {
     return asyncHandler(async (req, res, next) => {
         keys.map(key => {
@@ -150,7 +175,7 @@ exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '
         const select = query.select ? query.select : ""
         sort._id = -1 // *_*
         // //populate
-        populate = req.query.populate || populate
+        populate = req.query.populate ? buildPopulate(req.query.populate) : populate
 
         const docs = await Model.find(match)
             .select(select)
@@ -194,7 +219,7 @@ exports.getOne = (Model, populate = '') =>
 
     });
 
-exports.insertOne = (Model, withIndex = false, populate = '') =>
+exports.insertOne = (Model, withIndex = false, populate = '', relatedDocs) =>
     asyncHandler(async (req, res) => {
 
         if (withIndex) {
@@ -207,8 +232,23 @@ exports.insertOne = (Model, withIndex = false, populate = '') =>
         if (populate) {
             await doc.populate(populate)
         }
+        if (relatedDocs) {
+            const updateTasks = relatedDocs.map(({ model, fields, refValue }) =>
+                fields.map(field =>
+                    model.updateMany(
+                        { _id: doc[refValue] },
+                        {
+                            $addToSet: {
+                                [field]: doc._id
+                            }
+                        }
+                    )
+                )
+            ).flat();
+            await Promise.all(updateTasks);
+        }
         const successMsg = req.successMsg ?? 'تم الانشاء بنجاح'
-        return res.status(201).json({ status: statusTexts.SUCCESS, values: doc, message: successMsg})
+        return res.status(201).json({ status: statusTexts.SUCCESS, values: doc, message: successMsg })
     });
 
 exports.updateOne = (Model) =>
@@ -226,7 +266,7 @@ exports.updateOne = (Model) =>
     });
 
 
-exports.deleteOne = (Model, relatedDocs = [], relatedModels = [], relatedFile) =>
+exports.deleteOne = (Model, relatedDocs = [], relatedModels = [], relatedFiles) =>
     asyncHandler(async (req, res, next) => {
         const { id } = req.params;
         // console.log('id ==>', id)
@@ -236,20 +276,24 @@ exports.deleteOne = (Model, relatedDocs = [], relatedModels = [], relatedFile) =
             return next('لم يوجد');
         }
 
-        if (relatedDocs.length > 0) {
+        if (relatedDocs?.length > 0) {
             await deleteOtherDocs(relatedDocs, id)
         }
 
-        if (relatedModels.length > 0) {
-            await deleteOtherModels(relatedModels, id)
+        if (relatedModels?.length > 0) {
+            await deleteOtherModels(relatedModels, id, document)
         }
         let isFoundFileAndDeleted = false
-        if (relatedFile && document[relatedFile]) {
-            isFoundFileAndDeleted = await deleteFile(document[relatedFile])
+        if (relatedFiles) {
+            const relatedFilesArray = Array.isArray(relatedFiles) ? relatedFiles : [relatedFiles]
+
+            isFoundFileAndDeleted = await Promise.all(relatedFilesArray.map(f => {
+                return deleteFile(document[f])
+            }))
         }
 
         let message = 'تمت الازاله بنجاح'
-        if (isFoundFileAndDeleted) {
+        if (isFoundFileAndDeleted.length) {
             message += ' , ' + 'تم حذف الملف بنجاح'
         }
         return res.status(200).json({ status: statusTexts.SUCCESS, message })
@@ -317,13 +361,13 @@ exports.deleteMany = (Model, params = [], relatedDocs = [], relatedModels = [], 
         return res.status(200).json({ status: statusTexts.SUCCESS, message })
     });
 
-exports.getDocCount = (Model, params = []) =>
+exports.getDocCount = (Model, params = null) =>
     asyncHandler(async (req, res) => {
 
         const query = req.query
 
         // search && filter
-        const match = parseFilters(params(query))
+        const match = params ? parseFilters(params(query)) : {}
 
         const count = await Model.countDocuments(match)
         return res.status(200).json({ status: statusTexts.SUCCESS, values: { count } })
@@ -493,21 +537,26 @@ exports.pushToModel = (Model) => {
         }
 
         // Create dynamic update object
-        const update = action === 'push' ? 
-        { $addToSet: {
-            [field]: Array.isArray(value)
-                ? { $each: value }
-                : value
-        }} :  action === 'save' ? 
-            { $set: {
-                [field]: Array.isArray(value) ? value : [value]
-            }}
-        : { $pull: {
-          [field]: Array.isArray(value)
-            ? { $in: value }
-            : value
-        }
-        }
+        const update = action === 'push' ?
+            {
+                $addToSet: {
+                    [field]: Array.isArray(value)
+                        ? { $each: value }
+                        : value
+                }
+            } : action === 'save' ?
+                {
+                    $set: {
+                        [field]: Array.isArray(value) ? value : [value]
+                    }
+                }
+                : {
+                    $pull: {
+                        [field]: Array.isArray(value)
+                            ? { $in: value }
+                            : value
+                    }
+                }
         // field: 'tags', ids: chosenUsers, value: tag._id, action: 'pull'
         // console.log(update, targetIds)
         await Model.updateMany(
@@ -541,12 +590,16 @@ const deleteOtherDocs = async (relatedDocs, id) => {
     }
 }
 
-const deleteOtherModels = async (relatedModels, id) => {
-    //    { model: UserModel, field: 'group', relatedFiles: ['String] },
-    const ids = Array.isArray(id) ? id : [id];
+const deleteOtherModels = async (relatedModels, id, parent) => {
+    //    { model: UserModel, field: 'group', relatedFiles: ['String], parentId },
+    let ids = Array.isArray(id) ? id : [id];
     try {
 
-        relatedModels.forEach(async ({ model, field, relatedFiles }) => {
+        relatedModels.forEach(async ({ model, field, relatedFiles = [], parentId }) => {
+            if (parentId) {
+                const newId = parent[parentId]
+                ids = Array.isArray(newId) ? newId : [newId]
+            }
             if (!Array.isArray(relatedFiles)) {
                 relatedFiles = [relatedFiles].filter(Boolean);
             }
@@ -554,7 +607,7 @@ const deleteOtherModels = async (relatedModels, id) => {
             const docs = await model.find({ [field]: { $in: ids } }).lean();
 
             let fileTasks = []
-            if (relatedFiles.length > 0) {
+            if (relatedFiles?.length > 0) {
                 docs.forEach(doc => {
                     relatedFiles.forEach(fileField => {
                         const filePath = doc[fileField];

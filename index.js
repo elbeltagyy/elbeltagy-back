@@ -16,7 +16,7 @@ const helmet = require("helmet");
 const { notFound, errorrHandler } = require("./middleware/errorsHandler");
 const testRoutes = require("./routes/testRoutes");
 const AnswerModel = require("./models/AnswerModel");
-const ExamModel = require("./models/ExamModel"); 
+const ExamModel = require("./models/ExamModel");
 const AttemptModel = require("./models/AttemptModel");
 const QuestionModel = require("./models/QuestionModel");
 const ms = require("ms");
@@ -25,6 +25,9 @@ const CourseModel = require("./models/CourseModel");
 const LectureModel = require("./models/LectureModel");
 const ChapterModel = require("./models/ChapterModel");
 const GradeModel = require("./models/GradeModel");
+const PlanModel = require("./models/PlanModel");
+const SocialModel = require("./models/SocialModel");
+const PaymentModel = require("./models/PaymentModel");
 
 // config
 // app.set('trust proxy', 'loopback');
@@ -52,8 +55,8 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 app.use(express.urlencoded({ extended: true }))
-app.use(bodyParser.json({limit: '3mb'}))
-app.use(bodyParser.urlencoded({ extended: true ,limit: '3mb'}))
+app.use(bodyParser.json({ limit: '3mb' }))
+app.use(bodyParser.urlencoded({ extended: true, limit: '3mb' }))
 
 app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(device.capture());
@@ -81,6 +84,7 @@ app.use("/api/get-ip", (req, res, next) => {
 const origin = [
   "https://elbeltagy-front.vercel.app",
   "https://mrelbeltagy.com",
+  // 'http://192.168.1.9:3000'
 ];
 process.env.NODE_ENV === "development" &&
   origin.push(...["http://localhost:3000"]);
@@ -110,7 +114,7 @@ app.use("/storage", express.static(path.join(__dirname, "storage")));
 //routes config
 app.use((req, res, next) => {
   // const excludedRoutes = ['/', '/payment/callback', '/payment/webhook'];
-  const excludedPrefixes = ["/api/invoices/webhook"];
+  const excludedPrefixes = ["/api/invoices/webhook", '/api/facebook', '/api/messenger']; //webhook
 
   // If current route is excluded, skip the check
   if (excludedPrefixes.some((prefix) => req.path.startsWith(prefix))) {
@@ -145,6 +149,7 @@ const connectDb = async () => {
   try {
     await mongoose.connect(DB_URI);
     console.log("connected");
+
     // fixGrades()
   } catch (error) {
     console.log("failed to connect ==>", error);

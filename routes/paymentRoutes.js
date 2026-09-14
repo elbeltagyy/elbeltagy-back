@@ -8,7 +8,7 @@ const { user_roles } = require('../tools/constants/rolesConstants')
 const router = require('express').Router()
 
 router.route("/")
-    .get(verifyToken(), secureGetAll({ key: 'isActive', value: true }), getPayments) //allowedTo(user_roles.ADMIN, user_roles.SUBADMIN, user_roles.MENTOR)
+    .get(verifyToken(true), secureGetAll({ key: 'isActive', value: true }), getPayments) //allowedTo(user_roles.ADMIN, user_roles.SUBADMIN, user_roles.MENTOR)
     .post(
         verifyToken(),
         allowedTo(user_roles.ADMIN, user_roles.SUBADMIN, user_roles.MENTOR),
