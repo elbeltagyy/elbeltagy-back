@@ -1,5 +1,8 @@
 const { getConversations, getMessages, replyToMessage } = require("../../controllers/social/messengerController");
+const allowedTo = require("../../middleware/allowedTo");
 const { upload } = require("../../middleware/storage");
+const verifyToken = require("../../middleware/verifyToken");
+const { user_roles } = require("../../tools/constants/rolesConstants");
 const axiosInstance = require("../../tools/fcs/axios");
 
 const router = require("express").Router()
@@ -20,11 +23,11 @@ const subscribeMessenger = async ({ pageId, accessToken }) => {
 }
 
 router.route('/conversations')
-    .get(getConversations)
+    .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), getConversations)
 
 router.route('/conversations/:id')
-    .get(getMessages)
-    .post(upload.array('files', 10), replyToMessage)
+    .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), getMessages)
+    .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), upload.array('files', 10), replyToMessage)
 
 // GET /webhook — Meta calls this to verify your endpoint
 router.route('/webhook').get((req, res) => {

@@ -283,7 +283,7 @@ exports.deleteOne = (Model, relatedDocs = [], relatedModels = [], relatedFiles) 
         if (relatedModels?.length > 0) {
             await deleteOtherModels(relatedModels, id, document)
         }
-        let isFoundFileAndDeleted = false
+        let isFoundFileAndDeleted = []
         if (relatedFiles) {
             const relatedFilesArray = Array.isArray(relatedFiles) ? relatedFiles : [relatedFiles]
 
@@ -293,7 +293,7 @@ exports.deleteOne = (Model, relatedDocs = [], relatedModels = [], relatedFiles) 
         }
 
         let message = 'تمت الازاله بنجاح'
-        if (isFoundFileAndDeleted.length) {
+        if (isFoundFileAndDeleted?.length) {
             message += ' , ' + 'تم حذف الملف بنجاح'
         }
         return res.status(200).json({ status: statusTexts.SUCCESS, message })

@@ -11,6 +11,7 @@ const bookParams = (query) => {
         { key: "payment", value: query.payment },
         { key: "status", value: query.status },
         { key: "_id", value: query._id },
+        { key: "user", value: query.user },
     ]
 }
 
