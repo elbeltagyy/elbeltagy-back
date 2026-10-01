@@ -1,12 +1,12 @@
-const expressAsyncHandler = require("express-async-handler");
-const SocialModel = require("../../models/SocialModel");
-const SocialConstants = require("../../tools/constants/social");
-const axiosInstance = require("../../tools/fcs/axios");
-const createError = require("../../tools/createError");
-const { SUCCESS, FAILED } = require("../../tools/statusTexts");
+import expressAsyncHandler from 'express-async-handler';
+import SocialModel from '../../models/SocialModel.js';
+import SocialConstants from '../../tools/constants/social.js';
+import axiosInstance from '../../tools/fcs/axios.js';
+import createError from '../../tools/createError.js';
+import { SUCCESS, FAILED } from '../../tools/statusTexts.js';
 
-const FormData = require('form-data');
-const fs = require('fs');
+import FormData from 'form-data';
+import fs from 'fs';
 
 
 const webhookMessage = expressAsyncHandler(async (req, res, next) => {
@@ -199,4 +199,4 @@ const sendFileDisk = async (page, { recipientId, file, }) => {
     return result;
 };
 
-module.exports = { webhookMessage, getConversations, getMessages, replyToMessage }
+export { webhookMessage, getConversations, getMessages, replyToMessage };

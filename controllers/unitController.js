@@ -1,9 +1,9 @@
-const expressAsyncHandler = require("express-async-handler");
-const UnitModel = require("../models/UnitModel");
-const { getAll, getOne, insertOne, updateOne, deleteOne } = require("./factoryHandler");
-const CourseModel = require("../models/CourseModel");
-const createError = require("../tools/createError");
-const { FAILED } = require("../tools/statusTexts");
+import expressAsyncHandler from 'express-async-handler';
+import UnitModel from '../models/UnitModel.js';
+import { getAll, getOne, insertOne, updateOne, deleteOne } from './factoryHandler.js';
+import CourseModel from '../models/CourseModel.js';
+import createError from '../tools/createError.js';
+import { FAILED } from '../tools/statusTexts.js';
 
 
 const unitParams = (query) => {
@@ -31,4 +31,4 @@ const checkUnitsBeforeDelete = expressAsyncHandler(async (req, res, next) => {
     next()
 })
 
-module.exports = { getUnits, getOneUnit, createUnit, updateUnit, checkUnitsBeforeDelete, deleteUnit, unitParams }
+export { getUnits, getOneUnit, createUnit, updateUnit, checkUnitsBeforeDelete, deleteUnit, unitParams };

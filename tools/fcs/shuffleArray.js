@@ -6,4 +6,4 @@ const shuffleArray = (array) => {
     return array;
 }
 
-module.exports = shuffleArray
+export default shuffleArray;

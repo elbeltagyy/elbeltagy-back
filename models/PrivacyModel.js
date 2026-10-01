@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+import mongoose from 'mongoose';
 
 
 const privacySchema = new mongoose.Schema({
@@ -11,4 +11,4 @@ const privacySchema = new mongoose.Schema({
 })
 
 const PrivacyModel = mongoose.model("privacy", privacySchema)
-module.exports = PrivacyModel
+export default PrivacyModel;

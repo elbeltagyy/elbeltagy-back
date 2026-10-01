@@ -1,18 +1,28 @@
-const { getCourses, createCourse, getOneCourse, updateCourse, deleteCourse, uploadCourseImg, getCourseLecturesAndCheckForUser, subscribe, getLectureAndCheck, lecturePassed, getExam, createAttempt, linkCourse, checkDeleteCourse } = require("../controllers/courseController")
-const { upload } = require("../middleware/storage")
+import { getCourses, createCourse, getOneCourse, updateCourse, deleteCourse, uploadCourseImg, getCourseLecturesAndCheckForUser, subscribe, getLectureAndCheck, lecturePassed, getExam, createAttempt, linkCourse, checkDeleteCourse, getUserCoursesMiddleware } from '../controllers/courseController.js';
+import { upload } from '../middleware/storage.js';
 
-const { user_roles } = require("../tools/constants/rolesConstants")
-const verifyToken = require("../middleware/verifyToken")
-const allowedTo = require("../middleware/allowedTo")
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import verifyToken from '../middleware/verifyToken.js';
+import allowedTo from '../middleware/allowedTo.js';
 
-const router = require("express").Router()
+import express from 'express';
+import { secureGetAll } from '../middleware/secureMiddleware.js';
+const router = express.Router();
 
 router.route("/")
-    .get(getCourses)
+    .get(verifyToken(true), secureGetAll({ key: 'isActive', value: true }), getCourses)
     .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), upload.single('thumbnail'), uploadCourseImg, createCourse)
 
+router.route("/user")
+    .get(verifyToken(false, {
+        populate: {
+            path: 'user',
+            select: '+courses'
+        }
+    }), secureGetAll({ key: 'isActive', value: true }), getUserCoursesMiddleware, getCourses)
+
 router.route("/:id")
-    .get(getOneCourse)
+    .get(verifyToken(true), secureGetAll({ key: 'isActive', value: true }), getOneCourse)
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), upload.single('thumbnail'), uploadCourseImg, updateCourse)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), checkDeleteCourse, deleteCourse)
 
@@ -39,4 +49,4 @@ router.route('/:id/attempts') //calc mark, most important id === course._id || l
 router.route('/:id/subscribe') //most important id === _id
     .post(verifyToken(), allowedTo(user_roles.ONLINE, user_roles.STUDENT), subscribe)
 
-module.exports = router
+export default router;

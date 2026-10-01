@@ -1,5 +1,5 @@
-const nodemailer = require("nodemailer");
-const { arLang } = require("./constants/arLang");
+import nodemailer from 'nodemailer';
+import { arLang } from './constants/arLang.js';
 
 const sendEmail = async (opt = { email, subject, html, message }) => {
   const transporter = nodemailer.createTransport({
@@ -21,4 +21,4 @@ const sendEmail = async (opt = { email, subject, html, message }) => {
   await transporter.sendMail(mailerOptions);
 };
 
-module.exports = sendEmail;
+export default sendEmail;

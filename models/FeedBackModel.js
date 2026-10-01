@@ -1,6 +1,6 @@
-const { default: mongoose } = require("mongoose");
+import mongoose from 'mongoose';
 
- 
+
 const feedBackSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
     subject: { type: String },
@@ -13,4 +13,4 @@ const feedBackSchema = new mongoose.Schema({
 })
 
 const FeedBackModel = mongoose.model('feedBack', feedBackSchema)
-module.exports = FeedBackModel
+export default FeedBackModel;

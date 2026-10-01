@@ -1,29 +1,29 @@
-const { getAll, getOne, insertOne, updateOne, deleteOne, pushToModel } = require("./factoryHandler");
-const LectureModel = require("../models/LectureModel");
-const expressAsyncHandler = require("express-async-handler");
-const { addToCloud, deleteFromCloud } = require("../middleware/upload/cloudinary");
-const createError = require("../tools/createError");
-const { FAILED, SUCCESS } = require("../tools/statusTexts");
-const VideoModel = require("../models/VideoModel");
-const CourseModel = require("../models/CourseModel");
-const ExamModel = require("../models/ExamModel");
-const AttemptModel = require("../models/AttemptModel");
-const FileModel = require("../models/FileModel");
-const LinkModel = require("../models/LinkModel");
-const sectionConstants = require("../tools/constants/sectionConstants");
-const filePlayers = require("../tools/constants/filePlayers");
+import { getAll, getOne, insertOne, updateOne, deleteOne, pushToModel } from './factoryHandler.js';
+import LectureModel from '../models/LectureModel.js';
+import expressAsyncHandler from 'express-async-handler';
+import { addToCloud, deleteFromCloud } from '../middleware/upload/cloudinary.js';
+import createError from '../tools/createError.js';
+import { FAILED, SUCCESS } from '../tools/statusTexts.js';
+import VideoModel from '../models/VideoModel.js';
+import CourseModel from '../models/CourseModel.js';
+import ExamModel from '../models/ExamModel.js';
+import AttemptModel from '../models/AttemptModel.js';
+import FileModel from '../models/FileModel.js';
+import LinkModel from '../models/LinkModel.js';
+import sectionConstants from '../tools/constants/sectionConstants.js';
+import filePlayers from '../tools/constants/filePlayers.js';
 
-const { addToBunny } = require("../middleware/bunny");
-const { addToServer } = require("../middleware/upload/uploadServer");
-const { uploadFile, deleteFile } = require("../middleware/upload/uploadFiles");
-const dotenv = require("dotenv");
-const UserModel = require("../models/UserModel");
-const VideoStatisticsModel = require("../models/VideoStatisticsModel");
-const CodeModel = require("../models/CodeModel");
-const codeConstants = require("../tools/constants/codeConstants");
-const { user_roles } = require("../tools/constants/rolesConstants");
-const handelExamAndAttempts = require("../tools/fcs/handelExamAndAttempts");
-const ChapterModel = require("../models/ChapterModel");
+import { addToBunny } from '../middleware/bunny.js';
+import { addToServer } from '../middleware/upload/uploadServer.js';
+import { uploadFile, deleteFile } from '../middleware/upload/uploadFiles.js';
+import dotenv from 'dotenv';
+import UserModel from '../models/UserModel.js';
+import VideoStatisticsModel from '../models/VideoStatisticsModel.js';
+import CodeModel from '../models/CodeModel.js';
+import codeConstants from '../tools/constants/codeConstants.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import handelExamAndAttempts from '../tools/fcs/handelExamAndAttempts.js';
+import ChapterModel from '../models/ChapterModel.js';
 
 dotenv.config()
 const lectureParams = (query) => {
@@ -42,6 +42,8 @@ const lectureParams = (query) => {
         { key: "groups", value: query.groups, type: 'array' },
         { key: "codes", value: query.codes },
         { key: "isSalable", value: query.isSalable, type: 'boolean' },
+        { key: "summary", value: query.summary },
+        { key: "isCommunity", value: query.isCommunity },
     ]
 }
 
@@ -57,6 +59,43 @@ const getGoogleDrivePreviewLink = (originalLink) => {
         return null;
     }
 };
+
+/**
+ * Fetches active child lectures for a given parent lecture,
+ * and resolves exam/attempt data for any child that has an exam.
+ *
+ * @param {Object} lecture - The parent lecture document.
+ * @param {Object} user - The current user (needed for exam/attempt lookup).
+ * @returns {Promise<Array>} - The resolved array of child lectures.
+ */
+export async function getLectureChildrenWithExams(lecture, user) {
+    if (lecture.parent) return
+
+    const children = await LectureModel.find({ parent: lecture._id, isActive: true })
+        .lean()
+        .populate('exam video file link')
+
+    return resolveExamsForAssets(children, user)
+}
+
+/**
+ * Given any array of lecture/asset-like documents, resolves exam +
+ * attempt data for the ones that have an exam, leaving others untouched.
+ *
+ * @param {Array} assets
+ * @param {Object} user
+ * @returns {Promise<Array>}
+ */
+async function resolveExamsForAssets(assets = [], user) {
+    return Promise.all(
+        assets.map(async (asset) => {
+            if (asset.exam) {
+                return await handelExamAndAttempts(asset, user)
+            }
+            return asset
+        })
+    )
+}
 
 
 const getLectures = getAll(LectureModel, 'lectures', lectureParams, false, 'video') //used bu users
@@ -80,9 +119,17 @@ const getLecturesForAdmin = expressAsyncHandler(async (req, res, next) => {
         LectureModel.find({ course: { $in: coursesIds } }).populate(populate).lean().sort({ index: 1 })
     ])
 
+    const parentLectureIds = lectures.map(lec => lec._id)
+    const childrenLectures = parentLectureIds.length ? await LectureModel.find({ parent: { $in: parentLectureIds } }).populate(populate).lean().sort({ index: 1 }) : []
+    const parentLectures = lectures.map(lecture => {
+        return {
+            ...lecture,
+            children: childrenLectures.filter(l => String(l.parent) === String(lecture._id))
+        }
+    })
     const lessons = chapters.map(chapter => {
 
-        return { ...chapter, lectures: lectures.filter(lec => String(lec.chapter) === String(chapter._id)) }
+        return { ...chapter, lectures: parentLectures.filter(lec => String(lec.chapter) === String(chapter._id)) }
     })
 
     res.json({ status: SUCCESS, values: { lessons, lectures } }) //lectures,
@@ -228,7 +275,7 @@ const getLectureForCenter = expressAsyncHandler(async (req, res, next) => {
     }
 
     if (!isValid) return next(createError("يمكنك التواصل مع الدعم لشراء المحاضره", 401, FAILED))
-
+    lecture.children = await getLectureChildrenWithExams(lecture, user)
     if (lecture.exam) {
         lecture = await handelExamAndAttempts(lecture, user)
     }
@@ -457,15 +504,7 @@ const removeFromLectures = expressAsyncHandler(async (req, res, next) => {
     );
     res.status(200).json({ message: 'تم ازاله المحاضرات', status: SUCCESS })
 })
-module.exports = {
-    getLectures, insertLecture,
-    protectGetLectures, getLecturesForAdmin,
-    getOneLecture, getLectureForCenter,
-    createLecture, updateLecture, handelUpdateLecture, deleteLecture,
-    lectureParams,
-    removeFromLectures, addToLectures, pushLectures,
-    changeLectureIndex, handleLectureDelete
-}
+export { getLectures, insertLecture, protectGetLectures, getLecturesForAdmin, getOneLecture, getLectureForCenter, createLecture, updateLecture, handelUpdateLecture, deleteLecture, lectureParams, removeFromLectures, addToLectures, pushLectures, changeLectureIndex, handleLectureDelete };
 
 
 

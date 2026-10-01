@@ -99,4 +99,4 @@ const handelMatch = (value, match, key, type, operator) => {
             ? match[key] = { $regex: value, $options: "i" } : null
     }
 }
-module.exports = { makeMatch }
+export { makeMatch };

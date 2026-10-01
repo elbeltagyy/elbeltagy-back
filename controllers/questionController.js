@@ -1,15 +1,15 @@
-const { insertOne, getAll, deleteOne, updateOne } = require('./factoryHandler');
-const QuestionModel = require('../models/QuestionModel');
-const AnswerModel = require('../models/AnswerModel');
-const AttemptModel = require('../models/AttemptModel');
-const { SUCCESS, FAILED } = require('../tools/statusTexts');
-const ExamModel = require('../models/ExamModel');
-const getAttemptMark = require('../tools/getAttemptMark');
-const UserModel = require('../models/UserModel');
-const expressAsyncHandler = require('express-async-handler');
-const shuffleArray = require('../tools/fcs/shuffleArray');
-const { user_roles } = require('../tools/constants/rolesConstants');
-const createError = require('../tools/createError');
+import { insertOne, getAll, deleteOne, updateOne } from './factoryHandler.js';
+import QuestionModel from '../models/QuestionModel.js';
+import AnswerModel from '../models/AnswerModel.js';
+import AttemptModel from '../models/AttemptModel.js';
+import { SUCCESS, FAILED } from '../tools/statusTexts.js';
+import ExamModel from '../models/ExamModel.js';
+import getAttemptMark from '../tools/getAttemptMark.js';
+import UserModel from '../models/UserModel.js';
+import expressAsyncHandler from 'express-async-handler';
+import shuffleArray from '../tools/fcs/shuffleArray.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import createError from '../tools/createError.js';
 
 
 const questionParams = (query) => {
@@ -120,76 +120,77 @@ const startQuestionsBank = expressAsyncHandler(async (req, res, next) => {
     if (flattened.length === 0) return res.status(404).json({ message: 'لا يوجد اسئله, لقد قمت بالايجابه على جميع الاسئله' })
     const { questions } = secureRtOption(req, { questions: flattened })
 
-    res.status(200).json({ values: questions}) //, message: 'تم الحصول على عدد ' + questions?.length + ' اسئله' 
+    res.status(200).json({ values: questions }) //, message: 'تم الحصول على عدد ' + questions?.length + ' اسئله' 
 })
 
-const validateText = expressAsyncHandler(async(req, res, next)=> {
+const validateText = expressAsyncHandler(async (req, res, next) => {
     const { text } = req.body;
 
-    if(text.length > 40000){
+    if (text.length > 40000) {
         return next(createError('اقصي عدد من الحروف هو 40 الف فى المره, يمكنك تقسيم الملف وارساله على اكثر من مره', 400, FAILED))
     }
     return next()
 })
 const groq = process.env.groq
 
-const formatAI = expressAsyncHandler(async(req, res, next)=> {
+const formatAI = expressAsyncHandler(async (req, res, next) => {
     const { text } = req.body;
     try {
 
-    // ✅ Groq API - works immediately with free tier
-    const response = await fetch(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${groq}`, // Get free key: https://console.groq.com
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile", // ✅ This works for everyone llama-3.3-70b-versatile groq/compound
-          messages: [
+
+        // ✅ Groq API - works immediately with free tier
+        const response = await fetch(
+            "https://api.groq.com/openai/v1/chat/completions",
             {
-              role: "system",
-              content: `You are a JSON formatter. Always return valid JSON only. extract only questions with options from this html and keep html tags and convert them into a structured JSON array of questions with options, If u detected the true option add isCorrect to the correct option, Each question should have this format: { "title": "", "image": "",  "options": [{"title": ""}] } html tags: ${text}`,
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${groq}`, // Get free key: https://console.groq.com
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    model: "openai/gpt-oss-120b", // ✅ This works for everyone llama-3.3-70b-versatile groq/compound
+                    messages: [
+                        {
+                            role: "system",
+                            content: `You are a JSON formatter. Always return valid JSON only. extract only questions with options from this html and keep html tags and convert them into a structured JSON array of questions with options, If u detected the true option add isCorrect to the correct option, Each question should have this format: { "title": "", "image": "",  "options": [{"title": ""}] } html tags: ${text}`,
+                        },
+                        {
+                            role: "user",
+                            content: `Convert this html to a JSON array of questions with keeping html tags in each question and options: ${text}`,
+                        },
+                    ],
+                    temperature: 0.1,
+                    // max_tokens: 4000,
+                    response_format: { type: "json_object" },
+                }),
             },
-            {
-              role: "user",
-              content: `Convert this html to a JSON array of questions with keeping html tags in each question and options: ${text}`,
-            },
-          ],
-          temperature: 0.1,
-          // max_tokens: 4000,
-          response_format: { type: "json_object" },
-        }),
-      },
-    );
-        
-    const data = await response.json();
+        );
+
+        const data = await response.json();
         // console.log(data)
-    if (data.choices && data.choices[0]) {
+        if (data.choices && data.choices[0]) {
 
-        const jsonString = data.choices[0].message.content;
-        const jsonData = JSON.parse(jsonString);
-        // console.log(jsonData)
-        res.json({values: jsonData.questions});
+            const jsonString = data.choices[0].message.content;
+            const jsonData = JSON.parse(jsonString);
+            // console.log(jsonData)
+            res.json({ values: Array.isArray(jsonData) ? jsonData : [jsonData] }); //.questions
 
-    } else {
-        return next(createError(data?.error?.message || 'حدث خطا من خدمه ال AI', 400, FAILED))
+        } else {
+            return next(createError(data?.error?.message || 'حدث خطا من خدمه ال AI', 400, FAILED))
+        }
     }
-    } 
     catch (error) {
         return next(createError(error.message, 400, FAILED))
-        
+
     }
 })
 
-module.exports = {
+export {
     getQuestions, createQuestion, updateQuestion, deleteQuestion, questionParams,
     createManyQuestions,
     linkQuestionToTags, unLinkQuestionToTags,
 
     //user
     startQuestionsBank,
-    formatAI,validateText
+    formatAI, validateText
 }

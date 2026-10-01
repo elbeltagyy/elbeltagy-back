@@ -1,6 +1,6 @@
-const { getAll, insertOne, updateOne, deleteOne } = require("./factoryHandler")
-const TemplateModel = require("../models/TemplateModel")
-const expressAsyncHandler = require("express-async-handler")
+import { getAll, insertOne, updateOne, deleteOne } from './factoryHandler.js';
+import TemplateModel from '../models/TemplateModel.js';
+import expressAsyncHandler from 'express-async-handler';
 
 const params = (query) => [
     { key: "question", value: query.question },
@@ -19,4 +19,4 @@ const incrementUses = expressAsyncHandler(async (req, res, next) => {
 const updateTemplate = updateOne(TemplateModel)
 const deleteTemplate = deleteOne(TemplateModel)
 
-module.exports = { getTemplates, createTemplate, updateTemplate, deleteTemplate, incrementUses }
+export { getTemplates, createTemplate, updateTemplate, deleteTemplate, incrementUses };

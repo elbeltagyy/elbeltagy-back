@@ -1,6 +1,6 @@
-const ChapterModel = require("../models/ChapterModel");
-const LectureModel = require("../models/LectureModel");
-const sectionConstants = require("./constants/sectionConstants");
+import ChapterModel from '../models/ChapterModel.js';
+import LectureModel from '../models/LectureModel.js';
+import sectionConstants from './constants/sectionConstants.js';
 
 
 const lockLectures = async (course, userCourse, user = null) => {
@@ -38,7 +38,7 @@ const lockLectures = async (course, userCourse, user = null) => {
         // 🧩 Cache common info
         // const userLectures = new Set(user?.lectures || []);
         const isMust = !!course.isMust;
-        const userCurrentIndex = userCourse?.currentIndex || 0;
+        const userCurrentIndex = userCourse?.currentIndex ?? 0;
 
         // 🧠 Pre-group lectures by chapterId
         const lecturesByChapter = lectures.reduce((acc, lec) => {
@@ -46,6 +46,28 @@ const lockLectures = async (course, userCourse, user = null) => {
             (acc[key] ||= []).push(lec);
             return acc;
         }, {});
+
+        // 🧩 Fetch child lectures No course || No chapter || only linked to Lecture
+        const parentLectureIds = lectures.map(lec => lec._id)
+        const childLectures = parentLectureIds.length
+            ? await LectureModel.find({ parent: { $in: parentLectureIds }, isActive: true })
+                .populate(populate)
+                .lean()
+            : []
+
+        // 🧠 Pre-group child lectures by parent lecture id
+        const lecturesByParent = childLectures.reduce((acc, lec) => {
+            //Delete Exam Questions
+            if (lec.sectionType === sectionConstants.EXAM) {
+                lec.exam.questionsLength = lec.exam.questions.length
+                delete lec.exam.questions
+            }
+
+            const key = String(lec.parent);
+            (acc[key] ||= []).push(lec);
+            return acc;
+        }, {});
+
 
         let globalIndex = 1
         const lessons = chapters.map(chapter => {
@@ -60,6 +82,15 @@ const lockLectures = async (course, userCourse, user = null) => {
                         lecture.isPaid = user.accessLectures.includes(lecture._id)
                         lecture.locked = false
                     }
+                    //Lock Lecture
+                    if (userCurrentIndex < lecture.index && isMust && userCourse) {
+                        lecture.locked = true
+                    }
+                    //Build children if any lecture has this lecture as parent
+                    const children = lecturesByParent[String(lecture._id)]
+                    if (children && children.length > 0) {
+                        lecture.children = children
+                    }
 
                     //Delete Exam Questions
                     if (lecture.sectionType === sectionConstants.EXAM) {
@@ -67,10 +98,6 @@ const lockLectures = async (course, userCourse, user = null) => {
                         delete lecture.exam.questions
                     }
 
-                    //Lock Lecture
-                    if (userCurrentIndex < lecture.index && isMust && userCourse) {
-                        lecture.locked = true
-                    }
                     return lecture
                 })
             }
@@ -82,7 +109,7 @@ const lockLectures = async (course, userCourse, user = null) => {
     }
 }
 
-module.exports = lockLectures
+export default lockLectures;
 
 // lectures.map((lecture, i) => {
 //     lecture.index = i + 1

@@ -1,24 +1,26 @@
-const mongoose = require("mongoose")
+import mongoose from 'mongoose';
 
-const UnitModel = require("./UnitModel")
-const CourseModel = require("./CourseModel")
-const VideoModel = require("./VideoModel")
-const sectionConstants = require("../tools/constants/sectionConstants")
-const ExamModel = require("./ExamModel")
-const LinkModel = require("./LinkModel")
-const FileModel = require("./FileModel")
-const GroupModel = require("./GroupModel")
+import UnitModel from './UnitModel.js';
+import CourseModel from './CourseModel.js';
+import VideoModel from './VideoModel.js';
+import sectionConstants from '../tools/constants/sectionConstants.js';
+import ExamModel from './ExamModel.js';
+import LinkModel from './LinkModel.js';
+import FileModel from './FileModel.js';
+import GroupModel from './GroupModel.js';
 
 
 const lectureSchema = new mongoose.Schema({
-    grade: { type: Number,  required: true },
-    course: { type: mongoose.Schema.Types.ObjectId, ref: CourseModel, required: true },
-    chapter: { type: mongoose.Schema.Types.ObjectId, ref: 'chapter', required: true },
+    grade: { type: Number, required: true },
+    course: { type: mongoose.Schema.Types.ObjectId, ref: CourseModel },
+    chapter: { type: mongoose.Schema.Types.ObjectId, ref: 'chapter' },
+    parent: { type: mongoose.Schema.Types.ObjectId, ref: 'lecture' },
     isSalable: Boolean,
 
     name: { type: String, required: true },
     description: { type: String, required: true },
     isActive: { type: Boolean, required: true, default: true },
+    isCommunity: { type: Boolean, default: true },
 
     dateStart: { type: Date },
     dateEnd: { type: Date },
@@ -32,6 +34,7 @@ const lectureSchema = new mongoose.Schema({
     video: {
         type: mongoose.Schema.Types.ObjectId, ref: VideoModel
     },
+    summary: String,
     exam: { type: mongoose.Schema.Types.ObjectId, ref: ExamModel },
     link: { type: mongoose.Schema.Types.ObjectId, ref: LinkModel },
     file: { type: mongoose.Schema.Types.ObjectId, ref: FileModel },
@@ -59,4 +62,4 @@ lectureSchema.pre('findOne', autoPopulateExam)
 
 
 const LectureModel = mongoose.model("lecture", lectureSchema)
-module.exports = LectureModel
+export default LectureModel;

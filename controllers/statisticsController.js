@@ -1,28 +1,28 @@
-const expressAsyncHandler = require("express-async-handler");
-const CourseModel = require("../models/CourseModel");
-const LectureModel = require("../models/LectureModel");
-const UnitModel = require("../models/UnitModel");
-const UserCourseModel = require("../models/UserCourseModel");
-const UserModel = require("../models/UserModel");
-const { coursesParams } = require("./courseController");
-const { getDocCount } = require("./factoryHandler");
-const { lectureParams } = require("./lectureController");
-const { unitParams } = require("./unitController");
-const { userParams } = require("./userController");
-const { userCoursesParams } = require("./userCourseController");
-const { SUCCESS } = require("../tools/statusTexts");
-const NotificationModel = require("../models/NotificationModel");
+import expressAsyncHandler from 'express-async-handler';
+import CourseModel from '../models/CourseModel.js';
+import LectureModel from '../models/LectureModel.js';
+import UnitModel from '../models/UnitModel.js';
+import UserCourseModel from '../models/UserCourseModel.js';
+import UserModel from '../models/UserModel.js';
+import { coursesParams } from './courseController.js';
+import { getDocCount } from './factoryHandler.js';
+import { lectureParams } from './lectureController.js';
+import { unitParams } from './unitController.js';
+import { userParams } from './userController.js';
+import { userCoursesParams } from './userCourseController.js';
+import { SUCCESS } from '../tools/statusTexts.js';
+import NotificationModel from '../models/NotificationModel.js';
 
-const { notificationParams } = require("./notificationController");
-const { attemptParams } = require("./attemptController");
-const AttemptModel = require("../models/AttemptModel");
-const TagModel = require("../models/TagModel");
-const { tagParams } = require("./tagController");
-const QuestionModel = require("../models/QuestionModel");
-const { questionParams } = require("./questionController");
-const AnswerModel = require("../models/AnswerModel");
-const { answerParams } = require("./answerController");
-const parseFilters = require("../tools/fcs/matchGPT");
+import { notificationParams } from './notificationController.js';
+import { attemptParams } from './attemptController.js';
+import AttemptModel from '../models/AttemptModel.js';
+import TagModel from '../models/TagModel.js';
+import { tagParams } from './tagController.js';
+import QuestionModel from '../models/QuestionModel.js';
+import { questionParams } from './questionController.js';
+import AnswerModel from '../models/AnswerModel.js';
+import { answerParams } from './answerController.js';
+import parseFilters from '../tools/fcs/matchGPT.js';
 
 
 const getUsersCount = getDocCount(UserModel, userParams)
@@ -66,7 +66,4 @@ const getQuestionsCount = getDocCount(QuestionModel, questionParams)
 
 const getAnswersCount = getDocCount(AnswerModel, answerParams)
 
-module.exports = {
-    getUsersCount, getUnitsCount, getCoursesCount, getLecturesCount, getSubscriptionsCount, getNotificationsCount, getAttemptsCount,
-    getTagsCount, getQuestionsCount, getAnswersCount
-}
+export { getUsersCount, getUnitsCount, getCoursesCount, getLecturesCount, getSubscriptionsCount, getNotificationsCount, getAttemptsCount, getTagsCount, getQuestionsCount, getAnswersCount };

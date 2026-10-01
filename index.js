@@ -1,33 +1,39 @@
-const express = require("express");
+import express from 'express';
 const app = express();
-const dotenv = require("dotenv");
-const path = require("path");
-const bodyParser = require("body-parser");
-const { default: mongoose } = require("mongoose");
-var cookieParser = require("cookie-parser");
-var device = require("express-device");
+import dotenv from 'dotenv';
+import path from 'path';
+import bodyParser from 'body-parser';
+import mongoose from 'mongoose';
+import cookieParser from 'cookie-parser';
+import device from 'express-device';
 
-const cors = require("cors");
-const { rateLimit } = require("express-rate-limit");
-const morgan = require("morgan");
-const helmet = require("helmet");
+import cors from 'cors';
+import { rateLimit } from 'express-rate-limit';
+import morgan from 'morgan';
+import helmet from 'helmet';
+
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // get fc routes
-const { notFound, errorrHandler } = require("./middleware/errorsHandler");
-const testRoutes = require("./routes/testRoutes");
-const AnswerModel = require("./models/AnswerModel");
-const ExamModel = require("./models/ExamModel");
-const AttemptModel = require("./models/AttemptModel");
-const QuestionModel = require("./models/QuestionModel");
-const ms = require("ms");
-const UserModel = require("./models/UserModel");
-const CourseModel = require("./models/CourseModel");
-const LectureModel = require("./models/LectureModel");
-const ChapterModel = require("./models/ChapterModel");
-const GradeModel = require("./models/GradeModel");
-const PlanModel = require("./models/PlanModel");
-const SocialModel = require("./models/SocialModel");
-const PaymentModel = require("./models/PaymentModel");
+import Apis from './routes/APIS.js'
+import { notFound, errorrHandler } from './middleware/errorsHandler.js';
+import testRoutes from './routes/testRoutes.js';
+import AnswerModel from './models/AnswerModel.js';
+import ExamModel from './models/ExamModel.js';
+import AttemptModel from './models/AttemptModel.js';
+import QuestionModel from './models/QuestionModel.js';
+import ms from 'ms';
+import UserModel from './models/UserModel.js';
+import CourseModel from './models/CourseModel.js';
+import LectureModel from './models/LectureModel.js';
+import ChapterModel from './models/ChapterModel.js';
+import GradeModel from './models/GradeModel.js';
+import PlanModel from './models/PlanModel.js';
+import SocialModel from './models/SocialModel.js';
+import PaymentModel from './models/PaymentModel.js';
 
 // config
 // app.set('trust proxy', 'loopback');
@@ -133,7 +139,7 @@ app.use((req, res, next) => {
   }
 });
 
-app.use("/api", require("./routes/APIS"));
+app.use("/api", Apis);
 
 // for secure folders
 

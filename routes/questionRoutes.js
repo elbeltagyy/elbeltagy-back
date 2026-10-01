@@ -1,13 +1,14 @@
-const { countStatistics } = require("../controllers/videoController")
-const { getQuestions, createQuestion, deleteQuestion, updateQuestion, createManyQuestions, linkQuestionToTags, unLinkQuestionToTags, startQuestionsBank, formatAI, validateText } = require("../controllers/questionController")
-const allowedTo = require("../middleware/allowedTo")
-const verifyToken = require("../middleware/verifyToken")
+import { countStatistics } from '../controllers/videoController.js';
+import { getQuestions, createQuestion, deleteQuestion, updateQuestion, createManyQuestions, linkQuestionToTags, unLinkQuestionToTags, startQuestionsBank, formatAI, validateText } from '../controllers/questionController.js';
+import allowedTo from '../middleware/allowedTo.js';
+import verifyToken from '../middleware/verifyToken.js';
 
 
-const { user_roles } = require("../tools/constants/rolesConstants")
-const { reCorrectAnswersOnUpdateOneQuestion } = require("../controllers/answerController")
-const { validateUserTag } = require("../controllers/tagController")
-const router = require("express").Router()
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import { reCorrectAnswersOnUpdateOneQuestion } from '../controllers/answerController.js';
+import { validateUserTag } from '../controllers/tagController.js';
+import express from 'express';
+const router = express.Router();
 
 router.route("/")
     .get(
@@ -33,4 +34,4 @@ router.route("/:id/tags")
     .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), linkQuestionToTags)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), unLinkQuestionToTags)
 
-module.exports = router
+export default router;

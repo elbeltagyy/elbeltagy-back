@@ -1,7 +1,7 @@
-const multer = require("multer");
-const fileTypes = require("../tools/constants/fileTypes");
-const fs = require("fs");
-const path = require("path");
+import multer from 'multer';
+import fileTypes from '../tools/constants/fileTypes.js';
+import fs from 'fs';
+import path from 'path';
 
 const tempDir = path.join(process.cwd(), "storage", "temp");
 
@@ -86,4 +86,4 @@ const pdfUpload = multer({
     limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
 });
 
-module.exports = { upload, imageUpload, uploadAndStore }
+export { upload, imageUpload, uploadAndStore };

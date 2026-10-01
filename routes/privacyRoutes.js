@@ -1,9 +1,10 @@
-const { getPrivacies, createPrivacy, updatePrivacy, deletePrivacy } = require("../controllers/privacyController")
-const allowedTo = require("../middleware/allowedTo")
-const verifyToken = require("../middleware/verifyToken")
-const { user_roles } = require("../tools/constants/rolesConstants")
+import { getPrivacies, createPrivacy, updatePrivacy, deletePrivacy } from '../controllers/privacyController.js';
+import allowedTo from '../middleware/allowedTo.js';
+import verifyToken from '../middleware/verifyToken.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
 router.route("/")
     .get(getPrivacies)
@@ -13,4 +14,4 @@ router.route("/:id")
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), updatePrivacy)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), deletePrivacy)
 
-module.exports = router
+export default router;

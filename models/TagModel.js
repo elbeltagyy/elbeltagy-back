@@ -1,4 +1,4 @@
-const { default: mongoose } = require("mongoose");
+import mongoose from 'mongoose';
 
 //Tag payments => UserQuestionBank, getTags in controller, price in model
 const tagSchema = new mongoose.Schema({
@@ -14,4 +14,4 @@ const tagSchema = new mongoose.Schema({
 })
 
 const TagModel = mongoose.model('tag', tagSchema)
-module.exports = TagModel
+export default TagModel;

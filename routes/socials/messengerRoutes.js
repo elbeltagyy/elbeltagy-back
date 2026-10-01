@@ -1,12 +1,14 @@
-const { getConversations, getMessages, replyToMessage } = require("../../controllers/social/messengerController");
-const allowedTo = require("../../middleware/allowedTo");
-const { upload } = require("../../middleware/storage");
-const verifyToken = require("../../middleware/verifyToken");
-const { user_roles } = require("../../tools/constants/rolesConstants");
-const axiosInstance = require("../../tools/fcs/axios");
+import { getConversations, getMessages, replyToMessage } from '../../controllers/social/messengerController.js';
+import allowedTo from '../../middleware/allowedTo.js';
+import { upload } from '../../middleware/storage.js';
+import verifyToken from '../../middleware/verifyToken.js';
+import { user_roles } from '../../tools/constants/rolesConstants.js';
+import axiosInstance from '../../tools/fcs/axios.js';
 
-const router = require("express").Router()
-const subscribeMessenger = async ({ pageId, accessToken }) => {
+import express from 'express';
+const router = express.Router();
+
+export const subscribeMessenger = async ({ pageId, accessToken }) => {
 
     const { data } = await axiosInstance.post(
         `https://graph.facebook.com/v25.0/${pageId}/subscribed_apps`,
@@ -52,5 +54,4 @@ router.post('/webhook', (req, res) => {
     res.sendStatus(200); // always respond fast!
 });
 
-router.subscribeMessenger = subscribeMessenger
-module.exports = router
+export default router;

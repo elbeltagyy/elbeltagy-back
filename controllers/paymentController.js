@@ -1,8 +1,8 @@
-const expressAsyncHandler = require("express-async-handler");
-const { uploadFile } = require("../middleware/upload/uploadFiles");
-const PaymentModel = require("../models/PaymentModel");
-const { getAll, insertOne, deleteOne, updateOne } = require("./factoryHandler");
-const InvoiceModel = require("../models/InvoiceModel");
+import expressAsyncHandler from 'express-async-handler';
+import { uploadFile } from '../middleware/upload/uploadFiles.js';
+import PaymentModel from '../models/PaymentModel.js';
+import { getAll, insertOne, deleteOne, updateOne } from './factoryHandler.js';
+import InvoiceModel from '../models/InvoiceModel.js';
 
 const paymentsParams = (query) => {
     return [
@@ -41,4 +41,4 @@ const removePayment = deleteOne(PaymentModel, [], [
     { model: InvoiceModel, field: 'payment', relatedFiles: ['file'] },
 ], ['file'])
 
-module.exports = { getPayments, updatePayment, createPayment, removePayment, handelPaymentFile }
+export { getPayments, updatePayment, createPayment, removePayment, handelPaymentFile };

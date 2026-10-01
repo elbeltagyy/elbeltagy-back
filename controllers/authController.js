@@ -1,25 +1,25 @@
-const asyncHandler = require("express-async-handler")
-const UserModel = require("../models/UserModel")
+import asyncHandler from 'express-async-handler';
+import UserModel from '../models/UserModel.js';
 
-const bcrypt = require("bcryptjs")
-const crypto = require("crypto");
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
-const statusTexts = require("../tools/statusTexts.js")
-const createError = require("../tools/createError.js");
-const CodeModel = require("../models/CodeModel.js");
-const { user_roles } = require("../tools/constants/rolesConstants.js");
-const SessionModel = require("../models/SessionModel.js");
-const { generateAccessToken } = require("../middleware/generateAccessToken.js");
-const clearTokens = require("../tools/clearTokens.js")
+import statusTexts from '../tools/statusTexts.js';
+import createError from '../tools/createError.js';
+import CodeModel from '../models/CodeModel.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import SessionModel from '../models/SessionModel.js';
+import { generateAccessToken } from '../middleware/generateAccessToken.js';
+import clearTokens from '../tools/clearTokens.js';
 
 
-const jwt = require('jsonwebtoken');
-const { useCode } = require("./factoryHandler.js")
-const { uploadFile } = require("../middleware/upload/uploadFiles.js")
-const { senderConstants } = require("../tools/constants/sendersConstants.js");
-const sendEmail = require("../tools/sendEmail.js");
-const { sendWhatsMsgFc } = require("./whatsappController.js");
-const { arLang } = require("../tools/constants/arLang.js");
+import jwt from 'jsonwebtoken';
+import { useCode } from './factoryHandler.js';
+import { uploadFile } from '../middleware/upload/uploadFiles.js';
+import { senderConstants } from '../tools/constants/sendersConstants.js';
+import sendEmail from '../tools/sendEmail.js';
+import { sendWhatsMsgFc } from './whatsappController.js';
+import { arLang } from '../tools/constants/arLang.js';
 
 // @desc user login
 // @route POST /login
@@ -262,4 +262,4 @@ const verifyResetPassword = asyncHandler(async (req, res, next) => {
         .json({ status: statusTexts.SUCCESS, message: "تم تحديث الباسورد بنجاح, بالرجاء تسجيل الدخول" });
 })
 
-module.exports = { login, signup, logout, islogged, refreshTokenFc, forgetPassword, verifyResetPassword }
+export { login, signup, logout, islogged, refreshTokenFc, forgetPassword, verifyResetPassword };

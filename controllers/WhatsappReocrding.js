@@ -1,10 +1,10 @@
-const expressAsyncHandler = require("express-async-handler");
-const ConversationModel = require("../models/ConversationMode")
-const NotificationModel = require("../models/NotificationModel")
-const UserModel = require("../models/UserModel")
+import expressAsyncHandler from 'express-async-handler';
+import ConversationModel from '../models/ConversationMode.js';
+import NotificationModel from '../models/NotificationModel.js';
+import UserModel from '../models/UserModel.js';
 
-const { senderConstants } = require("../tools/constants/sendersConstants");
-const { getAll, deleteOne, updateOne } = require("./factoryHandler");
+import { senderConstants } from '../tools/constants/sendersConstants.js';
+import { getAll, deleteOne, updateOne } from './factoryHandler.js';
 
 
 const conversationParams = (query) => {
@@ -175,7 +175,4 @@ const processIncomingMessage = async (payload) => {
     }
 };
 
-module.exports = {
-    createConversation, handleMeta, handleMessage, processIncomingMessage,
-    getConversations, markSeen, removeConversation, updateConversation
-}
+export { createConversation, handleMeta, handleMessage, processIncomingMessage, getConversations, markSeen, removeConversation, updateConversation };

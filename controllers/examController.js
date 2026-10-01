@@ -1,11 +1,11 @@
-const expressAsyncHandler = require("express-async-handler")
-const ExamModel = require("../models/ExamModel")
-const QuestionModel = require("../models/QuestionModel")
-const _ = require('lodash')
-const shuffleArray = require("../tools/fcs/shuffleArray")
-const LectureModel = require("../models/LectureModel")
-const { SUCCESS } = require("../tools/statusTexts")
-const { reCorrectAnswersLimited } = require("./answerController")
+import expressAsyncHandler from 'express-async-handler';
+import ExamModel from '../models/ExamModel.js';
+import QuestionModel from '../models/QuestionModel.js';
+import _ from 'lodash';
+import shuffleArray from '../tools/fcs/shuffleArray.js';
+import LectureModel from '../models/LectureModel.js';
+import { SUCCESS } from '../tools/statusTexts.js';
+import { reCorrectAnswersLimited } from './answerController.js';
 
 // @route /content/exams || /:id
 // @method POST || PUT
@@ -82,4 +82,4 @@ const updateExam = expressAsyncHandler(async (req, res, next) => {
 
 
 
-module.exports = { handelExam, createExamAndLecture, updateExam }
+export { handelExam, createExamAndLecture, updateExam };

@@ -1,15 +1,15 @@
-const AttemptModel = require("../models/AttemptModel");
-const LectureModel = require("../models/LectureModel");
-const UserCourseModel = require("../models/UserCourseModel");
-const VideoStatisticsModel = require("../models/VideoStatisticsModel");
-const { formatDuration, getDateWithTime, getFullDate } = require("./dateFc");
-const path = require("path");
-const ejs = require('ejs');
-const { sendWhatsFileFc } = require("../controllers/whatsappController");
-const { attemptAllInfo, getExamMark } = require("./getExamInfo");
-const { user_roles } = require("./constants/rolesConstants");
-const puppeteerPdf = require("./pdf/pupetteerPdf");
-const createPdfFromHtml = require("./pdf/htmlPdf");
+import AttemptModel from '../models/AttemptModel.js';
+import LectureModel from '../models/LectureModel.js';
+import UserCourseModel from '../models/UserCourseModel.js';
+import VideoStatisticsModel from '../models/VideoStatisticsModel.js';
+import { formatDuration, getDateWithTime, getFullDate } from './dateFc.js';
+import path from 'path';
+import ejs from 'ejs';
+import { sendWhatsFileFc } from '../controllers/whatsappController.js';
+import { attemptAllInfo, getExamMark } from './getExamInfo.js';
+import { user_roles } from './constants/rolesConstants.js';
+import puppeteerPdf from './pdf/pupetteerPdf.js';
+import createPdfFromHtml from './pdf/htmlPdf.js';
 
 const sendUserReport = ({ user, lectureQuery = {}, startDate = null, endDate = null, phoneToSend = null, course, caption }) => new Promise(async (resolve, reject) => {
     try {
@@ -119,4 +119,4 @@ const sendUserReport = ({ user, lectureQuery = {}, startDate = null, endDate = n
     }
 })
 
-module.exports = sendUserReport
+export default sendUserReport;

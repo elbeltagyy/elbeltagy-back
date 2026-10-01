@@ -1,25 +1,25 @@
-const expressAsyncHandler = require("express-async-handler");
-const InvoiceModel = require("../models/InvoiceModel");
-const { getAll, insertOne, deleteOne, updateOne, deleteMany } = require("./factoryHandler");
-const PaymentModel = require("../models/PaymentModel");
-const createError = require("../tools/createError");
-const { FAILED, SUCCESS, PENDING, PAID, REJECTED, CANCELLED } = require("../tools/statusTexts");
-const paymentInteg = require("../tools/constants/paymentInteg");
+import expressAsyncHandler from 'express-async-handler';
+import InvoiceModel from '../models/InvoiceModel.js';
+import { getAll, insertOne, deleteOne, updateOne, deleteMany } from './factoryHandler.js';
+import PaymentModel from '../models/PaymentModel.js';
+import createError from '../tools/createError.js';
+import { FAILED, SUCCESS, PENDING, PAID, REJECTED, CANCELLED } from '../tools/statusTexts.js';
+import paymentInteg from '../tools/constants/paymentInteg.js';
 
-const { useCoupon } = require("./couponController");
-const CourseModel = require("../models/CourseModel");
-const LectureModel = require("../models/LectureModel");
-const UserCourseModel = require("../models/UserCourseModel");
-const UserModel = require("../models/UserModel");
-const lockLectures = require("../tools/lockLectures");
-const { makeNewPaymob } = require("../tools/payments/paymob");
-const governments = require("../tools/constants/governments");
-const TagModel = require("../models/TagModel");
-const { createFawaterkTransaction } = require("../tools/payments/fawaterk");
-const crypto = require('crypto');
-const BookModel = require("../models/BookModel");
-const BookOrderModel = require("../models/BookOrderModel");
-const { addBookToUser, removeBookFromUser } = require("./bookController");
+import { useCoupon } from './couponController.js';
+import CourseModel from '../models/CourseModel.js';
+import LectureModel from '../models/LectureModel.js';
+import UserCourseModel from '../models/UserCourseModel.js';
+import UserModel from '../models/UserModel.js';
+import lockLectures from '../tools/lockLectures.js';
+import { makeNewPaymob } from '../tools/payments/paymob.js';
+import governments from '../tools/constants/governments.js';
+import TagModel from '../models/TagModel.js';
+import { createFawaterkTransaction } from '../tools/payments/fawaterk.js';
+import crypto from 'crypto';
+import BookModel from '../models/BookModel.js';
+import BookOrderModel from '../models/BookOrderModel.js';
+import { addBookToUser, removeBookFromUser } from './bookController.js';
 
 const createInvoiceInstructions = (invoice) => invoice.fawryCode ? `يرجي استخدام كود فوري ${invoice.fawryCode} لدفع الفاتوره قبل ${new Date(invoice.expireDate).toLocaleString("ar-EG")}`
     : invoice.meezaQrCode ? 'افتح تطبيق (فودافون كاش - اتصالات كاش - اورنج موني) وامسح رمز الاستجابة السريعة - ثم قم باعاده تحميل الصفحه بعد الدفع لتأكيد العملية' :
@@ -545,8 +545,4 @@ const revokeSubscription = async (invoice, user) => {
     return response;
 };
 
-module.exports = {
-    getInvoices, updateInvoice, createInvoice, removeInvoice, deleteManyInvoices,
-    validatePreInvoice, makeInvoice,
-    webHookSubscription, webhookPaymob, webhookFawaterk, webhookFawaterkCancelled, webhookFawaterkFailed
-}
+export { getInvoices, updateInvoice, createInvoice, removeInvoice, deleteManyInvoices, validatePreInvoice, makeInvoice, webHookSubscription, webhookPaymob, webhookFawaterk, webhookFawaterkCancelled, webhookFawaterkFailed };

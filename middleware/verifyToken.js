@@ -1,26 +1,27 @@
-const asyncHandler = require("express-async-handler")
+import asyncHandler from 'express-async-handler';
 
-const jwt = require('jsonwebtoken');
-const dotenv = require("dotenv");
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
-const UserModel = require("../models/UserModel");
-const createError = require("../tools/createError");
-const { FAILED } = require("../tools/statusTexts");
-const { user_roles } = require("../tools/constants/rolesConstants");
-const SessionModel = require("../models/SessionModel");
+import UserModel from '../models/UserModel.js';
+import createError from '../tools/createError.js';
+import { FAILED } from '../tools/statusTexts.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import SessionModel from '../models/SessionModel.js';
 
 // config
 dotenv.config()
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET
 
 
-const verifyToken = (isAllowNotUser = false) => {
+const verifyToken = (isAllowNotUser = false, { populate = 'user' } = {}) => {
+
     return asyncHandler(async (req, res, next) => {
         if (req.headers.authorization && req.headers.authorization !== 'undefined' && req.headers.authorization.startsWith("Bearer")) {
             try {
                 const { sessionId } = jwt.verify(req.headers.authorization.split(" ")[1], ACCESS_TOKEN_SECRET)
 
-                const currentSession = await SessionModel.findById(sessionId).populate('user')
+                const currentSession = await SessionModel.findById(sessionId).populate(populate)
                 if (!currentSession) return next(createError('Session Ended, please login again', 401, FAILED, true))
                 if (currentSession.logout) return next(createError('Session Ended', 401, FAILED, true))
 
@@ -50,4 +51,4 @@ const verifyToken = (isAllowNotUser = false) => {
     })
 }
 
-module.exports = verifyToken
+export default verifyToken;

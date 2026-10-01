@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
 
 function convertToObjectIdBySchema(match, model) {
     const schemaPaths = model.schema.paths;
@@ -19,4 +19,4 @@ function convertToObjectIdBySchema(match, model) {
     return match;
 }
 
-module.exports = convertToObjectIdBySchema
+export default convertToObjectIdBySchema;

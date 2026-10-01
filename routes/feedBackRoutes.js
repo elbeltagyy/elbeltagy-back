@@ -1,12 +1,13 @@
-const { filterById } = require('../controllers/factoryHandler')
-const { getFeedBacks, createFeedBack, getOneFeedBack, deleteFeedBack } = require('../controllers/feedBackController')
-const allowedTo = require('../middleware/allowedTo')
-const { secureGetAll } = require('../middleware/secureMiddleware')
-const verifyToken = require('../middleware/verifyToken')
-const UserModel = require('../models/UserModel')
-const { user_roles } = require('../tools/constants/rolesConstants')
+import { filterById } from '../controllers/factoryHandler.js';
+import { getFeedBacks, createFeedBack, getOneFeedBack, deleteFeedBack } from '../controllers/feedBackController.js';
+import allowedTo from '../middleware/allowedTo.js';
+import { secureGetAll } from '../middleware/secureMiddleware.js';
+import verifyToken from '../middleware/verifyToken.js';
+import UserModel from '../models/UserModel.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
-const router = require('express').Router()
+import express from 'express';
+const router = express.Router();
 
 const params = (query) => {
     return [
@@ -21,5 +22,5 @@ router.route("/")
 router.route("/:id")
     .put(verifyToken(), getOneFeedBack)
     .delete(verifyToken(), deleteFeedBack)
-module.exports = router
+export default router;
 

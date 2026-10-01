@@ -1,12 +1,11 @@
-const { createExam, handelExam, createExamAndLecture, updateExam } = require("../controllers/examController")
-const { insertOne } = require("../controllers/factoryHandler")
-const { createLecture, insertLecture } = require("../controllers/lectureController")
-const allowedTo = require("../middleware/allowedTo")
-const verifyToken = require("../middleware/verifyToken")
-const LectureModel = require("../models/LectureModel")
-const { user_roles } = require("../tools/constants/rolesConstants")
+import { handelExam, createExamAndLecture, updateExam } from '../controllers/examController.js';
+import { createLecture, insertLecture } from '../controllers/lectureController.js';
+import allowedTo from '../middleware/allowedTo.js';
+import verifyToken from '../middleware/verifyToken.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
 router.route("/")
     .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), handelExam, createExamAndLecture, insertLecture)
@@ -14,4 +13,4 @@ router.route("/")
 router.route("/lectures/:id") //lectureId
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), handelExam, updateExam) // *_* update marks
 
-module.exports = router
+export default router;

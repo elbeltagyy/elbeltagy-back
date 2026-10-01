@@ -1,5 +1,5 @@
-const { getAll, getOne, insertOne, updateOne, deleteOne } = require("./factoryHandler");
-const FeedBackModel = require("../models/FeedBackModel");
+import { getAll, getOne, insertOne, updateOne, deleteOne } from './factoryHandler.js';
+import FeedBackModel from '../models/FeedBackModel.js';
 
 const feedBackParams = (query) => {
     return [
@@ -20,4 +20,4 @@ const createFeedBack = insertOne(FeedBackModel)
 const updateFeedBack = updateOne(FeedBackModel)
 
 const deleteFeedBack = deleteOne(FeedBackModel)
-module.exports = { getFeedBacks, getOneFeedBack, createFeedBack, updateFeedBack, deleteFeedBack }
+export { getFeedBacks, getOneFeedBack, createFeedBack, updateFeedBack, deleteFeedBack };

@@ -1,5 +1,5 @@
-const { deleteOne, getAll, insertOne, updateOne, getDocCount, getOne } = require("./factoryHandler");
-const ApplicationModel = require("../models/ApplicationModel");
+import { deleteOne, getAll, insertOne, updateOne, getDocCount, getOne } from './factoryHandler.js';
+import ApplicationModel from '../models/ApplicationModel.js';
 
 const applicationParams = (query) => {
     return [
@@ -23,7 +23,4 @@ const createApplication = insertOne(ApplicationModel)
 const deleteApplication = deleteOne(ApplicationModel)
 
 
-module.exports = {
-    getApplications, getOneApplication, countApplications,
-    updateApplication, createApplication, deleteApplication,
-}
+export { getApplications, getOneApplication, countApplications, updateApplication, createApplication, deleteApplication };

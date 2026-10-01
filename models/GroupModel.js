@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+import mongoose from 'mongoose';
 
 const groupSchema = new mongoose.Schema({
     grade: { type: Number, required: true },
@@ -15,4 +15,4 @@ const groupSchema = new mongoose.Schema({
 })
 
 const GroupModel = mongoose.model("group", groupSchema)
-module.exports = GroupModel
+export default GroupModel;

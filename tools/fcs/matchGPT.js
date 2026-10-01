@@ -230,4 +230,4 @@ const parseFilters = (filters) => {
   return match;
 };
 
-module.exports = parseFilters
+export default parseFilters;

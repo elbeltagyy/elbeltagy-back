@@ -9,4 +9,4 @@ const gradeConstants = [
     { name: 'الاحياء', description: 'محتوى الصف الثالث الثانوى (احياء) بالوحدات و الكورسات الموجوده', index: 3, isActive: true },
 
 ]
-module.exports = gradeConstants
+export default gradeConstants;

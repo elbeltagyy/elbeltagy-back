@@ -1,8 +1,9 @@
-const { getFailedReportUsers } = require("../controllers/reportFailedController")
+import { getFailedReportUsers } from '../controllers/reportFailedController.js';
 
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
 router.route("/:id")
     .get(getFailedReportUsers)
 
-module.exports = router
+export default router;

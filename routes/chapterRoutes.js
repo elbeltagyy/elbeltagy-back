@@ -1,11 +1,12 @@
-const { getChapters, createChapter, updateChapter, removeChapter, pushAndPullInChapters, changeIndex, preRemoveChapter } = require('../controllers/chapterControllers')
-const allowedTo = require('../middleware/allowedTo')
+import { getChapters, createChapter, updateChapter, removeChapter, pushAndPullInChapters, changeIndex, preRemoveChapter } from '../controllers/chapterControllers.js';
+import allowedTo from '../middleware/allowedTo.js';
 // const { hasPermission } = require('../middleware/permissions')
 
-const verifyToken = require('../middleware/verifyToken')
-const { user_roles } = require('../tools/constants/rolesConstants')
+import verifyToken from '../middleware/verifyToken.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
-const router = require('express').Router()
+import express from 'express';
+const router = express.Router();
 
 router.route("/")
     .get(verifyToken(), getChapters) // secureGetAll([{ key: 'teachers' }]),
@@ -21,4 +22,4 @@ router.route("/:id")
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), updateChapter)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), preRemoveChapter, removeChapter)
 
-module.exports = router
+export default router;

@@ -1,9 +1,9 @@
-const createError = require("../tools/createError")
-const dotenv = require("dotenv")
+import createError from '../tools/createError.js';
+import dotenv from 'dotenv';
 
-const statusTexts = require("../tools/statusTexts")
-const { validationResult } = require('express-validator');
-const ErrorModel = require("../models/ErrorModel");
+import * as statusTexts from '../tools/statusTexts.js';
+import { validationResult } from 'express-validator';
+import ErrorModel from '../models/ErrorModel.js';
 
 // config
 dotenv.config()
@@ -49,4 +49,4 @@ const expressValidate = ((req, res, next) => {
 })
 
 
-module.exports = { notFound, errorrHandler, expressValidate }
+export { notFound, errorrHandler, expressValidate };

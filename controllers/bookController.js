@@ -1,9 +1,9 @@
-const BookModel = require("../models/BookModel");
-const { deleteOne, getAll, insertOne, updateOne, getDocCount } = require("./factoryHandler");
-const UserModel = require("../models/UserModel");
-const BookOrderModel = require("../models/BookOrderModel");
-const { PAID, PENDING } = require("../tools/statusTexts");
-const { user_roles } = require("../tools/constants/rolesConstants");
+import BookModel from '../models/BookModel.js';
+import { deleteOne, getAll, insertOne, updateOne, getDocCount } from './factoryHandler.js';
+import UserModel from '../models/UserModel.js';
+import BookOrderModel from '../models/BookOrderModel.js';
+import { PAID, PENDING } from '../tools/statusTexts.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
 const bookParams = (query) => {
     return [
@@ -80,7 +80,4 @@ const removeBookFromUser = async (bookId, userId) => {
     return true
 }
 
-module.exports = {
-    getBooks, updateBook, createBook, deleteBook, countBooks,
-    addBookToUser, removeBookFromUser
-}
+export { getBooks, updateBook, createBook, deleteBook, countBooks, addBookToUser, removeBookFromUser };

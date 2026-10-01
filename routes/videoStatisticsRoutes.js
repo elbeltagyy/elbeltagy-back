@@ -1,14 +1,15 @@
-const { filterById } = require("../controllers/factoryHandler")
-const { countStatistics } = require("../controllers/videoController")
-const { getViews, updateView, removeView, viewParams, getByUserViews } = require("../controllers/viewsController")
-const allowedTo = require("../middleware/allowedTo")
-const verifyToken = require("../middleware/verifyToken")
-const CourseModel = require("../models/CourseModel")
-const LectureModel = require("../models/LectureModel")
-const UserModel = require("../models/UserModel")
+import { filterById } from '../controllers/factoryHandler.js';
+import { countStatistics } from '../controllers/videoController.js';
+import { getViews, updateView, removeView, viewParams, getByUserViews } from '../controllers/viewsController.js';
+import allowedTo from '../middleware/allowedTo.js';
+import verifyToken from '../middleware/verifyToken.js';
+import CourseModel from '../models/CourseModel.js';
+import LectureModel from '../models/LectureModel.js';
+import UserModel from '../models/UserModel.js';
 
-const { user_roles } = require("../tools/constants/rolesConstants")
-const router = require("express").Router()
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import express from 'express';
+const router = express.Router();
 
 const courseParams = (query) => {
     return [
@@ -54,4 +55,4 @@ router.route("/:id")
 router.route("/on")
     .post(verifyToken(), allowedTo(user_roles.STUDENT, user_roles.ONLINE), countStatistics)
 
-module.exports = router
+export default router;

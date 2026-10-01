@@ -1,9 +1,10 @@
-const { initializeWhatsApp, activateByQr, getWhatsStatus, sendWhatsMessage, closeWhatsapp } = require("../controllers/whatsappController")
-const allowedTo = require("../middleware/allowedTo")
-const verifyToken = require("../middleware/verifyToken")
-const { user_roles } = require("../tools/constants/rolesConstants")
+import { initializeWhatsApp, activateByQr, getWhatsStatus, sendWhatsMessage, closeWhatsapp } from '../controllers/whatsappController.js';
+import allowedTo from '../middleware/allowedTo.js';
+import verifyToken from '../middleware/verifyToken.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
 router.route("/userId/init")
     .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), initializeWhatsApp)
@@ -20,4 +21,4 @@ router.route("/userId/status")
 router.route("/userId/send")
     .post(sendWhatsMessage)
 
-module.exports = router
+export default router;

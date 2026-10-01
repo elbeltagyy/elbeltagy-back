@@ -1,14 +1,15 @@
 
-const allowedTo = require("../middleware/allowedTo")
-const verifyToken = require("../middleware/verifyToken")
+import allowedTo from '../middleware/allowedTo.js';
+import verifyToken from '../middleware/verifyToken.js';
 
-const { user_roles } = require("../tools/constants/rolesConstants")
-const { getBooks, createBook, updateBook, deleteBook, countBooks } = require("../controllers/bookController")
-const { secureGetAll } = require("../middleware/secureMiddleware")
-const { upload } = require("../middleware/storage")
-const { handelMultipleFiles } = require("../controllers/factoryHandler")
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import { getBooks, createBook, updateBook, deleteBook, countBooks } from '../controllers/bookController.js';
+import { secureGetAll } from '../middleware/secureMiddleware.js';
+import { upload } from '../middleware/storage.js';
+import { handelMultipleFiles } from '../controllers/factoryHandler.js';
 
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
 router.route("/")
     .get(verifyToken(true), secureGetAll({ key: 'isActive', value: true }), getBooks)
@@ -28,4 +29,4 @@ router.route("/:id")
     ]), handelMultipleFiles(['avatar', 'file']), updateBook)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), deleteBook)
 
-module.exports = router
+export default router;

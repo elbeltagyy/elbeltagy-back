@@ -1,7 +1,7 @@
-const { userParams } = require("../../controllers/userController")
-const { user_roles } = require("../constants/rolesConstants")
-const createError = require("../createError")
-const parseFilters = require("./matchGPT")
+import { userParams } from '../../controllers/userController.js';
+import { user_roles } from '../constants/rolesConstants.js';
+import createError from '../createError.js';
+import parseFilters from './matchGPT.js';
 
 
 const selectUsers = (body) => {
@@ -28,4 +28,4 @@ const selectUsers = (body) => {
     throw createError('Sorry, the data given to be sent is incorrect', 400)
 }
 
-module.exports = selectUsers
+export default selectUsers;

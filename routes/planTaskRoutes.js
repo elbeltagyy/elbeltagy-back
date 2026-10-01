@@ -1,9 +1,10 @@
-const { getTasks, createTask, updateTask, deleteTask } = require("../controllers/planTaskController")
-const allowedTo = require("../middleware/allowedTo")
-const verifyToken = require("../middleware/verifyToken")
-const { user_roles } = require("../tools/constants/rolesConstants")
+import { getTasks, createTask, updateTask, deleteTask } from '../controllers/planTaskController.js';
+import allowedTo from '../middleware/allowedTo.js';
+import verifyToken from '../middleware/verifyToken.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
 router.route("/")
     .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), getTasks)
@@ -13,4 +14,4 @@ router.route("/:id")
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), updateTask)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), deleteTask)
 
-module.exports = router
+export default router;

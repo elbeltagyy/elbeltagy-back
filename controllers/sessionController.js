@@ -1,7 +1,7 @@
-const expressAsyncHandler = require("express-async-handler");
-const SessionModel = require("../models/SessionModel");
-const { getAll } = require("./factoryHandler");
-const { SUCCESS } = require("../tools/statusTexts");
+import expressAsyncHandler from 'express-async-handler';
+import SessionModel from '../models/SessionModel.js';
+import { getAll } from './factoryHandler.js';
+import { SUCCESS } from '../tools/statusTexts.js';
 
 const sessionParams = (query) => {
     return [
@@ -30,4 +30,4 @@ const sessionLogout = expressAsyncHandler(async (req, res, next) => {
 })
 
 
-module.exports = { getSessions, sessionLogout, sessionParams }
+export { getSessions, sessionLogout, sessionParams };

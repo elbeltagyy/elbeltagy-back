@@ -1,17 +1,18 @@
-const router = require("express").Router()
-const dotenv = require("dotenv")
+import express from 'express';
+const router = express.Router();
+import dotenv from 'dotenv';
 
-const expressAsyncHandler = require("express-async-handler")
-const { addToVimeo } = require("../middleware/upload/cloudinary")
-const { upload } = require("../middleware/storage")
-const UserModel = require("../models/UserModel")
-const UAParser = require('ua-parser-js');
-const verifyToken = require("../middleware/verifyToken");
-const allowedTo = require("../middleware/allowedTo");
-const { user_roles } = require("../tools/constants/rolesConstants");
-const createError = require("../tools/createError");
-const { FAILED } = require("../tools/statusTexts");
-const { default: axios } = require("axios")
+import expressAsyncHandler from 'express-async-handler';
+import { addToVimeo } from '../middleware/upload/cloudinary.js';
+import { upload } from '../middleware/storage.js';
+import UserModel from '../models/UserModel.js';
+import UAParser from 'ua-parser-js';
+import verifyToken from '../middleware/verifyToken.js';
+import allowedTo from '../middleware/allowedTo.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import createError from '../tools/createError.js';
+import { FAILED } from '../tools/statusTexts.js';
+import axios from 'axios';
 
 dotenv.config()
 
@@ -157,4 +158,4 @@ router.get("/", verifyToken(true), async (req, res, next) => {
         next(err)
     }
 })
-module.exports = router
+export default router;

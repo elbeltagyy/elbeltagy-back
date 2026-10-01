@@ -10,4 +10,4 @@ const createError = (message, statusCode, status, isKick) => {
     return error
 }
 
-module.exports = createError
+export default createError;

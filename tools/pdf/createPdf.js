@@ -1,5 +1,5 @@
-const PDFDocument = require('pdfkit');
-const fs = require('fs');
+import PDFDocument from 'pdfkit';
+import fs from 'fs';
 
 const createPdf = () => {
     // Create a document
@@ -64,4 +64,4 @@ const createPdf = () => {
     doc.end();
 }
 
-module.exports = createPdf
+export default createPdf;

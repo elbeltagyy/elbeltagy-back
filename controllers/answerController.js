@@ -1,13 +1,13 @@
-const expressAsyncHandler = require("express-async-handler");
-const AnswerModel = require("../models/AnswerModel");
-const { markQuestions, markOneQuestion } = require("../tools/getExamInfo");
-const QuestionModel = require("../models/QuestionModel");
-const { FAILED, SUCCESS } = require("../tools/statusTexts");
-const { getAll, deleteOne, updateOne } = require("./factoryHandler");
-const ExamModel = require("../models/ExamModel");
-const AttemptModel = require("../models/AttemptModel");
-const UserModel = require("../models/UserModel");
-const createError = require("../tools/createError");
+import expressAsyncHandler from 'express-async-handler';
+import AnswerModel from '../models/AnswerModel.js';
+import { markQuestions, markOneQuestion } from '../tools/getExamInfo.js';
+import QuestionModel from '../models/QuestionModel.js';
+import { FAILED, SUCCESS } from '../tools/statusTexts.js';
+import { getAll, deleteOne, updateOne } from './factoryHandler.js';
+import ExamModel from '../models/ExamModel.js';
+import AttemptModel from '../models/AttemptModel.js';
+import UserModel from '../models/UserModel.js';
+import createError from '../tools/createError.js';
 
 // Use dynamic import() to load p-limit
 const pLimit = async () => {
@@ -431,11 +431,7 @@ const reCorrectQuestionDelete = expressAsyncHandler(async (req, res, next) => {
     next()
 })
 
-module.exports = {
-    reCorrectAnswersLimited, reCorrectAnswersOnUpdateOneQuestion,
-    markQuestion, markAttempt,
-    getAnswers, deleteAnswer, updateAnswer, answerParams
-}
+export { reCorrectAnswersLimited, reCorrectAnswersOnUpdateOneQuestion, markQuestion, markAttempt, getAnswers, deleteAnswer, updateAnswer, answerParams };
 
 // updatedUser = await UserModel.findByIdAndUpdate(
 //     user._id,

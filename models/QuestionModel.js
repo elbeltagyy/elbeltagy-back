@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const filePlayers = require('../tools/constants/filePlayers');
+import mongoose from 'mongoose';
+import filePlayers from '../tools/constants/filePlayers.js';
 
 const questionSchema = new mongoose.Schema({
     // questionId: String,
@@ -35,4 +35,4 @@ const questionSchema = new mongoose.Schema({
 questionSchema.index({ isActive: 1, tags: 1, grade: 1 });
 
 const QuestionModel = mongoose.model('Question', questionSchema);
-module.exports = QuestionModel
+export default QuestionModel;

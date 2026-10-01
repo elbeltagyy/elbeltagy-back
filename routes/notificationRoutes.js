@@ -1,11 +1,12 @@
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
-const { getNotifications, createNotification, updateNotification, deleteNotification, makeSeen, handelNotification, sendNotificationsToMany } = require("../controllers/notificationController")
+import { getNotifications, createNotification, updateNotification, deleteNotification, makeSeen, handelNotification, sendNotificationsToMany } from '../controllers/notificationController.js';
 
-const { user_roles } = require("../tools/constants/rolesConstants")
-const allowedTo = require("../middleware/allowedTo")
-const verifyToken = require("../middleware/verifyToken")
-const { secureGetAll } = require("../middleware/secureMiddleware")
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import allowedTo from '../middleware/allowedTo.js';
+import verifyToken from '../middleware/verifyToken.js';
+import { secureGetAll } from '../middleware/secureMiddleware.js';
 
 
 router.route("/")
@@ -24,4 +25,4 @@ router.route("/one/:id")
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN, user_roles.MENTOR), updateNotification)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN, user_roles.MENTOR), deleteNotification)
 
-module.exports = router
+export default router;

@@ -1,6 +1,6 @@
-const mongoose = require("mongoose")
-const UserModel = require("./UserModel")
-const CourseModel = require("./CourseModel")
+import mongoose from 'mongoose';
+import UserModel from './UserModel.js';
+import CourseModel from './CourseModel.js';
 
 
 const userCourseSchema = new mongoose.Schema({
@@ -14,4 +14,4 @@ const userCourseSchema = new mongoose.Schema({
 })
 
 const UserCourseModel = mongoose.model("userCourse", userCourseSchema)
-module.exports = UserCourseModel
+export default UserCourseModel;

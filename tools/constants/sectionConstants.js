@@ -5,4 +5,4 @@ const sectionConstants = {
     LINK: 'لينك'
 }
 
-module.exports = sectionConstants
+export default sectionConstants;

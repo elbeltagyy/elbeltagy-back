@@ -1,12 +1,12 @@
-const mongoose = require("mongoose")
-const { user_roles } = require("../tools/constants/rolesConstants")
+import mongoose from 'mongoose';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
-const governments = require("../tools/constants/governments")
-const CourseModel = require("./CourseModel")
-const ExamModel = require("./ExamModel")
-const LectureModel = require("./LectureModel")
-const GroupModel = require("./GroupModel")
-const BookModel = require("./BookModel")
+import governments from '../tools/constants/governments.js';
+import CourseModel from './CourseModel.js';
+import ExamModel from './ExamModel.js';
+import LectureModel from './LectureModel.js';
+import GroupModel from './GroupModel.js';
+import BookModel from './BookModel.js';
 
 const governDefault = 4
 
@@ -70,4 +70,4 @@ const userSchema = new mongoose.Schema({
 
 
 const UserModel = mongoose.model("user", userSchema)
-module.exports = UserModel
+export default UserModel;

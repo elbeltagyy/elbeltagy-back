@@ -1,15 +1,16 @@
-const { getAttempts, getOneAttempt, getUserInfo, deleteOneAttempt, startAttempt } = require("../controllers/attemptController")
+import { getAttempts, getOneAttempt, getUserInfo, deleteOneAttempt, startAttempt } from '../controllers/attemptController.js';
 
-const UserModel = require("../models/UserModel")
-const { filterById } = require("../controllers/factoryHandler")
+import UserModel from '../models/UserModel.js';
+import { filterById } from '../controllers/factoryHandler.js';
 
-const { user_roles } = require("../tools/constants/rolesConstants")
-const verifyToken = require("../middleware/verifyToken")
-const allowedTo = require("../middleware/allowedTo")
-const ExamModel = require("../models/ExamModel")
-const CourseModel = require("../models/CourseModel")
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import verifyToken from '../middleware/verifyToken.js';
+import allowedTo from '../middleware/allowedTo.js';
+import ExamModel from '../models/ExamModel.js';
+import CourseModel from '../models/CourseModel.js';
 
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
 const userParams = (query) => {
     return [
@@ -48,4 +49,4 @@ router.route("/:id")
     .get(verifyToken(), getOneAttempt)
     .delete(verifyToken(), deleteOneAttempt)
 
-module.exports = router
+export default router;

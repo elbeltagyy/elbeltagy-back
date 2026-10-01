@@ -1,8 +1,8 @@
-const fs = require('fs')
-const axios = require('axios');
+import fs from 'fs';
+import axios from 'axios';
 
-const filePlayers = require('../tools/constants/filePlayers');
-const fileTypes = require('../tools/constants/fileTypes');
+import filePlayers from '../tools/constants/filePlayers.js';
+import fileTypes from '../tools/constants/fileTypes.js';
 
 const apiKey = '330bfc43-e10a-462a-8af602136946-f87a-4dbb'; // BunnyCDN FTP/Storage API key
 const libraryId = '318555'; // BunnyCDN storage zone name
@@ -73,4 +73,4 @@ const addToBunny = (file, settings) => {
 }
 
 
-module.exports = { addToBunny }
+export { addToBunny };

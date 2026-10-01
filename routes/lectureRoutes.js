@@ -1,13 +1,14 @@
-const LectureModel = require("../models/LectureModel")
-const { insertOne, deleteFromBody } = require("../controllers/factoryHandler")
-const { upload } = require("../middleware/storage")
-const { getLectures, getOneLecture, createLecture, deleteLecture, updateLecture, createExam, updateOneExam, getLectureForCenter, handelUpdateLecture, getLecturesForAdmin, addToLectures, removeFromLectures, protectGetLectures, pushLectures, changeLectureIndex } = require("../controllers/lectureController")
+import LectureModel from '../models/LectureModel.js';
+import { insertOne, deleteFromBody } from '../controllers/factoryHandler.js';
+import { upload } from '../middleware/storage.js';
+import { getLectures, getOneLecture, createLecture, deleteLecture, updateLecture, getLectureForCenter, handelUpdateLecture, getLecturesForAdmin, addToLectures, removeFromLectures, protectGetLectures, pushLectures, changeLectureIndex } from '../controllers/lectureController.js';
 
-const { user_roles } = require("../tools/constants/rolesConstants")
-const verifyToken = require("../middleware/verifyToken")
-const allowedTo = require("../middleware/allowedTo")
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import verifyToken from '../middleware/verifyToken.js';
+import allowedTo from '../middleware/allowedTo.js';
 
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
 router.route('/all')
     .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), getLecturesForAdmin)
@@ -35,4 +36,4 @@ router.route("/:id")
 router.route("/:id/reorder")
     .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), changeLectureIndex)
 
-module.exports = router
+export default router;

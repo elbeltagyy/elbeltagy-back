@@ -1,5 +1,5 @@
-const mongoose = require("mongoose")
-const UnitModel = require("./UnitModel")
+import mongoose from 'mongoose';
+import UnitModel from './UnitModel.js';
 
 
 const courseSchema = new mongoose.Schema({
@@ -13,6 +13,7 @@ const courseSchema = new mongoose.Schema({
     preDiscount: { type: Number },
 
     isMust: { type: Boolean, default: true },
+    isCommunity: { type: Boolean, default: true },
     isActive: { type: Boolean, required: true, default: true },
     isFixed: Boolean,
 
@@ -40,4 +41,4 @@ const courseSchema = new mongoose.Schema({
 })
 
 const CourseModel = mongoose.model("course", courseSchema)
-module.exports = CourseModel
+export default CourseModel;

@@ -1,11 +1,11 @@
-const expressAsyncHandler = require("express-async-handler");
-const { getAll, deleteOne, updateOne, getDocCount } = require("./factoryHandler");
-const VideoStatisticsModel = require("../models/VideoStatisticsModel.js");
-const UserModel = require("../models/UserModel.js");
+import expressAsyncHandler from 'express-async-handler';
+import { getAll, deleteOne, updateOne, getDocCount } from './factoryHandler.js';
+import VideoStatisticsModel from '../models/VideoStatisticsModel.js';
+import UserModel from '../models/UserModel.js';
 
-const convertToObjectIdBySchema = require("../tools/fcs/convertToObjectIdBySchema.js");
-const { userParams } = require("./userController.js");
-const parseFilters = require("../tools/fcs/matchGPT.js");
+import convertToObjectIdBySchema from '../tools/fcs/convertToObjectIdBySchema.js';
+import { userParams } from './userController.js';
+import parseFilters from '../tools/fcs/matchGPT.js';
 
 
 const viewParams = (query) => {
@@ -179,4 +179,4 @@ const getByUsersCount = expressAsyncHandler(async (req, res, next) => {
 const updateView = updateOne(VideoStatisticsModel)
 const removeView = deleteOne(VideoStatisticsModel)
 
-module.exports = { getViews, getViewsCount, getByUserViews, getByUsersCount, updateView, removeView, viewParams }
+export { getViews, getViewsCount, getByUserViews, getByUsersCount, updateView, removeView, viewParams };

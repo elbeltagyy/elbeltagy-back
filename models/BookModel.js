@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+import mongoose from 'mongoose';
 
 const BookSchema = new mongoose.Schema({
     grade: { type: Number, required: true },
@@ -31,4 +31,4 @@ const BookSchema = new mongoose.Schema({
 })
 
 const BookModel = mongoose.model("book", BookSchema)
-module.exports = BookModel
+export default BookModel;

@@ -59,4 +59,4 @@ const markOneQuestion = (question) => {
     }
     return [qInfo, question]
 }
-module.exports = { attemptAllInfo, getExamMark, markQuestions, markOneQuestion }
+export { attemptAllInfo, getExamMark, markQuestions, markOneQuestion };

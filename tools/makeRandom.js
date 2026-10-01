@@ -6,4 +6,4 @@ const makeRandom = (min = 0, max = 9, length = 4) => {
     return randomNumber;
 }
 
-module.exports = makeRandom
+export default makeRandom;

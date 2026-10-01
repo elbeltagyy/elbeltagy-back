@@ -1,7 +1,7 @@
-const cloudinary = require("cloudinary").v2
-const dotenv = require("dotenv")
-const vimeo = require('vimeo-upload-client');
-
+import cloudinaryImport from 'cloudinary';
+const cloudinary = cloudinaryImport.v2;
+import dotenv from 'dotenv';
+import vimeo from 'vimeo-upload-client';
 
 
 // congig
@@ -94,4 +94,4 @@ const addToVimeo = (file) => {
 }
 
 //return { original_filename, resource_type, secure_url, url, format, bytes } 
-module.exports = { addToCloud, deleteFromCloud, addToVimeo }
+export { addToCloud, deleteFromCloud, addToVimeo };

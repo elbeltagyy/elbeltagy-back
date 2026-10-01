@@ -1,6 +1,6 @@
-const mongoose = require("mongoose")
-const codeConstants = require("../tools/constants/codeConstants")
-const UserModel = require("./UserModel")
+import mongoose from 'mongoose';
+import codeConstants from '../tools/constants/codeConstants.js';
+import UserModel from './UserModel.js';
 
 const codeSchema = new mongoose.Schema({
     usedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: UserModel }],
@@ -19,4 +19,4 @@ const codeSchema = new mongoose.Schema({
 })
 
 const CodeModel = mongoose.model("code", codeSchema)
-module.exports = CodeModel
+export default CodeModel;

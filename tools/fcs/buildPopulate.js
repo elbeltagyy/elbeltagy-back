@@ -21,4 +21,4 @@ function buildPopulate(populateStr) {
     }));
 }
 
-module.exports = { buildPopulate }
+export { buildPopulate };

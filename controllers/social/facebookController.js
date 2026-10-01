@@ -1,14 +1,14 @@
-const expressAsyncHandler = require("express-async-handler");
-const SocialModel = require("../../models/SocialModel");
-const SocialConstants = require("../../tools/constants/social");
-const { SUCCESS, FAILED } = require("../../tools/statusTexts");
-const isDevelop = require("../../tools/fcs/isDevelop");
-const createError = require("../../tools/createError");
-const { Readable } = require("stream");
-const fs = require("fs");
-const FormData = require("form-data");
-const axiosInstance = require("../../tools/fcs/axios");
-const { subscribeMessenger } = require("../../routes/socials/messengerRoutes");
+import expressAsyncHandler from 'express-async-handler';
+import SocialModel from '../../models/SocialModel.js';
+import SocialConstants from '../../tools/constants/social.js';
+import { SUCCESS, FAILED } from '../../tools/statusTexts.js';
+import isDevelop from '../../tools/fcs/isDevelop.js';
+import createError from '../../tools/createError.js';
+import { Readable } from 'stream';
+import fs from 'fs';
+import FormData from 'form-data';
+import axiosInstance from '../../tools/fcs/axios.js';
+import { subscribeMessenger } from '../../routes/socials/messengerRoutes.js';
 
 const BASE_URL = 'https://graph.facebook.com/v25.0'
 const REDIRECT_URI =
@@ -470,8 +470,4 @@ const deleteComment = expressAsyncHandler(async (req, res, next) => {
 })
 //(Modify) Posts created - comments created - update Post - update Comment - delete Post - delete Comment
 // Add Comments pagination - sorting - filtering
-module.exports = {
-    loginToFacebook, facebookCallbackLogin, facebookDelete,
-    getPages, getPosts, createPost, updatePost, deletePost,
-    getPostComments, getComments, createComment, updateComment, deleteComment
-}
+export { loginToFacebook, facebookCallbackLogin, facebookDelete, getPages, getPosts, createPost, updatePost, deletePost, getPostComments, getComments, createComment, updateComment, deleteComment };

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+import mongoose from 'mongoose';
 
 const planTaskSchema = new mongoose.Schema({
     title: String,
@@ -13,4 +13,4 @@ const planTaskSchema = new mongoose.Schema({
 })
 
 const PlanTaskModel = mongoose.model("task", planTaskSchema)
-module.exports = PlanTaskModel
+export default PlanTaskModel;

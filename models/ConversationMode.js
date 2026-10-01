@@ -1,5 +1,5 @@
-const mongoose = require("mongoose")
-const UserModel = require("./UserModel")
+import mongoose from 'mongoose';
+import UserModel from './UserModel.js';
 
 const conversationSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: UserModel },
@@ -16,4 +16,4 @@ const conversationSchema = new mongoose.Schema({
 conversationSchema.index({ phone: 1, ignored: 1 });
 
 const ConversationModel = mongoose.model("conversation", conversationSchema)
-module.exports = ConversationModel
+export default ConversationModel;

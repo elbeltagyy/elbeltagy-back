@@ -1,13 +1,14 @@
-const { filterById, analysisMonthly } = require("../controllers/factoryHandler")
-const { getSessions, sessionLogout, sessionParams } = require("../controllers/sessionController")
-const { userParams } = require("../controllers/userController")
-const allowedTo = require("../middleware/allowedTo")
-const verifyToken = require("../middleware/verifyToken")
-const SessionModel = require("../models/SessionModel")
-const UserModel = require("../models/UserModel")
-const { user_roles } = require("../tools/constants/rolesConstants")
+import { filterById, analysisMonthly } from '../controllers/factoryHandler.js';
+import { getSessions, sessionLogout, sessionParams } from '../controllers/sessionController.js';
+import { userParams } from '../controllers/userController.js';
+import allowedTo from '../middleware/allowedTo.js';
+import verifyToken from '../middleware/verifyToken.js';
+import SessionModel from '../models/SessionModel.js';
+import UserModel from '../models/UserModel.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
 router.route("/")
     .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), filterById(UserModel, userParams, 'user'), getSessions)
@@ -19,4 +20,4 @@ router.route('/statistics/analysis')
 router.route("/:sessionId/logout")
     .post(verifyToken(), sessionLogout)
 
-module.exports = router
+export default router;

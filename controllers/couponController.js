@@ -1,12 +1,12 @@
-const expressAsyncHandler = require("express-async-handler");
-const CouponModel = require("../models/CouponModel");
-const { getAll, insertOne, updateOne, deleteOne, pushToModel } = require("./factoryHandler");
-const createError = require("../tools/createError");
-const { FAILED } = require("../tools/statusTexts");
-const CourseModel = require("../models/CourseModel");
-const mongoose = require("mongoose");
-const codeConstants = require("../tools/constants/codeConstants");
-const TagModel = require("../models/TagModel");
+import expressAsyncHandler from 'express-async-handler';
+import CouponModel from '../models/CouponModel.js';
+import { getAll, insertOne, updateOne, deleteOne, pushToModel } from './factoryHandler.js';
+import createError from '../tools/createError.js';
+import { FAILED } from '../tools/statusTexts.js';
+import CourseModel from '../models/CourseModel.js';
+import mongoose from 'mongoose';
+import codeConstants from '../tools/constants/codeConstants.js';
+import TagModel from '../models/TagModel.js';
 
 
 const couponParams = (query) => {
@@ -144,7 +144,4 @@ const checkCouponAndPrice = async (couponName, user, product) => {
 }
 
 // const validateCoupon = ()=> new Promise()
-module.exports = {
-    getCoupons, verifyCoupon, createCoupon, updateCoupon, deleteCoupon, addToCoupons,
-    useCoupon
-}
+export { getCoupons, verifyCoupon, createCoupon, updateCoupon, deleteCoupon, addToCoupons, useCoupon };

@@ -1,7 +1,7 @@
-const mongoose = require("mongoose")
-const UserModel = require("./UserModel")
-const ExamModel = require("./ExamModel")
-const CourseModel = require("./CourseModel")
+import mongoose from 'mongoose';
+import UserModel from './UserModel.js';
+import ExamModel from './ExamModel.js';
+import CourseModel from './CourseModel.js';
 
 const attemptSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: UserModel, required: true },
@@ -21,4 +21,4 @@ const attemptSchema = new mongoose.Schema({
 
 
 const AttemptModel = mongoose.model("attempt", attemptSchema)
-module.exports = AttemptModel
+export default AttemptModel;

@@ -6,8 +6,8 @@
 // -lecture -->
 // when accept => acc to product => 1-activate or/ 2-immediate or/ 3-cancel or/ 4-cancel Later
 
-const { default: mongoose } = require("mongoose");
-const paymentInteg = require("../tools/constants/paymentInteg");
+import mongoose from 'mongoose';
+import paymentInteg from '../tools/constants/paymentInteg.js';
 
 const paymentSchema = new mongoose.Schema({
     name: String,
@@ -29,4 +29,4 @@ const paymentSchema = new mongoose.Schema({
 })
 
 const PaymentModel = mongoose.model('payment', paymentSchema)
-module.exports = PaymentModel
+export default PaymentModel;

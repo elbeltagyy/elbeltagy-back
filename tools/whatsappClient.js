@@ -1,4 +1,4 @@
-const EventEmitter = require("events");
+import EventEmitter from 'events';
 let makeWASocket,
   useMultiFileAuthState,
   DisconnectReason,
@@ -13,16 +13,16 @@ let makeWASocket,
   downloadMediaMessage = baileys.downloadMediaMessage
 })();
 
-const qrcode = require("qrcode");
-const fs = require("fs");
-const path = require("path");
-const createError = require("./createError");
-const { FAILED } = require("./statusTexts");
-const pino = require("pino");
-const mime = require('mime-types'); // npm i mime-types
+import qrcode from 'qrcode';
+import fs from 'fs';
+import path from 'path';
+import createError from './createError.js';
+import { FAILED } from './statusTexts.js';
+import pino from 'pino';
+import mime from 'mime-types'; // npm i mime-types
 // const { createConversation } = require("../controllers/whatsappController");
-const { getNational } = require("./fcs/handelPhones");
-const { handleMeta, processIncomingMessage } = require("../controllers/WhatsappReocrding");
+import { getNational } from './fcs/handelPhones.js';
+import { handleMeta, processIncomingMessage } from '../controllers/WhatsappReocrding.js';
 
 function deleteSessionFolder(userId, sessionDir) {
   const userSessionPath = path.join(sessionDir, userId);
@@ -497,4 +497,4 @@ class WhatsappService extends EventEmitter {
   }
 }
 
-module.exports = WhatsappService;
+export default WhatsappService;

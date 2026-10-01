@@ -1,4 +1,4 @@
-const { default: mongoose } = require("mongoose")
+import mongoose from 'mongoose';
 
 const invoiceSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
@@ -40,4 +40,4 @@ const invoiceSchema = new mongoose.Schema({
 })
 
 const InvoiceModel = mongoose.model('invoice', invoiceSchema)
-module.exports = InvoiceModel
+export default InvoiceModel;

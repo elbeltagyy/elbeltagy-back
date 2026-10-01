@@ -1,6 +1,6 @@
-const mongoose = require("mongoose")
-const ReportModel = require("./ReportModel")
-const UserModel = require("./UserModel")
+import mongoose from 'mongoose';
+import ReportModel from './ReportModel.js';
+import UserModel from './UserModel.js';
 
 const failedReportSchema = new mongoose.Schema({
     users: [{ type: mongoose.Schema.Types.ObjectId, ref: UserModel }],
@@ -12,4 +12,4 @@ const failedReportSchema = new mongoose.Schema({
 })
 
 const ReportFailedModel = mongoose.model("failedReport", failedReportSchema)
-module.exports = ReportFailedModel
+export default ReportFailedModel;

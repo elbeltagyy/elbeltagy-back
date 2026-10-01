@@ -1,13 +1,13 @@
-const expressAsyncHandler = require("express-async-handler")
-const UserCourseModel = require("../models/UserCourseModel")
-const createError = require("../tools/createError")
-const { FAILED, SUCCESS } = require("../tools/statusTexts")
-const LectureModel = require("../models/LectureModel")
-const { getAll } = require("./factoryHandler")
-const VideoModel = require("../models/VideoModel")
-const VideoStatisticsModel = require("../models/VideoStatisticsModel")
-const ms = require("ms")
-const UserModel = require("../models/UserModel")
+import expressAsyncHandler from 'express-async-handler';
+import UserCourseModel from '../models/UserCourseModel.js';
+import createError from '../tools/createError.js';
+import { FAILED, SUCCESS } from '../tools/statusTexts.js';
+import LectureModel from '../models/LectureModel.js';
+import { getAll } from './factoryHandler.js';
+import VideoModel from '../models/VideoModel.js';
+import VideoStatisticsModel from '../models/VideoStatisticsModel.js';
+import ms from 'ms';
+import UserModel from '../models/UserModel.js';
 
 const handelEvents = (allEvents = [], newEvent = null, watchedTime, currentTime, secondsInStock) => {
     // New Event => watchedTime, endTime
@@ -87,4 +87,4 @@ const countStatistics = expressAsyncHandler(async (req, res, next) => {
     return res.status(204).json()
 })
 
-module.exports = { getAllVideos, countStatistics }
+export { getAllVideos, countStatistics };

@@ -22,4 +22,4 @@ const notificationMethods = [
   },
 ];
 
-module.exports = { senderConstants, notificationMethods };
+export { senderConstants, notificationMethods };

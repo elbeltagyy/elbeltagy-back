@@ -1,17 +1,18 @@
-const { createCode, getOneCode, updateCode, deleteCode, getCodes, verifyCode, getUserUsedCodes, getLectureCodes, handelCreateCode } = require("../controllers/codeController")
+import { createCode, getOneCode, updateCode, deleteCode, getCodes, verifyCode, getUserUsedCodes, getLectureCodes, handelCreateCode } from '../controllers/codeController.js';
 
-const codeConstants = require("../tools/constants/codeConstants")
-const makeRandom = require("../tools/makeRandom")
+import codeConstants from '../tools/constants/codeConstants.js';
+import makeRandom from '../tools/makeRandom.js';
 
-const allowedTo = require("../middleware/allowedTo")
-const verifyToken = require("../middleware/verifyToken")
-const { user_roles } = require("../tools/constants/rolesConstants")
-const expressAsyncHandler = require("express-async-handler")
-const CodeModel = require("../models/CodeModel")
-const { SUCCESS, FAILED } = require("../tools/statusTexts")
-const createError = require("../tools/createError")
+import allowedTo from '../middleware/allowedTo.js';
+import verifyToken from '../middleware/verifyToken.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import expressAsyncHandler from 'express-async-handler';
+import CodeModel from '../models/CodeModel.js';
+import { SUCCESS, FAILED } from '../tools/statusTexts.js';
+import createError from '../tools/createError.js';
 
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
 router.route("/")
     .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), getLectureCodes, getCodes)
@@ -28,4 +29,4 @@ router.route("/:id")
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), updateCode)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), deleteCode)
 
-module.exports = router
+export default router;

@@ -1,9 +1,9 @@
-const expressAsyncHandler = require("express-async-handler")
-const { sendWhatsFileFc, sendWhatsMsgFc } = require("../whatsappController");
-const { createReadStream } = require("fs");
-const path = require("path");
-const ffmpegStatic = require("ffmpeg-static");
-const ffmpeg = require("fluent-ffmpeg");
+import expressAsyncHandler from 'express-async-handler';
+import { sendWhatsFileFc, sendWhatsMsgFc } from '../whatsappController.js';
+import { createReadStream } from 'fs';
+import path from 'path';
+import ffmpegStatic from 'ffmpeg-static';
+import ffmpeg from 'fluent-ffmpeg';
 
 ffmpeg.setFfmpegPath(ffmpegStatic); // ← ضروري على Windows
 
@@ -46,4 +46,4 @@ const sendMessage = expressAsyncHandler(async (req, res, next) => {
     }
     res.status(204).json({})
 })
-module.exports = { sendMessage }
+export { sendMessage };

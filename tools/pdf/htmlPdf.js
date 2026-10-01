@@ -1,4 +1,4 @@
-const pdf = require('html-pdf');
+import pdf from 'html-pdf';
 
 const createPdfFromHtml = async (htmlContent, pdfPath = 'output.pdf') => {
     return new Promise((resolve, reject) => {
@@ -26,4 +26,4 @@ const createPdfFromHtml = async (htmlContent, pdfPath = 'output.pdf') => {
     });
 };
 
-module.exports = createPdfFromHtml;
+export default createPdfFromHtml;

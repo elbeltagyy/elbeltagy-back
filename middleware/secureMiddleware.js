@@ -1,5 +1,5 @@
-const asyncHandler = require("express-async-handler")
-const { user_roles } = require("../tools/constants/rolesConstants")
+import asyncHandler from 'express-async-handler';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
 //roles to secure and others skip
 //By roles
@@ -28,4 +28,4 @@ const secureGetAll = (params = null, skip = []) => asyncHandler(async (req, res,
 })
 
 
-module.exports = { secureGetAll }
+export { secureGetAll };

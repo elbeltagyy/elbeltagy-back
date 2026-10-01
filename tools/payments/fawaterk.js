@@ -1,8 +1,8 @@
 // backend/paymentMethods.js
-const axios = require('axios')
-const dotenv = require("dotenv");
-const createError = require('../createError');
-const { FAILED } = require('../statusTexts');
+import axios from 'axios';
+import dotenv from 'dotenv';
+import createError from '../createError.js';
+import { FAILED } from '../statusTexts.js';
 dotenv.config()
 
 async function getPaymentMethods() {
@@ -133,4 +133,4 @@ async function createFawaterkTransaction(invoice, payment) {
 //     }
 // }
 
-module.exports = { getPaymentMethods, createFawaterkTransaction }
+export { getPaymentMethods, createFawaterkTransaction };

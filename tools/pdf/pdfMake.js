@@ -1,5 +1,5 @@
-const fs = require('fs');
-const PdfPrinter = require('pdfmake');
+import fs from 'fs';
+import PdfPrinter from 'pdfmake';
 
 const fonts = {
     Amiri: {
@@ -94,4 +94,4 @@ const pdfMake = () => {
     pdfDoc.end();
     return
 }
-module.exports = pdfMake
+export default pdfMake;

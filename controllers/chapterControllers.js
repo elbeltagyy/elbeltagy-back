@@ -1,8 +1,8 @@
-const expressAsyncHandler = require("express-async-handler")
-const ChapterModel = require("../models/ChapterModel")
-const { getAll, insertOne, updateOne, deleteMany, deleteOne, pushToModel } = require("./factoryHandler")
-const LectureModel = require("../models/LectureModel")
-const { handleLectureDelete } = require("./lectureController")
+import expressAsyncHandler from 'express-async-handler';
+import ChapterModel from '../models/ChapterModel.js';
+import { getAll, insertOne, updateOne, deleteMany, deleteOne, pushToModel } from './factoryHandler.js';
+import LectureModel from '../models/LectureModel.js';
+import { handleLectureDelete } from './lectureController.js';
 
 const chapterParams = (query) => {
     return [
@@ -66,7 +66,4 @@ const preRemoveChapter = expressAsyncHandler(async (req, res, next) => {
 
 const pushAndPullInChapters = pushToModel(ChapterModel)
 
-module.exports = {
-    getChapters, createChapter, updateChapter, removeChapter, pushAndPullInChapters,
-    changeIndex, preRemoveChapter
-}
+export { getChapters, createChapter, updateChapter, removeChapter, pushAndPullInChapters, changeIndex, preRemoveChapter };

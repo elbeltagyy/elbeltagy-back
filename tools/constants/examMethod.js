@@ -17,4 +17,4 @@ const getExamMethod = ({ methodValue, isDefault = false, key = null }) => {
     return methodFound
 }
 
-module.exports = { examMethods, getExamMethod }
+export { examMethods, getExamMethod };

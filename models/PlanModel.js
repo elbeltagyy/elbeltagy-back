@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+import mongoose from 'mongoose';
 
 const PlanSchema = new mongoose.Schema({ //This is Section
     title: String,
@@ -14,4 +14,4 @@ const PlanSchema = new mongoose.Schema({ //This is Section
 })
 
 const PlanModel = mongoose.model("plan", PlanSchema)
-module.exports = PlanModel
+export default PlanModel;

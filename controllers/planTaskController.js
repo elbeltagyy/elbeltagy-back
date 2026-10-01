@@ -1,6 +1,6 @@
-const { getAll, insertOne, updateOne, deleteOne } = require("./factoryHandler")
-const PlanTaskModel = require("../models/PlanTaskModel")
-const PlanModel = require("../models/PlanModel")
+import { getAll, insertOne, updateOne, deleteOne } from './factoryHandler.js';
+import PlanTaskModel from '../models/PlanTaskModel.js';
+import PlanModel from '../models/PlanModel.js';
 
 const params = () => []
 const relatedDocs = [
@@ -13,4 +13,4 @@ const createTask = insertOne(PlanTaskModel, null, null, relatedDocs)
 const updateTask = updateOne(PlanTaskModel)
 const deleteTask = deleteOne(PlanTaskModel, relatedDocs)
 
-module.exports = { getTasks, createTask, updateTask, deleteTask }
+export { getTasks, createTask, updateTask, deleteTask };

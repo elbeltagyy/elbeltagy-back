@@ -1,4 +1,4 @@
-module.exports = (exam, chosenOptions) => {
+export default (exam, chosenOptions) => {
     const score = exam.questions.reduce((acc, question, i,) => {
         const AnsweredQuestion = chosenOptions.filter(({ questionId }) => questionId === question._id.toString())[0]
 

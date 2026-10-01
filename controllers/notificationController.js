@@ -1,15 +1,15 @@
-const expressAsyncHandler = require("express-async-handler");
-const NotificationModel = require("../models/NotificationModel");
-const { getAll, insertOne, updateOne, deleteOne } = require("./factoryHandler");
-const { senderConstants, notificationMethods } = require("../tools/constants/sendersConstants");
-const UserModel = require("../models/UserModel");
-const sendEmail = require("../tools/sendEmail");
-const { sendWhatsMsgFc } = require("./whatsappController");
-const sendUserReport = require("../tools/sendUserReport");
-const createError = require("../tools/createError");
-const { FAILED, SUCCESS } = require("../tools/statusTexts");
-const selectUsers = require("../tools/fcs/selectUsers");
-const senderByMethod = require("../tools/fcs/senderByMethod");
+import expressAsyncHandler from 'express-async-handler';
+import NotificationModel from '../models/NotificationModel.js';
+import { getAll, insertOne, updateOne, deleteOne } from './factoryHandler.js';
+import { senderConstants, notificationMethods } from '../tools/constants/sendersConstants.js';
+import UserModel from '../models/UserModel.js';
+import sendEmail from '../tools/sendEmail.js';
+import { sendWhatsMsgFc } from './whatsappController.js';
+import sendUserReport from '../tools/sendUserReport.js';
+import createError from '../tools/createError.js';
+import { FAILED, SUCCESS } from '../tools/statusTexts.js';
+import selectUsers from '../tools/fcs/selectUsers.js';
+import senderByMethod from '../tools/fcs/senderByMethod.js';
 
 // Use dynamic import() to load p-limit
 const pLimit = async () => {
@@ -81,4 +81,4 @@ const sendNotificationsToMany = expressAsyncHandler(async (req, res, next) => {
     const messageToSend = 'تم ارسال : ' + (notificationMethods.find(n => n.value === method).label) + ' ' + 'العدد = ' + (users.length - failedNums)
     return res.status(200).json({ status: SUCCESS, values: '', message: messageToSend })
 })
-module.exports = { getNotifications, handelNotification, createNotification, sendNotificationsToMany, updateNotification, deleteNotification, notificationParams, makeSeen }
+export { getNotifications, handelNotification, createNotification, sendNotificationsToMany, updateNotification, deleteNotification, notificationParams, makeSeen };

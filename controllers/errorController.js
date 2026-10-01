@@ -1,7 +1,7 @@
-const expressAsyncHandler = require("express-async-handler");
-const ErrorModel = require("../models/ErrorModel");
-const { getAll, insertOne } = require("./factoryHandler");
-const { FAILED, SUCCESS } = require("../tools/statusTexts");
+import expressAsyncHandler from 'express-async-handler';
+import ErrorModel from '../models/ErrorModel.js';
+import { getAll, insertOne } from './factoryHandler.js';
+import { FAILED, SUCCESS } from '../tools/statusTexts.js';
 
 
 const params = (query) => {
@@ -32,7 +32,4 @@ const deleteSameErrors = expressAsyncHandler(async (req, res, next) => {
     res.status(200).json({ message: 'error deleted ' + result.deletedCount, status: SUCCESS })
 })
 
-module.exports = {
-    getErrors,
-    createError, deleteSameErrors,
-};
+export { getErrors, createError, deleteSameErrors };

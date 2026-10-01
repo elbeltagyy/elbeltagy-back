@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const templateSchema = new mongoose.Schema({
     category: String,
@@ -13,4 +13,4 @@ const templateSchema = new mongoose.Schema({
 })
 
 const TemplateModel = mongoose.model('template', templateSchema)
-module.exports = TemplateModel
+export default TemplateModel;

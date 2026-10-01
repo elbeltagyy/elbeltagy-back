@@ -1,11 +1,11 @@
-const expressAsyncHandler = require("express-async-handler");
-const QuestionModel = require("../models/QuestionModel");
-const TagModel = require("../models/TagModel");
-const { getAll, insertOne, updateOne, deleteOne } = require("./factoryHandler");
-const { SUCCESS, FAILED } = require("../tools/statusTexts");
-const { default: mongoose } = require("mongoose");
-const createError = require("../tools/createError");
-const AnswerModel = require("../models/AnswerModel");
+import expressAsyncHandler from 'express-async-handler';
+import QuestionModel from '../models/QuestionModel.js';
+import TagModel from '../models/TagModel.js';
+import { getAll, insertOne, updateOne, deleteOne } from './factoryHandler.js';
+import { SUCCESS, FAILED } from '../tools/statusTexts.js';
+import mongoose from 'mongoose';
+import createError from '../tools/createError.js';
+import AnswerModel from '../models/AnswerModel.js';
 
 
 const tagParams = (query) => {
@@ -153,9 +153,4 @@ const unLinkTag = expressAsyncHandler(async (req, res, next) => {
     res.status(200).json({ message: 'تم ازاله الروابط بنجاح', status: SUCCESS })
 })
 
-module.exports = {
-    getTags, createTag, updateTag, deleteTag,
-    linkTag, unLinkTag, tagParams,
-
-    validateUserTag
-}
+export { getTags, createTag, updateTag, deleteTag, linkTag, unLinkTag, tagParams, validateUserTag };

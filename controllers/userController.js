@@ -1,25 +1,25 @@
-const mongoose = require("mongoose")
-const asyncHandler = require("express-async-handler")
-const UserModel = require("../models/UserModel.js")
-const bcrypt = require("bcryptjs")
-const statusTexts = require("../tools/statusTexts.js");
-const createError = require("../tools/createError.js");
+import mongoose from 'mongoose';
+import asyncHandler from 'express-async-handler';
+import UserModel from '../models/UserModel.js';
+import bcrypt from 'bcryptjs';
+import statusTexts from '../tools/statusTexts.js';
+import createError from '../tools/createError.js';
 
-const { addToCloud } = require("../middleware/upload/cloudinary");
-const { user_roles } = require("../tools/constants/rolesConstants.js");
-const { getAll, analysisMonthly, pushToModel, deleteMany, deleteOne } = require("./factoryHandler.js");
-const { uploadFile, deleteFile } = require("../middleware/upload/uploadFiles.js");
-const UserCourseModel = require("../models/UserCourseModel.js");
-const AttemptModel = require("../models/AttemptModel.js");
-const CodeModel = require("../models/CodeModel.js");
-const CouponModel = require("../models/CouponModel.js");
-const SessionModel = require("../models/SessionModel.js");
-const NotificationModel = require("../models/NotificationModel.js");
-const VideoStatisticsModel = require("../models/VideoStatisticsModel.js");
-const expressAsyncHandler = require("express-async-handler");
-const InvoiceModel = require("../models/InvoiceModel.js");
-const AnswerModel = require("../models/AnswerModel.js");
-const FeedBackModel = require("../models/FeedBackModel.js");
+import { addToCloud } from '../middleware/upload/cloudinary.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import { getAll, analysisMonthly, pushToModel, deleteMany, deleteOne } from './factoryHandler.js';
+import { uploadFile, deleteFile } from '../middleware/upload/uploadFiles.js';
+import UserCourseModel from '../models/UserCourseModel.js';
+import AttemptModel from '../models/AttemptModel.js';
+import CodeModel from '../models/CodeModel.js';
+import CouponModel from '../models/CouponModel.js';
+import SessionModel from '../models/SessionModel.js';
+import NotificationModel from '../models/NotificationModel.js';
+import VideoStatisticsModel from '../models/VideoStatisticsModel.js';
+import expressAsyncHandler from 'express-async-handler';
+import InvoiceModel from '../models/InvoiceModel.js';
+import AnswerModel from '../models/AnswerModel.js';
+import FeedBackModel from '../models/FeedBackModel.js';
 
 
 const userParams = (query) => {
@@ -250,8 +250,4 @@ const checkDeleteUser = asyncHandler(async (req, res, next) => {
 
 const addToUsers = pushToModel(UserModel)
 
-module.exports = {
-    getUsers, getByUserName, createUser, updateUserProfile, updateUser, deleteUser, userParams,
-    addToUsers,
-    deleteManyUsers, checkDeleteUser
-}
+export { getUsers, getByUserName, createUser, updateUserProfile, updateUser, deleteUser, userParams, addToUsers, deleteManyUsers, checkDeleteUser };

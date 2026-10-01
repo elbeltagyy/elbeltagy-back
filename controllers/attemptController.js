@@ -1,14 +1,14 @@
-const expressAsyncHandler = require("express-async-handler")
-const AttemptModel = require("../models/AttemptModel")
-const { getAll, getOne, deleteOne } = require("./factoryHandler")
-const UserModel = require("../models/UserModel")
-const CourseModel = require("../models/CourseModel")
-const LectureModel = require("../models/LectureModel")
-const sectionConstants = require("../tools/constants/sectionConstants")
-const createError = require("../tools/createError")
-const { FAILED, SUCCESS } = require("../tools/statusTexts")
-const ExamModel = require("../models/ExamModel")
-const { getExamMethod } = require("../tools/constants/examMethod")
+import expressAsyncHandler from 'express-async-handler';
+import AttemptModel from '../models/AttemptModel.js';
+import { getAll, getOne, deleteOne } from './factoryHandler.js';
+import UserModel from '../models/UserModel.js';
+import CourseModel from '../models/CourseModel.js';
+import LectureModel from '../models/LectureModel.js';
+import sectionConstants from '../tools/constants/sectionConstants.js';
+import createError from '../tools/createError.js';
+import { FAILED, SUCCESS } from '../tools/statusTexts.js';
+import ExamModel from '../models/ExamModel.js';
+import { getExamMethod } from '../tools/constants/examMethod.js';
 
 const attemptParams = (query) => {
     return [
@@ -96,4 +96,4 @@ const getUserInfo = expressAsyncHandler(async (req, res, next) => {
 })
 
 const deleteOneAttempt = deleteOne(AttemptModel)
-module.exports = { getAttempts, getOneAttempt, startAttempt, getUserInfo, attemptParams, deleteOneAttempt }
+export { getAttempts, getOneAttempt, startAttempt, getUserInfo, attemptParams, deleteOneAttempt };

@@ -1,11 +1,11 @@
 
-const expressAsyncHandler = require("express-async-handler")
-const { getAll, insertOne, updateOne, deleteOne } = require("./factoryHandler")
+import expressAsyncHandler from 'express-async-handler';
+import { getAll, insertOne, updateOne, deleteOne } from './factoryHandler.js';
 
-const GroupModel = require("../models/GroupModel")
-const UserModel = require("../models/UserModel")
-const { SUCCESS } = require("../tools/statusTexts")
-const LectureModel = require("../models/LectureModel")
+import GroupModel from '../models/GroupModel.js';
+import UserModel from '../models/UserModel.js';
+import { SUCCESS } from '../tools/statusTexts.js';
+import LectureModel from '../models/LectureModel.js';
 
 const groupParams = (query) => {
     return [
@@ -86,8 +86,4 @@ const removeLectureFromGroup = expressAsyncHandler(async (req, res, next) => {
     res.status(200).json({ message: 'تم ازاله المحاضرات', status: SUCCESS })
 })
 
-module.exports = {
-    getGroups, createGroup, updateGroup, deleteGroup,
-    removeUserFromGroup, addUserToGroup,
-    addLectureToGroup, removeLectureFromGroup
-}
+export { getGroups, createGroup, updateGroup, deleteGroup, removeUserFromGroup, addUserToGroup, addLectureToGroup, removeLectureFromGroup };

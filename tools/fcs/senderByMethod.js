@@ -1,10 +1,10 @@
-const { sendWhatsMsgFc } = require("../../controllers/whatsappController");
-const NotificationModel = require("../../models/NotificationModel");
-const { senderConstants } = require("../constants/sendersConstants");
-const createError = require("../createError");
-const sendEmail = require("../sendEmail");
-const sendUserReport = require("../sendUserReport");
-const { FAILED } = require("../statusTexts");
+import { sendWhatsMsgFc } from '../../controllers/whatsappController.js';
+import NotificationModel from '../../models/NotificationModel.js';
+import { senderConstants } from '../constants/sendersConstants.js';
+import createError from '../createError.js';
+import sendEmail from '../sendEmail.js';
+import sendUserReport from '../sendUserReport.js';
+import { FAILED } from '../statusTexts.js';
 
 const senderByMethod = async ({ method, user, subject, message, ...others }) => {
     try {
@@ -38,4 +38,4 @@ const senderByMethod = async ({ method, user, subject, message, ...others }) => 
     }
 }
 
-module.exports = senderByMethod
+export default senderByMethod;

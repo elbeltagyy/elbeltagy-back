@@ -8,4 +8,4 @@ const clearTokens = async (req, res) => {
     res.clearCookie('u');
 };
 
-module.exports = clearTokens
+export default clearTokens;

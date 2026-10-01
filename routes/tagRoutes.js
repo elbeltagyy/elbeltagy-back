@@ -1,9 +1,10 @@
-const { getTags, createTag, updateTag, deleteTag, linkTag, unLinkTag } = require('../controllers/tagController')
-const allowedTo = require('../middleware/allowedTo')
-const verifyToken = require('../middleware/verifyToken')
-const { user_roles } = require('../tools/constants/rolesConstants')
+import { getTags, createTag, updateTag, deleteTag, linkTag, unLinkTag } from '../controllers/tagController.js';
+import allowedTo from '../middleware/allowedTo.js';
+import verifyToken from '../middleware/verifyToken.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
-const router = require('express').Router()
+import express from 'express';
+const router = express.Router();
 
 router.route("/")
     .get(verifyToken(), getTags)
@@ -17,5 +18,5 @@ router.route("/:id/questions")
     .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), linkTag)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), unLinkTag)
 
-module.exports = router
+export default router;
 

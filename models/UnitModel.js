@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+import mongoose from 'mongoose';
 
 
 const unitSchema = new mongoose.Schema({
@@ -10,4 +10,4 @@ const unitSchema = new mongoose.Schema({
 })
 
 const UnitModel = mongoose.model("unit", unitSchema)
-module.exports = UnitModel
+export default UnitModel;

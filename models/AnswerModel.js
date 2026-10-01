@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const answerSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'user', required: true },
@@ -19,4 +19,4 @@ const answerSchema = new mongoose.Schema({
 answerSchema.index({ user: 1, question: 1 });
 
 const AnswerModel = mongoose.model("Answer", answerSchema)
-module.exports = AnswerModel
+export default AnswerModel;

@@ -4,4 +4,4 @@ const products = [
     { id: 'wallet', name: '' },
 ]
 
-module.exports = products
+export default products;

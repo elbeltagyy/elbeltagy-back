@@ -1,10 +1,10 @@
-const expressAsyncHandler = require("express-async-handler");
-const { getAll, getOne, insertOne, deleteOne, updateOne } = require("./factoryHandler");
-const UserCourseModel = require("../models/UserCourseModel");
-const CourseModel = require("../models/CourseModel");
-const createError = require("../tools/createError.js");
-const { FAILED, SUCCESS } = require("../tools/statusTexts");
-const UserModel = require("../models/UserModel.js");
+import expressAsyncHandler from 'express-async-handler';
+import { getAll, getOne, insertOne, deleteOne, updateOne } from './factoryHandler.js';
+import UserCourseModel from '../models/UserCourseModel.js';
+import CourseModel from '../models/CourseModel.js';
+import createError from '../tools/createError.js';
+import { FAILED, SUCCESS } from '../tools/statusTexts.js';
+import UserModel from '../models/UserModel.js';
 
 
 const userCoursesParams = (query) => {
@@ -58,4 +58,4 @@ const addSubscription = expressAsyncHandler(async (req, res, next) => {
 })
 // insertOne(UserCourseModel)
 //add to courses in user
-module.exports = { getCourseSubscriptions, userCoursesParams, updateSubscription, addSubscription, removeSubscription }
+export { getCourseSubscriptions, userCoursesParams, updateSubscription, addSubscription, removeSubscription };

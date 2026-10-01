@@ -1,9 +1,8 @@
-const expressAsyncHandler = require("express-async-handler")
+import expressAsyncHandler from 'express-async-handler';
 // const { getAll, insertOne, updateOne, deleteOne } = require("./factoryHandler")
-const createError = require("../tools/createError")
-const { FAILED, SUCCESS } = require("../tools/statusTexts");
-const WhatsappService = require("../tools/whatsappClient"); // now w small
-const { MessageMedia } = require("whatsapp-web.js");
+import createError from '../tools/createError.js';
+import { FAILED, SUCCESS } from '../tools/statusTexts.js';
+import WhatsappService from "../tools/whatsappClient.js"
 
 
 const whatsappService = new WhatsappService();
@@ -110,10 +109,7 @@ const sendWhatsFileFc = async (phone, filePath, isBytes = false, fileName = 'rep
 }
 
 
-module.exports = {
-    initializeWhatsApp, closeWhatsapp, activateByQr, getWhatsStatus, whatsStatusMiddleware, sendWhatsMessage,
-    sendWhatsMsgFc, sendWhatsFileFc,
-}
+export { initializeWhatsApp, closeWhatsapp, activateByQr, getWhatsStatus, whatsStatusMiddleware, sendWhatsMessage, sendWhatsMsgFc, sendWhatsFileFc };
 
 
 // let media

@@ -1,5 +1,5 @@
-const { getAll, insertOne, updateOne, deleteOne } = require("./factoryHandler")
-const PrivacyModel = require("../models/PrivacyModel")
+import { getAll, insertOne, updateOne, deleteOne } from './factoryHandler.js';
+import PrivacyModel from '../models/PrivacyModel.js';
 
 const privacyParams = (query) => {
     return [
@@ -15,4 +15,4 @@ const createPrivacy = insertOne(PrivacyModel)
 const updatePrivacy = updateOne(PrivacyModel)
 const deletePrivacy = deleteOne(PrivacyModel)
 
-module.exports = { getPrivacies, createPrivacy, updatePrivacy, deletePrivacy }
+export { getPrivacies, createPrivacy, updatePrivacy, deletePrivacy };

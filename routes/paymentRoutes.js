@@ -1,14 +1,15 @@
-const { getPayments, createPayment, removePayment, handelPaymentFile, updatePayment } = require('../controllers/paymentController')
-const allowedTo = require('../middleware/allowedTo')
-const { secureGetAll } = require('../middleware/secureMiddleware')
-const { upload } = require('../middleware/storage')
-const verifyToken = require('../middleware/verifyToken')
-const { user_roles } = require('../tools/constants/rolesConstants')
+import { getPayments, createPayment, removePayment, handelPaymentFile, updatePayment } from '../controllers/paymentController.js';
+import allowedTo from '../middleware/allowedTo.js';
+import { secureGetAll } from '../middleware/secureMiddleware.js';
+import { upload } from '../middleware/storage.js';
+import verifyToken from '../middleware/verifyToken.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
-const router = require('express').Router()
+import express from 'express';
+const router = express.Router();
 
 router.route("/")
-    .get(verifyToken(true), secureGetAll({ key: 'isActive', value: true }), getPayments) //allowedTo(user_roles.ADMIN, user_roles.SUBADMIN, user_roles.MENTOR)
+    .get(verifyToken(), secureGetAll({ key: 'isActive', value: true }), getPayments) //allowedTo(user_roles.ADMIN, user_roles.SUBADMIN, user_roles.MENTOR)
     .post(
         verifyToken(),
         allowedTo(user_roles.ADMIN, user_roles.SUBADMIN, user_roles.MENTOR),
@@ -19,4 +20,4 @@ router.route("/:id")
     .put(verifyToken(), upload.single('file'), handelPaymentFile, updatePayment)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN, user_roles.MENTOR), removePayment)
 
-module.exports = router
+export default router;

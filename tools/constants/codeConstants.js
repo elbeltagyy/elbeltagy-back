@@ -10,4 +10,4 @@ const codeConstants = {
 
 }
 
-module.exports = codeConstants
+export default codeConstants;

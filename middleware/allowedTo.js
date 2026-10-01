@@ -1,6 +1,6 @@
-const createError = require("../tools/createError")
-const { user_roles } = require("../tools/constants/rolesConstants")
-const { FAILED } = require("../tools/statusTexts")
+import createError from '../tools/createError.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import { FAILED } from '../tools/statusTexts.js';
 
 
 const allowedTo = (...roles) => {
@@ -18,4 +18,4 @@ const allowedTo = (...roles) => {
 
 }
 
-module.exports = allowedTo
+export default allowedTo;

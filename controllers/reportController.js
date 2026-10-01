@@ -1,17 +1,17 @@
-const expressAsyncHandler = require("express-async-handler");
+import expressAsyncHandler from 'express-async-handler';
 // const createPdf = require("../tools/pdf/createPdf");
 // const pdfMake = require("../tools/pdf/pdfMake");
 // const puppeteerPdf = require("../tools/pdf/pupetteerPdf");
 // const createPdfFromHtml = require("../tools/pdf/htmlPdf");
 
-const UserModel = require("../models/UserModel");
+import UserModel from '../models/UserModel.js';
 
-const ReportModel = require("../models/ReportModel");
-const ReportFailedModel = require("../models/ReportFailedModel");
-const { getAll, deleteOne, updateOne } = require("./factoryHandler");
-const selectUsers = require("../tools/fcs/selectUsers");
-const senderByMethod = require("../tools/fcs/senderByMethod");
-const { senderConstants } = require("../tools/constants/sendersConstants");
+import ReportModel from '../models/ReportModel.js';
+import ReportFailedModel from '../models/ReportFailedModel.js';
+import { getAll, deleteOne, updateOne } from './factoryHandler.js';
+import selectUsers from '../tools/fcs/selectUsers.js';
+import senderByMethod from '../tools/fcs/senderByMethod.js';
+import { senderConstants } from '../tools/constants/sendersConstants.js';
 
 // Use dynamic import() to load p-limit
 const pLimit = async () => {
@@ -104,4 +104,4 @@ const getReports = getAll(ReportModel, 'reports', reportParams, true, populate)
 const updateReport = updateOne(ReportModel)
 
 const deleteReport = deleteOne(ReportModel)
-module.exports = { sendReports, getReports, updateReport, deleteReport }
+export { sendReports, getReports, updateReport, deleteReport };

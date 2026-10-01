@@ -1,10 +1,11 @@
-const { loginToFacebook, facebookCallbackLogin, createPost, getPages, getPosts, facebookDelete, getPostComments, getComments, createComment, updatePost, deletePost, updateComment, deleteComment } = require("../../controllers/social/facebookController")
-const allowedTo = require("../../middleware/allowedTo")
-const { upload } = require("../../middleware/storage")
-const verifyToken = require("../../middleware/verifyToken")
-const { user_roles } = require("../../tools/constants/rolesConstants")
+import { loginToFacebook, facebookCallbackLogin, createPost, getPages, getPosts, facebookDelete, getPostComments, getComments, createComment, updatePost, deletePost, updateComment, deleteComment } from '../../controllers/social/facebookController.js';
+import allowedTo from '../../middleware/allowedTo.js';
+import { upload } from '../../middleware/storage.js';
+import verifyToken from '../../middleware/verifyToken.js';
+import { user_roles } from '../../tools/constants/rolesConstants.js';
 
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
 router.route('/login')
     .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), loginToFacebook)
@@ -33,4 +34,4 @@ router.route('/comments')
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), updateComment)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), deleteComment)
 
-module.exports = router
+export default router;

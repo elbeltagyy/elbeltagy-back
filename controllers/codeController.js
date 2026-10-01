@@ -1,12 +1,12 @@
-const expressAsyncHandler = require("express-async-handler");
-const CodeModel = require("../models/CodeModel");
-const { getAll, getOne, updateOne, deleteOne, insertOne, useCode } = require("./factoryHandler");
-const createError = require("../tools/createError");
-const { FAILED, SUCCESS } = require("../tools/statusTexts");
-const codeConstants = require("../tools/constants/codeConstants");
-const { user_roles } = require("../tools/constants/rolesConstants");
-const LectureModel = require("../models/LectureModel");
-const makeRandom = require("../tools/makeRandom");
+import expressAsyncHandler from 'express-async-handler';
+import CodeModel from '../models/CodeModel.js';
+import { getAll, getOne, updateOne, deleteOne, insertOne, useCode } from './factoryHandler.js';
+import createError from '../tools/createError.js';
+import { FAILED, SUCCESS } from '../tools/statusTexts.js';
+import codeConstants from '../tools/constants/codeConstants.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import LectureModel from '../models/LectureModel.js';
+import makeRandom from '../tools/makeRandom.js';
 
 const codeParams = (query) => {
     return [
@@ -115,4 +115,4 @@ const getUserUsedCodes = expressAsyncHandler(async (req, res, next) => {
 
 
 
-module.exports = { getCodes, getLectureCodes, verifyCode, getUserUsedCodes, getOneCode, handelCreateCode, createCode, updateCode, deleteCode }
+export { getCodes, getLectureCodes, verifyCode, getUserUsedCodes, getOneCode, handelCreateCode, createCode, updateCode, deleteCode };

@@ -1,9 +1,9 @@
-const expressAsyncHandler = require("express-async-handler")
-const BookOrderModel = require("../models/BookOrderModel")
-const { getAll, deleteOne, updateOne, getDocCount } = require("./factoryHandler")
-const { addBookToUser } = require("./bookController")
-const { SUCCESS } = require("../tools/statusTexts")
-const UserModel = require("../models/UserModel")
+import expressAsyncHandler from 'express-async-handler';
+import BookOrderModel from '../models/BookOrderModel.js';
+import { getAll, deleteOne, updateOne, getDocCount } from './factoryHandler.js';
+import { addBookToUser } from './bookController.js';
+import { SUCCESS } from '../tools/statusTexts.js';
+import UserModel from '../models/UserModel.js';
 
 const bookParams = (query) => {
     return [
@@ -44,7 +44,4 @@ const deleteBookOrder = expressAsyncHandler(async (req, res, next) => {
     res.json({ message: 'تم ازاله اشتراك الطالب بنجاح', status: SUCCESS })
 })
 
-module.exports = {
-    createBookOrder, updateBookOrder, getBooksOrdersCount,
-    getBooksOrders, deleteBookOrder
-}
+export { createBookOrder, updateBookOrder, getBooksOrdersCount, getBooksOrders, deleteBookOrder };

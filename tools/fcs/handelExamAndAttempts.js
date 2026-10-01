@@ -1,4 +1,4 @@
-const AttemptModel = require("../../models/AttemptModel")
+import AttemptModel from '../../models/AttemptModel.js';
 
 const handelExamAndAttempts = (lecture, user) => new Promise(async (resolve, reject) => {
     try {
@@ -29,4 +29,4 @@ const handelExamAndAttempts = (lecture, user) => new Promise(async (resolve, rej
     }
 })
 
-module.exports = handelExamAndAttempts
+export default handelExamAndAttempts;

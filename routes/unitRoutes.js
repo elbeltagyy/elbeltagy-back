@@ -1,9 +1,10 @@
-const { getUnits, createUnit, getOneUnit, updateUnit, deleteUnit, checkUnitsBeforeDelete } = require("../controllers/unitController")
-const allowedTo = require("../middleware/allowedTo")
-const verifyToken = require("../middleware/verifyToken")
-const { user_roles } = require("../tools/constants/rolesConstants")
+import { getUnits, createUnit, getOneUnit, updateUnit, deleteUnit, checkUnitsBeforeDelete } from '../controllers/unitController.js';
+import allowedTo from '../middleware/allowedTo.js';
+import verifyToken from '../middleware/verifyToken.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
 router.route("/")
     .get(getUnits)
@@ -14,4 +15,4 @@ router.route("/:id")
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), updateUnit)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), checkUnitsBeforeDelete, deleteUnit)
 
-module.exports = router
+export default router;

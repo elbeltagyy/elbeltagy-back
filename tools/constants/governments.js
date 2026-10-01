@@ -28,4 +28,4 @@ const governments = [
     { id: "27", governorate_name_ar: "سوهاج", governorate_name_en: "Sohag" }
 ]
 
-module.exports = governments
+export default governments;

@@ -1,5 +1,5 @@
-const mongoose = require("mongoose")
-const UserModel = require("./UserModel")
+import mongoose from 'mongoose';
+import UserModel from './UserModel.js';
 
 //react device detect
 const sessionSchema = new mongoose.Schema({
@@ -22,6 +22,6 @@ const sessionSchema = new mongoose.Schema({
 })
 
 const SessionModel = mongoose.model("session", sessionSchema)
-module.exports = SessionModel
+export default SessionModel;
 
 // device

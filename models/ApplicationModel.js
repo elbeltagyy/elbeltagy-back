@@ -1,5 +1,5 @@
-const mongoose = require("mongoose")
-const CourseModel = require("./CourseModel")
+import mongoose from 'mongoose';
+import CourseModel from './CourseModel.js';
 
 const applicationSchema = new mongoose.Schema({
     courses: [{ type: mongoose.Schema.Types.ObjectId, ref: CourseModel }],
@@ -17,4 +17,4 @@ const applicationSchema = new mongoose.Schema({
 
 
 const ApplicationModel = mongoose.model("application", applicationSchema)
-module.exports = ApplicationModel
+export default ApplicationModel;

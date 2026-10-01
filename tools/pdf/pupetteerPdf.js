@@ -1,4 +1,4 @@
-const puppeteer = require('puppeteer');
+import puppeteer from 'puppeteer';
 
 const puppeteerPdf = async (htmlContent, pdfPath = 'output.pdf') => {
 
@@ -23,4 +23,4 @@ const puppeteerPdf = async (htmlContent, pdfPath = 'output.pdf') => {
   const pdfBuffer = Buffer.from(pdf)
   return pdfBuffer
 }
-module.exports = puppeteerPdf
+export default puppeteerPdf;

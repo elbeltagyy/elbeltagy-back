@@ -1,21 +1,22 @@
-const expressAsyncHandler = require("express-async-handler")
+import expressAsyncHandler from 'express-async-handler';
 
-const createError = require("../tools/createError")
-const { FAILED, SUCCESS } = require("../tools/statusTexts")
+import createError from '../tools/createError.js';
+import { FAILED, SUCCESS } from '../tools/statusTexts.js';
 
-const { user_roles } = require("../tools/constants/rolesConstants")
-const allowedTo = require("../middleware/allowedTo")
-const verifyToken = require("../middleware/verifyToken")
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import allowedTo from '../middleware/allowedTo.js';
+import verifyToken from '../middleware/verifyToken.js';
 
-const CouponModel = require("../models/CouponModel")
-const { getCoupons, createCoupon, updateCoupon, deleteCoupon, verifyCoupon, addToCoupons } = require("../controllers/couponController")
+import CouponModel from '../models/CouponModel.js';
+import { getCoupons, createCoupon, updateCoupon, deleteCoupon, verifyCoupon, addToCoupons } from '../controllers/couponController.js';
 
-const CourseModel = require("../models/CourseModel")
-const { filterById } = require("../controllers/factoryHandler")
-const { coursesParams } = require("../controllers/courseController")
-const makeRandom = require("../tools/makeRandom")
+import CourseModel from '../models/CourseModel.js';
+import { filterById } from '../controllers/factoryHandler.js';
+import { coursesParams } from '../controllers/courseController.js';
+import makeRandom from '../tools/makeRandom.js';
 
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
 function getRandomLetter() {
     const letters = 'abcdefghijklmnopqrstuvwxyz';
@@ -60,4 +61,4 @@ router.route("/:id")
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), updateCoupon)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), deleteCoupon)
 
-module.exports = router
+export default router;

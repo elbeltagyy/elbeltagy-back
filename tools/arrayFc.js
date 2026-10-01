@@ -6,4 +6,4 @@ const getUnique = (array, by) => {
     })
 }
 
-module.exports = {getUnique}
+export { getUnique };

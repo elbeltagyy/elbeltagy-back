@@ -1,6 +1,6 @@
-const mongoose = require("mongoose")
-const UserModel = require("./UserModel")
-const BookModel = require("./BookModel")
+import mongoose from 'mongoose';
+import UserModel from './UserModel.js';
+import BookModel from './BookModel.js';
 
 
 const bookOrderModel = new mongoose.Schema({
@@ -14,4 +14,4 @@ const bookOrderModel = new mongoose.Schema({
 })
 
 const BookOrderModel = mongoose.model("bookOrder", bookOrderModel)
-module.exports = BookOrderModel
+export default BookOrderModel;

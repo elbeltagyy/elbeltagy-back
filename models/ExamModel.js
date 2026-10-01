@@ -1,5 +1,5 @@
-const mongoose = require("mongoose")
-const { examMethods, getExamMethod } = require("../tools/constants/examMethod")
+import mongoose from 'mongoose';
+import { examMethods, getExamMethod } from '../tools/constants/examMethod.js';
 
 const defaultMethod = getExamMethod({ isDefault: true })?.value
 
@@ -22,4 +22,4 @@ const examSchema = new mongoose.Schema({
 
 
 const ExamModel = mongoose.model("exam", examSchema)
-module.exports = ExamModel
+export default ExamModel;

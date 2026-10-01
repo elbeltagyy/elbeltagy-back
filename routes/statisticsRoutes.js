@@ -1,15 +1,16 @@
-const { getUsersCount, getUnitsCount, getCoursesCount, getLecturesCount, getSubscriptionsCount, getNotificationsCount, getAttemptsCount, getTagsCount, getQuestionsCount, getAnswersCount } = require("../controllers/statisticsController")
-const { getViewsCount, getByUsersCount } = require("../controllers/viewsController")
-const { analysisMonthly } = require("../controllers/factoryHandler.js")
-const allowedTo = require("../middleware/allowedTo")
-const { secureGetAll } = require("../middleware/secureMiddleware")
-const verifyToken = require("../middleware/verifyToken")
-const { user_roles } = require("../tools/constants/rolesConstants")
-const UserModel = require("../models/UserModel.js")
-const UserCourseModel = require("../models/UserCourseModel.js")
-const { userCoursesParams } = require("../controllers/userCourseController.js")
+import { getUsersCount, getUnitsCount, getCoursesCount, getLecturesCount, getSubscriptionsCount, getNotificationsCount, getAttemptsCount, getTagsCount, getQuestionsCount, getAnswersCount } from '../controllers/statisticsController.js';
+import { getViewsCount, getByUsersCount } from '../controllers/viewsController.js';
+import { analysisMonthly } from '../controllers/factoryHandler.js';
+import allowedTo from '../middleware/allowedTo.js';
+import { secureGetAll } from '../middleware/secureMiddleware.js';
+import verifyToken from '../middleware/verifyToken.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import UserModel from '../models/UserModel.js';
+import UserCourseModel from '../models/UserCourseModel.js';
+import { userCoursesParams } from '../controllers/userCourseController.js';
 
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
 router.route("/users")
     .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), getUsersCount)
@@ -53,4 +54,4 @@ router.route("/questions")
 router.route("/answers")
     .get(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), getAnswersCount)
 
-module.exports = router
+export default router;

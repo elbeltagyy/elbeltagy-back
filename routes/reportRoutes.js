@@ -1,10 +1,11 @@
-const { sendReports, getReports, deleteReport, updateReport } = require("../controllers/reportController")
-const { whatsStatusMiddleware } = require("../controllers/whatsappController")
-const allowedTo = require("../middleware/allowedTo")
-const verifyToken = require("../middleware/verifyToken")
-const { user_roles } = require("../tools/constants/rolesConstants")
+import { sendReports, getReports, deleteReport, updateReport } from '../controllers/reportController.js';
+import { whatsStatusMiddleware } from '../controllers/whatsappController.js';
+import allowedTo from '../middleware/allowedTo.js';
+import verifyToken from '../middleware/verifyToken.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
 router.route("/")
     .post( sendReports) //whatsStatusMiddleware,
@@ -13,4 +14,4 @@ router.route("/:id")
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), updateReport)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), deleteReport)
 
-module.exports = router
+export default router;

@@ -1,4 +1,4 @@
-const { parsePhoneNumberFromString, parsePhoneNumberWithError } = require('libphonenumber-js');
+import { parsePhoneNumberFromString, parsePhoneNumberWithError } from 'libphonenumber-js';
 
 
 const getInternational = (nationalPhone, meta = {}) => {
@@ -21,4 +21,4 @@ const getNational = (internationalPhone) => {
     return number
 }
 
-module.exports = { getInternational, getNational }
+export { getInternational, getNational };

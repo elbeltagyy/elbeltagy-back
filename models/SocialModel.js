@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const PageSchema = new mongoose.Schema({
     id: String,
@@ -16,4 +16,4 @@ const socialSchema = new mongoose.Schema({
 })
 
 const SocialModel = mongoose.model('social', socialSchema)
-module.exports = SocialModel
+export default SocialModel;

@@ -1,5 +1,5 @@
-const mongoose = require("mongoose")
-const filePlayers = require("../tools/constants/filePlayers")
+import mongoose from 'mongoose';
+import filePlayers from '../tools/constants/filePlayers.js';
 
 const videoSchema = new mongoose.Schema({
     name: { type: String },
@@ -17,4 +17,4 @@ const videoSchema = new mongoose.Schema({
 })
 
 const VideoModel = mongoose.model("video", videoSchema)
-module.exports = VideoModel
+export default VideoModel;

@@ -1,7 +1,7 @@
-const mongoose = require("mongoose")
-const UserModel = require("./UserModel")
-const CourseModel = require("./CourseModel")
-const codeConstants = require("../tools/constants/codeConstants")
+import mongoose from 'mongoose';
+import UserModel from './UserModel.js';
+import CourseModel from './CourseModel.js';
+import codeConstants from '../tools/constants/codeConstants.js';
 
 
 const couponSchema = new mongoose.Schema({
@@ -29,4 +29,4 @@ const couponSchema = new mongoose.Schema({
 })
 
 const CouponModel = mongoose.model("coupon", couponSchema)
-module.exports = CouponModel
+export default CouponModel;

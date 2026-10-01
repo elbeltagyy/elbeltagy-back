@@ -1,9 +1,9 @@
-const expressAsyncHandler = require("express-async-handler");
-const fs = require('fs')
-const fileType = require('file-type');
-const fileTypes = require("../tools/constants/fileTypes");
-const createError = require("../tools/createError");
-const { FAILED } = require("../tools/statusTexts");
+import expressAsyncHandler from 'express-async-handler';
+import fs from 'fs';
+import fileType from 'file-type';
+import fileTypes from '../tools/constants/fileTypes.js';
+import createError from '../tools/createError.js';
+import { FAILED } from '../tools/statusTexts.js';
 
 const verifyFile = (...allowedFiles) => {
     return expressAsyncHandler(async (req, res, next) => {
@@ -19,4 +19,4 @@ const verifyFile = (...allowedFiles) => {
     })
 }
 
-module.exports = verifyFile
+export default verifyFile;

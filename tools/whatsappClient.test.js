@@ -1,5 +1,5 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
+import { Client, LocalAuth } from 'whatsapp-web.js';
+import qrcode from 'qrcode-terminal';
 
 const client = new Client({
     puppeteer: {
@@ -19,18 +19,18 @@ client.on('ready', () => {
     console.log('Client is ready!');
 });
 
-module.exports = client
+export default client;
 
 
 // ##Used Code
 
-const { Client, LocalAuth } = require('whatsapp-web.js');
-const qrcode = require('qrcode');
-const qrcodeTerminal = require("qrcode-terminal")
-const fs = require('fs')
+import { Client, LocalAuth } from 'whatsapp-web.js';
+import qrcode from 'qrcode';
+import qrcodeTerminal from 'qrcode-terminal';
+import fs from 'fs';
 
-const createError = require('./createError');
-const { FAILED } = require('./statusTexts');
+import createError from './createError.js';
+import { FAILED } from './statusTexts.js';
 
 class WhatsappService {
     constructor() {
@@ -237,10 +237,10 @@ class WhatsappService {
     }
 }
 
-module.exports = WhatsappService;
+export default WhatsappService;
 // #################### beiley
 let makeWASocket, useMultiFileAuthState, DisconnectReason;
-const pino = require("pino");
+import pino from 'pino';
 
 (async () => {
     const baileys = await import('@whiskeysockets/baileys');
@@ -249,11 +249,11 @@ const pino = require("pino");
     DisconnectReason = baileys.DisconnectReason;
 })();
 
-const qrcode = require('qrcode');
-const fs = require('fs');
-const path = require('path');
-const createError = require('./createError');
-const { FAILED } = require('./statusTexts');
+import qrcode from 'qrcode';
+import fs from 'fs';
+import path from 'path';
+import createError from './createError.js';
+import { FAILED } from './statusTexts.js';
 
 
 function deleteSessionFolder(userId, sessionDir) {
@@ -433,4 +433,4 @@ class WhatsappService {
 
 
 
-module.exports = WhatsappService;
+export default WhatsappService;

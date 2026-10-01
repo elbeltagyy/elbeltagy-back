@@ -1,22 +1,22 @@
-const asyncHandler = require("express-async-handler");
-const statusTexts = require("../tools/statusTexts");
-const SessionModel = require("../models/SessionModel");
+import asyncHandler from 'express-async-handler';
+import statusTexts from '../tools/statusTexts.js';
+import SessionModel from '../models/SessionModel.js';
 
-const crypto = require('crypto')
-const UAParser = require('ua-parser-js');
-const ms = require("ms");
-const createError = require("../tools/createError");
-const { generateRefreshToken } = require("../middleware/generateRefreshToken.js");
-const { generateAccessToken } = require("../middleware/generateAccessToken.js");
-const codeConstants = require("../tools/constants/codeConstants.js");
-const { user_roles } = require("../tools/constants/rolesConstants.js");
-const { uploadFile, deleteFile } = require("../middleware/upload/uploadFiles.js");
+import crypto from 'crypto';
+import UAParser from 'ua-parser-js';
+import ms from 'ms';
+import createError from '../tools/createError.js';
+import { generateRefreshToken } from '../middleware/generateRefreshToken.js';
+import { generateAccessToken } from '../middleware/generateAccessToken.js';
+import codeConstants from '../tools/constants/codeConstants.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import { uploadFile, deleteFile } from '../middleware/upload/uploadFiles.js';
 
-const dotenv = require("dotenv");
-const parseFilters = require("../tools/fcs/matchGPT.js");
-const UserModel = require("../models/UserModel.js");
-const convertToObjectIdBySchema = require("../tools/fcs/convertToObjectIdBySchema.js");
-const { buildPopulate } = require("../tools/fcs/buildPopulate.js");
+import dotenv from 'dotenv';
+import parseFilters from '../tools/fcs/matchGPT.js';
+import UserModel from '../models/UserModel.js';
+import convertToObjectIdBySchema from '../tools/fcs/convertToObjectIdBySchema.js';
+import { buildPopulate } from '../tools/fcs/buildPopulate.js';
 dotenv.config()
 
 const getMonthRange = (value) => {
@@ -30,7 +30,7 @@ const getMonthRange = (value) => {
     return { $gte: start, $lt: end };
 }
 
-exports.analysisByKeys = (Model, params) => asyncHandler(async (req, res, next) => {
+export const analysisByKeys = (Model, params) => asyncHandler(async (req, res, next) => {
     const matchStage = params ? parseFilters(params((convertToObjectIdBySchema(req.query, Model)))) : {}
     const filterByTime = req.query.filterByTime || null
     filterByTime ? matchStage.createdAt = getMonthRange(filterByTime) : ''
@@ -41,7 +41,7 @@ exports.analysisByKeys = (Model, params) => asyncHandler(async (req, res, next) 
     return res.status(200).json({ values: { series } })
 })
 
-exports.analysisMonthly = (Model, params = null) => asyncHandler(async (req, res, next) => {
+export const analysisMonthly = (Model, params = null) => asyncHandler(async (req, res, next) => {
     const startYear = req.query.start ? Number(req.query.start) : null;
     const endYear = req.query.end ? Number(req.query.end) : null;
 
@@ -102,20 +102,33 @@ exports.analysisMonthly = (Model, params = null) => asyncHandler(async (req, res
 })
 
 //analysisUsers ==> matching - anaMethod (strict - monthly - yearly) - by (default - roles)
-exports.handelOneFile = (fileKey) =>
+export const handelOneFile = (fileKey) => //Handel one field
     asyncHandler(async (req, res, next) => {
-        const file = req.file || null;
-        if (file) {
-            const fileData = await uploadFile(file, { name: file?.originalname, secure: true }) //req.body?.name || 
-            req.body[fileKey] = fileData
+        const files = (req.files && Array.isArray(req.files)) ? req.files :
+            req.file ? [req.file] : [];
+
+        if (files?.length) {
+            const fileData = await Promise.all(
+                files.map(file =>
+                    uploadFile(file, {
+                        name: file.originalname,
+                        secure: true,
+                    })
+                )
+            );
+
+            req.body[fileKey] = Array.isArray(req.files)
+                ? fileData
+                : fileData[0];
         } else {
-            delete req.body[fileKey]
+            delete req.body[fileKey];
         }
-        next()
+
+        next();
     });
 //handelMultipleFiles(['thumbnail', 'file'])
 //handelMultipleFiles({ thumbnail: 'single', file: 'multiple' })
-exports.handelMultipleFiles = (fileKeys) =>
+export const handelMultipleFiles = (fileKeys) =>
     asyncHandler(async (req, res, next) => {
         const entries = Array.isArray(fileKeys)
             ? fileKeys.map((key) => [key, 'single'])
@@ -138,7 +151,7 @@ exports.handelMultipleFiles = (fileKeys) =>
         );
         next();
     });
-exports.deleteFromBody = (keys = []) => {
+export const deleteFromBody = (keys = []) => {
     return asyncHandler(async (req, res, next) => {
         keys.map(key => {
             delete req.body[key]
@@ -147,7 +160,7 @@ exports.deleteFromBody = (keys = []) => {
     })
 }
 
-exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '', embedFc = false) =>
+export const getAll = (Model, docName, params = [], isModernSort = true, populate = '', embedFc = false) =>
     asyncHandler(async (req, res) => {
         const query = req.query
 
@@ -197,7 +210,7 @@ exports.getAll = (Model, docName, params = [], isModernSort = true, populate = '
     });
 
 
-exports.getOne = (Model, populate = '') =>
+export const getOne = (Model, populate = '') =>
     asyncHandler(async (req, res, next) => {
         const { id } = req.params;
         const query = req.query
@@ -219,7 +232,7 @@ exports.getOne = (Model, populate = '') =>
 
     });
 
-exports.insertOne = (Model, withIndex = false, populate = '', relatedDocs) =>
+export const insertOne = (Model, withIndex = false, populate = '', relatedDocs, onCreate = null) =>
     asyncHandler(async (req, res) => {
 
         if (withIndex) {
@@ -247,11 +260,15 @@ exports.insertOne = (Model, withIndex = false, populate = '', relatedDocs) =>
             ).flat();
             await Promise.all(updateTasks);
         }
+
+        if (onCreate) {
+            await onCreate(req, doc)
+        }
         const successMsg = req.successMsg ?? 'تم الانشاء بنجاح'
         return res.status(201).json({ status: statusTexts.SUCCESS, values: doc, message: successMsg })
     });
 
-exports.updateOne = (Model) =>
+export const updateOne = (Model) =>
     asyncHandler(async (req, res, next) => {
         const doc = await Model.findByIdAndUpdate(
             req.params.id,
@@ -266,7 +283,32 @@ exports.updateOne = (Model) =>
     });
 
 
-exports.deleteOne = (Model, relatedDocs = [], relatedModels = [], relatedFiles) =>
+
+// ############## Delete Related FIles 
+const deleteRelatedFiles = async (docs, relatedFiles) => {
+    //docs => object or Array
+    //relatedFIles => [{url}] || url || [url]
+    if (!relatedFiles?.length) return [];
+
+    const documents = Array.isArray(docs) ? docs : [docs];
+    const fields = Array.isArray(relatedFiles)
+        ? relatedFiles
+        : [relatedFiles];
+
+    const files = documents.flatMap(doc =>
+        fields.flatMap(field => {
+            const filePath = doc?.[field];
+            if (!filePath) return [];
+
+            return (Array.isArray(filePath) ? filePath : [filePath])
+                .filter(Boolean); //[url] || [{url}]
+        })
+    );
+
+    return Promise.all(files.map(deleteFile));
+};
+
+export const deleteOne = (Model, relatedDocs = [], relatedModels = [], relatedFiles = null, onDelete = null) =>
     asyncHandler(async (req, res, next) => {
         const { id } = req.params;
         // console.log('id ==>', id)
@@ -285,11 +327,15 @@ exports.deleteOne = (Model, relatedDocs = [], relatedModels = [], relatedFiles) 
         }
         let isFoundFileAndDeleted = []
         if (relatedFiles) {
-            const relatedFilesArray = Array.isArray(relatedFiles) ? relatedFiles : [relatedFiles]
+            await deleteRelatedFiles(document, relatedFiles)
+            // const relatedFilesArray = Array.isArray(relatedFiles) ? relatedFiles : [relatedFiles]
 
-            isFoundFileAndDeleted = await Promise.all(relatedFilesArray.map(f => {
-                return deleteFile(document[f])
-            }))
+            // isFoundFileAndDeleted = await Promise.all(relatedFilesArray.map(f => {
+            //     return deleteFile(document[f])
+            // }))
+        }
+        if (onDelete) {
+            await onDelete(req, document)
         }
 
         let message = 'تمت الازاله بنجاح'
@@ -299,7 +345,7 @@ exports.deleteOne = (Model, relatedDocs = [], relatedModels = [], relatedFiles) 
         return res.status(200).json({ status: statusTexts.SUCCESS, message })
     });
 
-exports.deleteMany = (Model, params = [], relatedDocs = [], relatedModels = [], relatedFiles, specificFilters = {}) =>
+export const deleteMany = (Model, params = [], relatedDocs = [], relatedModels = [], relatedFiles = null, specificFilters = {}) =>
     asyncHandler(async (req, res, next) => {
         const { ids = [] } = req.body;
         const query = req.query
@@ -314,11 +360,6 @@ exports.deleteMany = (Model, params = [], relatedDocs = [], relatedModels = [], 
         }
         if (Object.keys(match).length === 0) {
             return next(createError('لا يمكن ازاله كل العناصر', 400, statusTexts.FAILED))
-        }
-
-        // Ensure relatedFiles is always an array
-        if (!Array.isArray(relatedFiles)) {
-            relatedFiles = [relatedFiles].filter(Boolean);
         }
 
         const BATCH_SIZE = 1000
@@ -340,16 +381,9 @@ exports.deleteMany = (Model, params = [], relatedDocs = [], relatedModels = [], 
                 tasks.push(deleteOtherModels(relatedModels, batchIds));
             }
 
-            // Delete related files for each doc
-            if (relatedFiles.length > 0) {
-                docs.forEach(doc => {
-                    relatedFiles.forEach(field => {
-                        const filePath = doc[field];
-                        if (filePath) {
-                            tasks.push(deleteFile(filePath));
-                        }
-                    });
-                });
+            // Delete related files for each doc may be [{url}] || {url} || url
+            if (relatedFiles) {
+                await deleteRelatedFiles(docs, relatedFiles)
             }
             await Promise.all(tasks);
             // Delete actual docs from Model
@@ -361,7 +395,7 @@ exports.deleteMany = (Model, params = [], relatedDocs = [], relatedModels = [], 
         return res.status(200).json({ status: statusTexts.SUCCESS, message })
     });
 
-exports.getDocCount = (Model, params = null) =>
+export const getDocCount = (Model, params = null) =>
     asyncHandler(async (req, res) => {
 
         const query = req.query
@@ -374,7 +408,7 @@ exports.getDocCount = (Model, params = null) =>
     });
 
 
-exports.filterById = (Model, params = [], idName) =>
+export const filterById = (Model, params = [], idName) =>
     asyncHandler(async (req, res, next) => {
         const query = req.query
         // search && filter
@@ -387,7 +421,7 @@ exports.filterById = (Model, params = [], idName) =>
         next()
     })
 
-exports.makeLoginSession = () => {
+export const makeLoginSession = () => {
     return asyncHandler(async (req, res, next) => {
         const user = req.user
         const deviceIdSignedCookie = '_mev1' + '_' + user.userName //v1
@@ -470,7 +504,7 @@ exports.makeLoginSession = () => {
     });
 }
 
-exports.useCode = async (code = null, user) => {
+export const useCode = async (code = null, user) => {
     return new Promise(async (resolve, reject) => {
         try {
             if (!code) return reject(createError("هذا الكود غير صالح", 400, statusTexts.FAILED))
@@ -514,7 +548,7 @@ exports.useCode = async (code = null, user) => {
     })
 }
 
-exports.pushToModel = (Model) => {
+export const pushToModel = (Model) => {
     return asyncHandler(async (req, res, next) => {
         const targetId = req.params.id
 

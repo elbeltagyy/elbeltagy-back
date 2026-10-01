@@ -1,14 +1,15 @@
-const { filterById } = require("../controllers/factoryHandler")
-const { userParams, getUsers } = require("../controllers/userController")
-const { getCourseSubscriptions, addSubscription, removeSubscription, updateSubscription } = require("../controllers/userCourseController")
-const allowedTo = require("../middleware/allowedTo")
-const { secureGetAll } = require("../middleware/secureMiddleware")
-const verifyToken = require("../middleware/verifyToken")
-const CourseModel = require("../models/CourseModel")
-const UserModel = require("../models/UserModel")
-const { user_roles } = require("../tools/constants/rolesConstants")
+import { filterById } from '../controllers/factoryHandler.js';
+import { userParams, getUsers } from '../controllers/userController.js';
+import { getCourseSubscriptions, addSubscription, removeSubscription, updateSubscription } from '../controllers/userCourseController.js';
+import allowedTo from '../middleware/allowedTo.js';
+import { secureGetAll } from '../middleware/secureMiddleware.js';
+import verifyToken from '../middleware/verifyToken.js';
+import CourseModel from '../models/CourseModel.js';
+import UserModel from '../models/UserModel.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
 const courseParams = (query) => {
     return [
@@ -25,4 +26,4 @@ router.route("/courses/:id")
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), updateSubscription)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), removeSubscription)
 
-module.exports = router
+export default router;

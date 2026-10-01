@@ -9,4 +9,4 @@ const user_roles = {
 }
 
 
-module.exports = { user_roles }
+export { user_roles };

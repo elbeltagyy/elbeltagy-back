@@ -1,5 +1,5 @@
-const mongoose = require("mongoose")
-const filePlayer = require("../tools/constants/filePlayers")
+import mongoose from 'mongoose';
+import filePlayer from '../tools/constants/filePlayers.js';
 
 
 const fileSchema = new mongoose.Schema({
@@ -15,4 +15,4 @@ const fileSchema = new mongoose.Schema({
 })
 
 const FileModel = mongoose.model("file", fileSchema)
-module.exports = FileModel
+export default FileModel;

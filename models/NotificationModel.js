@@ -1,6 +1,6 @@
-const mongoose = require("mongoose")
-const UserModel = require("./UserModel")
-const { senderConstants } = require("../tools/constants/sendersConstants")
+import mongoose from 'mongoose';
+import UserModel from './UserModel.js';
+import { senderConstants } from '../tools/constants/sendersConstants.js';
 
 const notificationSchema = new mongoose.Schema({
     message: { type: String },
@@ -31,4 +31,4 @@ const notificationSchema = new mongoose.Schema({
 notificationSchema.index({ messageId: 1 });
 const NotificationModel = mongoose.model("notification", notificationSchema)
 
-module.exports = NotificationModel
+export default NotificationModel;

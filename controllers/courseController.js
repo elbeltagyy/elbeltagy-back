@@ -1,31 +1,33 @@
-const expressAsyncHandler = require("express-async-handler");
-const CourseModel = require("../models/CourseModel");
-const { getAll, getOne, insertOne, updateOne, deleteOne } = require("./factoryHandler");
+import expressAsyncHandler from 'express-async-handler';
+import CourseModel from '../models/CourseModel.js';
+import { getAll, getOne, insertOne, updateOne, deleteOne } from './factoryHandler.js';
 
-const mongoose = require('mongoose');
-const LectureModel = require("../models/LectureModel");
-const UserCourseModel = require("../models/UserCourseModel");
+import mongoose from 'mongoose';
+import LectureModel from '../models/LectureModel.js';
+import UserCourseModel from '../models/UserCourseModel.js';
 
-const { SUCCESS, FAILED } = require("../tools/statusTexts");
-const createError = require("../tools/createError");
+import { SUCCESS, FAILED } from '../tools/statusTexts.js';
+import createError from '../tools/createError.js';
 
-const UserModel = require("../models/UserModel");
-const ExamModel = require("../models/ExamModel");
-const AttemptModel = require("../models/AttemptModel");
-const getAttemptMark = require("../tools/getAttemptMark");
-const { ObjectId } = require('mongodb');
-const { uploadFile, deleteFile } = require("../middleware/upload/uploadFiles");
-const lockLectures = require("../tools/lockLectures");
-const CouponModel = require("../models/CouponModel");
-const codeConstants = require("../tools/constants/codeConstants");
-const VideoStatisticsModel = require("../models/VideoStatisticsModel");
-const handelExamAndAttempts = require("../tools/fcs/handelExamAndAttempts");
-const { convertToMs } = require("../tools/dateFc");
+import UserModel from '../models/UserModel.js';
+import ExamModel from '../models/ExamModel.js';
+import AttemptModel from '../models/AttemptModel.js';
+import getAttemptMark from '../tools/getAttemptMark.js';
+
+import { uploadFile, deleteFile } from '../middleware/upload/uploadFiles.js';
+import lockLectures from '../tools/lockLectures.js';
+import CouponModel from '../models/CouponModel.js';
+import codeConstants from '../tools/constants/codeConstants.js';
+import VideoStatisticsModel from '../models/VideoStatisticsModel.js';
+import handelExamAndAttempts from '../tools/fcs/handelExamAndAttempts.js';
+import { convertToMs } from '../tools/dateFc.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
 
 const coursesParams = (query) => {
     return [
         { key: "grade", value: query.grade },
+        { key: "isCommunity", value: query.isCommunity },
         { key: "name", value: query.name },
         { key: "description", value: query.description },
         { key: "price", value: query.price },
@@ -40,6 +42,18 @@ const coursesParams = (query) => {
         { key: "_id", value: query._id },
     ]
 }
+const adminArray = [user_roles.ADMIN, user_roles.SUBADMIN]
+
+const getUserCoursesMiddleware = expressAsyncHandler(async (req, res, next) => {
+    const user = req.user
+    //need user select courses[]
+    if ((req.query.isAdmin === "true") && adminArray.includes(user.role)) {
+        return next()
+    }
+    req.query._id = user.courses.length ? user.courses : 'empty'
+    next()
+})
+
 const createCourse = insertOne(CourseModel, true)
 const getCourses = getAll(CourseModel, 'courses', coursesParams, true) //user admin
 const getOneCourse = getOne(CourseModel, 'linkedTo', [
@@ -196,6 +210,20 @@ const getLectureAndCheck = expressAsyncHandler(async (req, res, next) => {
 
     let lecture = await LectureModel.findOne({ _id: lectureId, isActive: true }).lean().populate('exam video file link') //'exam video file link'
     if (!lecture) return next(createError("هذه المحاضره غير موجوده", 404, FAILED))
+    if (!lecture.parent) {
+        lecture.children = await LectureModel.find({ parent: lecture._id, isActive: true })
+            .lean()
+            .populate('exam video file link')
+
+        lecture.children = await Promise.all(
+            lecture.children.map(async (asset) => {
+                if (asset.exam) {
+                    return await handelExamAndAttempts(asset, user)
+                }
+                return asset
+            })
+        )
+    }
 
     if (lecture.exam) {
         lecture = await handelExamAndAttempts(lecture, user)
@@ -334,8 +362,9 @@ const canPassVideo = async (video, user) => {
     }
 }
 
-module.exports = {
-    getCourses, getOneCourse, uploadCourseImg, createCourse, updateCourse, checkDeleteCourse, deleteCourse, coursesParams,
-    getCourseLecturesAndCheckForUser, getLectureAndCheck, lecturePassed, subscribe,
-    getExam, createAttempt, linkCourse
-}
+export {
+    getUserCoursesMiddleware,
+    getCourses, getOneCourse, uploadCourseImg, createCourse,
+    updateCourse, checkDeleteCourse, deleteCourse, coursesParams,
+    getCourseLecturesAndCheckForUser, getLectureAndCheck, lecturePassed, subscribe, getExam, createAttempt, linkCourse
+};

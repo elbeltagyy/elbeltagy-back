@@ -1,6 +1,6 @@
-const axios = require('axios');
-const dotenv = require("dotenv");
-const crypto = require('crypto')
+import axios from 'axios';
+import dotenv from 'dotenv';
+import crypto from 'crypto';
 dotenv.config()
 
 // const userInfo = {
@@ -117,6 +117,4 @@ function verifyHmac(data, receivedHmac) {
     return hmac === receivedHmac;
 }
 
-module.exports = {
-    makeNewPaymob, verifyHmac
-}
+export { makeNewPaymob, verifyHmac };

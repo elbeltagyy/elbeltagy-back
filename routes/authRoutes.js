@@ -1,18 +1,19 @@
-const router = require("express").Router()
+import express from 'express';
+const router = express.Router();
 
-const { login, signup, logout, forgetPassword, verifyResetPassword, refreshTokenFc, islogged } = require("../controllers/authController")
+import { login, signup, logout, forgetPassword, verifyResetPassword, refreshTokenFc, islogged } from '../controllers/authController.js';
 
-const SessionModel = require("../models/SessionModel");
+import SessionModel from '../models/SessionModel.js';
 
-const { makeLoginSession } = require("../controllers/factoryHandler");
-const { imageUpload } = require("../middleware/storage");
-const { expressValidate } = require("../middleware/errorsHandler");
-const { loginSchema, signupSchema } = require("../middleware/validationSchema");
+import { makeLoginSession } from '../controllers/factoryHandler.js';
+import { imageUpload } from '../middleware/storage.js';
+import { expressValidate } from '../middleware/errorsHandler.js';
+import { loginSchema, signupSchema } from '../middleware/validationSchema.js';
 
-const verifyToken = require("../middleware/verifyToken");
+import verifyToken from '../middleware/verifyToken.js';
 
 //config
-require("dotenv").config()
+import 'dotenv/config';
 
 router.post("/login", loginSchema(), expressValidate, login, makeLoginSession())
 router.post('/signup', signupSchema(), expressValidate, signup, makeLoginSession()) //imageUpload.single('fileConfirm'),
@@ -25,4 +26,4 @@ router.get('/is_logged', verifyToken(), islogged)
 router.post('/forget_password', forgetPassword)
 router.post('/verify_password', verifyResetPassword)
 
-module.exports = router
+export default router;

@@ -1,24 +1,24 @@
-const expressAsyncHandler = require("express-async-handler");
-const createPdf = require("../tools/pdf/createPdf");
-const pdfMake = require("../tools/pdf/pdfMake");
-const puppeteerPdf = require("../tools/pdf/pupetteerPdf");
-const UserModel = require("../models/UserModel");
-const UserCourseModel = require("../models/UserCourseModel");
-const LectureModel = require("../models/LectureModel");
-const VideoStatisticsModel = require("../models/VideoStatisticsModel");
-const AttemptModel = require("../models/AttemptModel");
-const fs = require('fs');
-const path = require("path");
-const ejs = require('ejs');
-const { getDateWithTime, formatDuration } = require("../tools/dateFc");
-const getAttemptMark = require("../tools/getAttemptMark");
-const { attemptAllInfo, getExamMark } = require("../tools/getExamInfo");
-const { user_roles } = require("../tools/constants/rolesConstants");
-const { userParams } = require("./userController");
-const ReportModel = require("../models/ReportModel");
-const ReportFailedModel = require("../models/ReportFailedModel");
-const { getAll, deleteOne, updateOne } = require("./factoryHandler");
-const parseFilters = require("../tools/fcs/matchGPT");
+import expressAsyncHandler from 'express-async-handler';
+import createPdf from '../tools/pdf/createPdf.js';
+import pdfMake from '../tools/pdf/pdfMake.js';
+import puppeteerPdf from '../tools/pdf/pupetteerPdf.js';
+import UserModel from '../models/UserModel.js';
+import UserCourseModel from '../models/UserCourseModel.js';
+import LectureModel from '../models/LectureModel.js';
+import VideoStatisticsModel from '../models/VideoStatisticsModel.js';
+import AttemptModel from '../models/AttemptModel.js';
+import fs from 'fs';
+import path from 'path';
+import ejs from 'ejs';
+import { getDateWithTime, formatDuration } from '../tools/dateFc.js';
+import getAttemptMark from '../tools/getAttemptMark.js';
+import { attemptAllInfo, getExamMark } from '../tools/getExamInfo.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
+import { userParams } from './userController.js';
+import ReportModel from '../models/ReportModel.js';
+import ReportFailedModel from '../models/ReportFailedModel.js';
+import { getAll, deleteOne, updateOne } from './factoryHandler.js';
+import parseFilters from '../tools/fcs/matchGPT.js';
 
 
 const getFailedReportUsers = expressAsyncHandler(async (req, res, next) => {
@@ -45,4 +45,4 @@ const getFailedReportUsers = expressAsyncHandler(async (req, res, next) => {
     res.status(200).json({ values: { users: reportFailed?.users || [], count: reportFailed?.users.length || 0 } })
 })
 
-module.exports = { getFailedReportUsers }
+export { getFailedReportUsers };

@@ -1,20 +1,21 @@
-const { handelOneFile } = require('../controllers/factoryHandler')
-const { getGrades, createGrade, updateGrade, getOneGrade, deleteGrade } = require('../controllers/gradeController')
-const allowedTo = require('../middleware/allowedTo')
-const { secureGetAll } = require('../middleware/secureMiddleware')
-const { upload } = require('../middleware/storage')
-const verifyToken = require('../middleware/verifyToken')
-const { user_roles } = require('../tools/constants/rolesConstants')
+import { handelOneFile } from '../controllers/factoryHandler.js';
+import { getGrades, createGrade, updateGrade, getOneGrade, deleteGrade } from '../controllers/gradeController.js';
+import allowedTo from '../middleware/allowedTo.js';
+import { secureGetAll } from '../middleware/secureMiddleware.js';
+import { upload } from '../middleware/storage.js';
+import verifyToken from '../middleware/verifyToken.js';
+import { user_roles } from '../tools/constants/rolesConstants.js';
 
-const router = require('express').Router()
+import express from 'express';
+const router = express.Router();
 
 router.route("/")
     .get(verifyToken(true), secureGetAll({ key: "isActive", value: true }, [user_roles.SUBADMIN, user_roles.ADMIN]), getGrades)
     .post(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), upload.single('image'), handelOneFile('image'), createGrade)
 
 router.route("/:id")
-    .get(getOneGrade)
+    .get(verifyToken(true), secureGetAll({ key: "isActive", value: true }), getOneGrade)
     .put(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), upload.single('image'), handelOneFile('image'), updateGrade)
     .delete(verifyToken(), allowedTo(user_roles.ADMIN, user_roles.SUBADMIN), deleteGrade)
-module.exports = router
+export default router;
 

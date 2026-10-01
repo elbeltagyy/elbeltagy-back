@@ -1,5 +1,5 @@
-const expressAsyncHandler = require("express-async-handler");
-const sharp = require("sharp")
+import expressAsyncHandler from 'express-async-handler';
+import sharp from 'sharp';
 
 const imgSharp = (file) => {
     return new Promise(async (resolve, reject) => {
@@ -14,6 +14,6 @@ const imgSharp = (file) => {
         }
     })
 }
-module.exports = { imgSharp }
+export { imgSharp };
 
 // const compessImg = expressAsyncHandler(async(req, res))
