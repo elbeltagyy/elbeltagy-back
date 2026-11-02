@@ -86,4 +86,23 @@ const pdfUpload = multer({
     limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
 });
 
-export { upload, imageUpload, uploadAndStore };
+
+const uploadDisabled = (req, res, next) => {
+    return res.status(403).json({
+        success: false,
+        message: "File uploads are currently disabled."
+    });
+};
+// Same API surface as a multer instance, but every method returns the blocker
+const disabledUploader = {
+    single: () => uploadDisabled,
+    array: () => uploadDisabled,
+    fields: () => uploadDisabled,
+    none: () => uploadDisabled,
+    any: () => uploadDisabled,
+};
+export {
+    disabledUploader as upload,
+    disabledUploader as imageUpload,
+    disabledUploader as uploadAndStore
+};
