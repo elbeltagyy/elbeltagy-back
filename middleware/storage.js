@@ -87,22 +87,22 @@ const pdfUpload = multer({
 });
 
 
-const uploadDisabled = (req, res, next) => {
-    return res.status(403).json({
-        success: false,
-        message: "File uploads are currently disabled."
-    });
-};
-// Same API surface as a multer instance, but every method returns the blocker
-const disabledUploader = {
-    single: () => uploadDisabled,
-    array: () => uploadDisabled,
-    fields: () => uploadDisabled,
-    none: () => uploadDisabled,
-    any: () => uploadDisabled,
-};
+// const uploadDisabled = (req, res, next) => {
+//     return res.status(403).json({
+//         success: false,
+//         message: "File uploads are currently disabled."
+//     });
+// };
+// // Same API surface as a multer instance, but every method returns the blocker
+// const disabledUploader = {
+//     single: () => uploadDisabled,
+//     array: () => uploadDisabled,
+//     fields: () => uploadDisabled,
+//     none: () => uploadDisabled,
+//     any: () => uploadDisabled,
+// };
 export {
-    disabledUploader as upload,
-    disabledUploader as imageUpload,
-    disabledUploader as uploadAndStore
+    upload,
+    imageUpload,
+    uploadAndStore
 };
